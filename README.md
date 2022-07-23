@@ -35,7 +35,7 @@ The goal is to evolve this project into a full library that allows writing exten
 
 ## Contribute
 
-You know cpp, Haxe and love to have a lasting impact when it comes to opensource gamedevelopment? 
+You know cpp, Haxe and would love to have a lasting impact when it comes to opensource gamedevelopment? 
 
 Then join the effort here!
 
