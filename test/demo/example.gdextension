@@ -1,0 +1,18 @@
+[configuration]
+
+entry_symbol = "example_library_init"
+
+[libraries]
+
+macos.debug = ""
+macos.release = ""
+windows.debug.x86_32 = ""
+windows.release.x86_32 = "bin/HxGodot.dll"
+windows.debug.x86_64 = "bin/HxGodot-debug.dll"
+windows.release.x86_64 = ""
+linux.debug.x86_64 = ""
+linux.release.x86_64 = ""
+linux.debug.arm64 = ""
+linux.release.arm64 = ""
+linux.debug.rv64 = ""
+linux.release.rv64 = ""

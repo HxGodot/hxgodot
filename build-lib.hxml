@@ -1,0 +1,6 @@
+-main HxGodot
+-cpp bin/
+-cp src
+-D HXCPP_M64
+-D HXCPP_CPP11
+-D dll_link
