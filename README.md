@@ -7,7 +7,7 @@ Integrate Haxe and its hxcpp target runtime via the Godot 4.x GDExtension into G
 
 Let's make this work. 
 
-This is an early (pre-alpha) Haxe-hxcpp project builds a dynamic library that can be loaded by Godot 4.x. 
+This is an early (pre-alpha) Haxe-hxcpp project that builds a dynamic library that can be loaded by Godot 4.x. 
 
 ## Goal
 The goal is to evolve this project into a full library that allows writing extensions and new nodes in Haxe and eventually allow for cppia-scripting.
