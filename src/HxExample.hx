@@ -1,5 +1,5 @@
 
-import Types;
+import godot.Types;
 
 using cpp.NativeString;
 
@@ -20,7 +20,7 @@ using cpp.NativeString;
     static constexpr GDNativeInstanceBindingCallbacks ___binding_callbacks = {                                     
         ___binding_create_callback,                                                                                
         ___binding_free_callback,                                                                                  
-        ___binding_reference_callback,                                                                             
+        ___binding_reference_callback,
     };
 ')
 class HxExample {

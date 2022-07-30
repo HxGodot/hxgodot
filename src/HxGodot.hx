@@ -2,7 +2,7 @@ import cpp.link.StaticRegexp;
 import cpp.link.StaticStd;
 import cpp.link.StaticZlib;
 
-import Types;
+import godot.Types;
 
 using cpp.NativeString;
 
@@ -20,6 +20,10 @@ class HxGodot {
             GodotNativeInterface.print_error(Std.string(v), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
         }
 
+        // TODO: we need to register all customclasses somewhere. Adding them manually here sucks, I guess.
         HxExample.register();
+
+        // new macro based solution
+        HxExample2.__registerClass();
     }
 }

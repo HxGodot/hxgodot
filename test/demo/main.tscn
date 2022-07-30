@@ -17,3 +17,5 @@ offset_bottom = 21.0
 offset_right = 79.0
 offset_bottom = 29.0
 text = "Click me!"
+
+[node name="HxExample2" type="HxExample2" parent="."]
