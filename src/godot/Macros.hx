@@ -3,8 +3,8 @@ package godot;
 import godot.Types;
 import haxe.macro.Context;
 import haxe.macro.Expr;
-import haxe.macro.TypeTools;
 import haxe.macro.MacroStringTools;
+import haxe.macro.TypeTools;
 
 using haxe.macro.ExprTools;
 
@@ -19,7 +19,7 @@ class Macros {
         var isEngineClass = classMeta.has(":gdEngineClass");
 
         var classNameTokens = className.split(".");
-        var typePath:haxe.macro.TypePath = {
+        var typePath:TypePath = {
             sub: null,
             params: [],
             name: classNameTokens.pop(),
@@ -52,45 +52,64 @@ class Macros {
                 };
             "], pos);
 
-        // helper function
-        function addPostInitMethod(_class_name:String) {
-            var postInitClass = macro class {
-                static var __class_name = $v{className};
-                static var __parent_class_name = $v{parent_class_name};
+        
+        // register these extension fields
+        var extensionFields = [];
 
-                override function __postInit() {
-                    __owner = godot.Types.GodotNativeInterface.classdb_construct_object($v{_class_name});
+        for (field in fields) {
+            //trace(field);
+            for (fmeta in field.meta) {
+                //trace(fmeta);
+                //trace(field.kind);
+                switch (fmeta.name) {
+                    case ":gdBind": // bind godot-side to the extension
+                        switch (field.kind) {
+                            case FFun(f):
+                                var obj = fmeta.params[0];
+                                var method = fmeta.params[1];
+                                var hash = fmeta.params[2];
 
-                    var ptr:cpp.RawPointer<cpp.Void> = untyped __cpp__('(void*){0}.mPtr', this);
-                    
-                    if (!$v{isEngineClass}) { // deadcode elimination will get rid of this
-                        godot.Types.GodotNativeInterface.object_set_instance(
-                            __owner, 
-                            __class_name, 
-                            cast ptr
-                        );    
-                    }
-                    
-                    // register the callbacks, do we need this?
-                    godot.Types.GodotNativeInterface.object_set_instance_binding(
-                        __owner, 
-                        untyped __cpp__("godot::internal::token"), 
-                        cast ptr, 
-                        untyped __cpp__('&___binding_callbacks')
-                    );
+                                switch (f.ret) {
+                                    case TPath(t):
+                                        f.expr = macro {
+                                            /* TODO:
+                                            var __method_bind = godot.Types.GodotNativeInterface.classdb_get_method_bind($obj, $method, $hash);
+                                            godot.Types.GodotNativeInterface.object_method_bind_ptrcall(__method_bind, __owner, null, null);
+                                            */
+                                            return null;
+                                        };
+                                    default:
+                                }
+                                
+                            default:
+                        }
+                        
+                    case ":expose":
+                        extensionFields.push(field);
+                        /*
+                        switch (field.kind) {
+                            case FFun(f):
+                                switch (f.ret) {
+                                    case TPath(t):
+                                        f.expr = macro {
+                                            var __method_bind = godot.Types.GodotNativeInterface.classdb_get_method_bind($obj, $method, $hash);
+                                            godot.Types.GodotNativeInterface.object_method_bind_ptrcall(__method_bind, __owner, null, null);
+                                            return null;
+                                        };
+                                    default:
+                                }
+                            default:
+                        }
+                        */
                 }
             }
-            fields = fields.concat(postInitClass.fields);
         }
 
         if (isEngineClass) {
-            // add postinit, adds the owner
-            addPostInitMethod(typePath.name);
+            // properly bootstrap this class
+            fields = fields.concat(buildPostInit(typePath.name, parent_class_name, typePath.name));
         }
         else {
-            // add postinit, adds the owner
-            addPostInitMethod(parent_class_name);
-
             // find the first engine-class up the inheritance chain
             var engine_parent = cls.get().superClass.t.get();
             while (engine_parent != null) {
@@ -102,6 +121,12 @@ class Macros {
 
             if (engine_parent == null)
                 throw "Impossible";
+
+            // we got an extension class, so make sure we got the whole extension bindings for the fields covered!
+            fields = fields.concat(buildFieldBindings(extensionFields));
+
+            // properly bootstrap this class
+            fields = fields.concat(buildPostInit(className, parent_class_name, engine_parent.name));
 
             // add all necessary fields for godot interop
             var regClass = macro class {
@@ -170,4 +195,42 @@ class Macros {
 
         return fields;
     }
+#if macro
+    
+    static function buildPostInit(_class_name:String, _parent_class_name:String, _godotBaseclass:String) {
+        var postInitClass = macro class {
+            static var __class_name = $v{_class_name};
+            static var __parent_class_name = $v{_parent_class_name};
+
+            override function __postInit() {
+                __owner = godot.Types.GodotNativeInterface.classdb_construct_object($v{_godotBaseclass});
+
+                var ptr:cpp.RawPointer<cpp.Void> = untyped __cpp__('(void*){0}.mPtr', this);
+                
+                if (!$v{_class_name == _godotBaseclass}) { // deadcode elimination will get rid of this
+                    godot.Types.GodotNativeInterface.object_set_instance(
+                        __owner, 
+                        __class_name, 
+                        cast ptr
+                    );    
+                }
+                
+                // register the callbacks, do we need this?
+                godot.Types.GodotNativeInterface.object_set_instance_binding(
+                    __owner, 
+                    untyped __cpp__("godot::internal::token"), 
+                    cast ptr, 
+                    untyped __cpp__('&___binding_callbacks')
+                );
+            }
+        }
+        return postInitClass.fields;
+    }
+
+    static function buildFieldBindings(_extensionFields) {
+        trace(_extensionFields);
+        return [];
+    }
+
+#end
 }

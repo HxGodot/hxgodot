@@ -5,18 +5,20 @@ class HxExample2 extends godot.Node {
         super();
     }
 
-    @:export
-    public function simple_func() {
+    @:expose
+    public function simple_func():Void {
         trace("  Simple func called.");
     }
 
-    @:export
+    /*
+    @:expose
     public static function test_static(_a:Int, _b:Int):Int {
         return _a + _b;
     }
 
-    @:export
+    @:expose
     public static function test_static2():Void {
         trace("  void static");
     }
+    */
 }

@@ -3,6 +3,7 @@ package godot;
 #if macro
 class VoidPtr {}
 class GDNativeObjectPtr {}
+class GDNativeMethodBindPtr {}
 class GDNativeExtensionClassCreationInfo {}
 class GodotNativeInterface {}
 class GDNativeExtensionClassCreateInstance {}
@@ -12,6 +13,7 @@ class Callable<T> {}
 // typedef to properly allow typing into the godot-side
 typedef VoidPtr = cpp.Star<cpp.Void>;
 typedef GDNativeObjectPtr = cpp.Star<cpp.Void>;
+typedef GDNativeMethodBindPtr = cpp.Star<cpp.Void>;
 typedef GDNativeExtensionClassCreateInstance = cpp.Star<cpp.Callable<VoidPtr->GDNativeObjectPtr>>;
 typedef GDNativeExtensionClassFreeInstance = cpp.Star<cpp.Callable<VoidPtr->VoidPtr->GDNativeObjectPtr>>;
 typedef Callable<T> = cpp.Callable<T>;
@@ -40,6 +42,12 @@ extern class GodotNativeInterface {
 
     @:native("godot::internal::gdn_interface->object_set_instance_binding")
     public static function object_set_instance_binding(_owner:VoidPtr, _token:VoidPtr, _binding:VoidPtr, _bindingCallbacks:VoidPtr):VoidPtr;
+
+    @:native("godot::internal::gdn_interface->classdb_get_method_bind")
+    public static function classdb_get_method_bind(_obj:cpp.ConstCharStar, _method:cpp.ConstCharStar, _hash:Int):VoidPtr;
+
+    @:native("godot::internal::gdn_interface->object_method_bind_ptrcall")
+    public static function object_method_bind_ptrcall(_method:GDNativeMethodBindPtr, _method:GDNativeObjectPtr, _args:cpp.Star<GDNativeObjectPtr>, _ret:VoidPtr):VoidPtr;
 
     @:native("godot::internal::gdn_interface->classdb_register_extension_class")
     public static function classdb_register_extension_class(
