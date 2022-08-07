@@ -42,18 +42,21 @@ extern "C" void __hxcpp_main();
 using namespace godot;
 
 void initialize_example_module(ModuleInitializationLevel p_level) {
-	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-		return;
-	}
+    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+        return;
+    }
 
-	// fire up our module
-	__hxcpp_main();
+    // fire up our module
+    int base = 0;
+    hx::SetTopOfStack(&base,true);
+    __hxcpp_main();
+    hx::SetTopOfStack((int*)0,true);
 }
 
 void uninitialize_example_module(ModuleInitializationLevel p_level) {
-	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-		return;
-	}
+    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+        return;
+    }
 }
 
 extern "C" {
@@ -61,17 +64,19 @@ extern "C" {
 // Initialization.
 
 GDNativeBool GDN_EXPORT example_library_init(const GDNativeInterface *p_interface, const GDNativeExtensionClassLibraryPtr p_library, GDNativeInitialization *r_initialization) {
-	godot::GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_initialization);
+    godot::GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_initialization);
 
-	// load the hxcpp runtime
-	HX_TOP_OF_STACK
-	::hx::Boot();
-	__boot_all();
+    // load the hxcpp runtime
+    int base = 0;
+    hx::SetTopOfStack(&base,true);
+    ::hx::Boot();
+    __boot_all();
+    hx::SetTopOfStack((int*)0,true);
 
-	init_obj.register_initializer(initialize_example_module);
-	init_obj.register_terminator(uninitialize_example_module);
-	init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
+    init_obj.register_initializer(initialize_example_module);
+    init_obj.register_terminator(uninitialize_example_module);
+    init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
 
-	return init_obj.init();
+    return init_obj.init();
 }
 }

@@ -5,7 +5,9 @@ extends HxExample2
 func _ready():
 	var n = Node.new()
 	
-	prints(n.get_class())
+	prints("this is a test:" + n.get_class())
+	simple_func()
+	
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

@@ -4,7 +4,7 @@
 
 [node name="Node" type="Node"]
 
-[node name="Example" type="HxExample" parent="."]
+[node name="Example" type="HxExample2" parent="."]
 
 [node name="Label" type="Label" parent="Example"]
 offset_left = 194.0
