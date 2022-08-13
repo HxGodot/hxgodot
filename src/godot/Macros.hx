@@ -9,12 +9,12 @@ import haxe.macro.TypeTools;
 using haxe.macro.ExprTools;
 
 class Macros {
-    inline public static var METHOD_FLAG_NORMAL     = 1;
-    inline public static var METHOD_FLAG_EDITOR     = 2;
-    inline public static var METHOD_FLAG_CONST      = 4;
-    inline public static var METHOD_FLAG_VIRTUAL    = 8;
-    inline public static var METHOD_FLAG_VARARG     = 16;
-    inline public static var METHOD_FLAG_STATIC     = 32;
+    inline public static var METHOD_FLAG_NORMAL     = 1 << 0;
+    inline public static var METHOD_FLAG_EDITOR     = 1 << 1;
+    inline public static var METHOD_FLAG_CONST      = 1 << 2;
+    inline public static var METHOD_FLAG_VIRTUAL    = 1 << 3;
+    inline public static var METHOD_FLAG_VARARG     = 1 << 4;
+    inline public static var METHOD_FLAG_STATIC     = 1 << 5;
     inline public static var METHOD_FLAGS_DEFAULT   = METHOD_FLAG_NORMAL;
 
 
@@ -143,21 +143,6 @@ class Macros {
                         
                     case ":expose":
                         extensionFields.push(field);
-                        /*
-                        switch (field.kind) {
-                            case FFun(f):
-                                switch (f.ret) {
-                                    case TPath(t):
-                                        f.expr = macro {
-                                            var __method_bind = godot.Types.GodotNativeInterface.classdb_get_method_bind($obj, $method, $hash);
-                                            godot.Types.GodotNativeInterface.object_method_bind_ptrcall(__method_bind, __owner, null, null);
-                                            return null;
-                                        };
-                                    default:
-                                }
-                            default:
-                        }
-                        */
                 }
             }
         }
@@ -180,8 +165,7 @@ class Macros {
                 throw "Impossible";
 
             // we got an extension class, so make sure we got the whole extension bindings for the fields covered!
-            //fields = fields.concat(buildFieldBindings(className, extensionFields));
-            fields = fields.concat(buildFieldBindings2(className, classMeta, typePath, extensionFields));
+            fields = fields.concat(buildFieldBindings(className, classMeta, typePath, extensionFields));
 
             // properly bootstrap this class
             fields = fields.concat(buildPostInit(className, parent_class_name, engine_parent.name));
@@ -221,7 +205,7 @@ class Macros {
         return postInitClass.fields;
     }
 
-    static function buildFieldBindings2(_className:String, _classMeta, _typePath, _extensionFields:Array<Dynamic>) {
+    static function buildFieldBindings(_className:String, _classMeta, _typePath, _extensionFields:Array<Dynamic>) {
         var pos = Context.currentPos();
         var ctType = TPath(_typePath);
 
@@ -233,17 +217,46 @@ class Macros {
         for (i in 0..._extensionFields.length) {
             var field = _extensionFields[i];
 
+            var binds = [];
+            var bindPtrs = [];
             var fieldArgs = [];
             var fieldArgInfos = [];
 
             switch (field.kind) {
                 case FFun(_f): {
 
+                    trace(field);
+                    trace(_f);
+
+                    function _mapHxTypeToGodot(_type) {
+                        return switch(_type) {
+                            case (macro : Bool): VARIANT_TYPE_BOOL;
+                            case (macro : Int): VARIANT_TYPE_INT;
+                            case (macro : Float): VARIANT_TYPE_FLOAT;
+                            case (macro : String): VARIANT_TYPE_STRING;
+                            default: VARIANT_TYPE_NIL;
+                        };
+                    }
+
                     // add functions for looking up arguments
-                    for (j in 0..._f.args.length) {
+                    for (j in -1..._f.args.length) {
+
+                        if (j == -1) { // deal with the return type
+                            var argType = _mapHxTypeToGodot(_f.ret);
+                            fieldArgs.push(macro {
+                                if (_arg == $v{j})
+                                    return $v{argType};
+                            });
+                            continue;
+                        }
+
+                        // map the argument types correctly
+                        var argument = _f.args[j];
+                        var argType = _mapHxTypeToGodot(argument.type);
+                        
                         fieldArgs.push(macro {
                             if (_arg == $v{j})
-                                return 0;
+                                return $v{argType};
                         });
                         fieldArgInfos.push(macro {
                             if (_arg == $v{j}) {
@@ -253,7 +266,6 @@ class Macros {
                             }
                         });
                     }
-
 
                     // build fields hints 
                     var hintFlags = METHOD_FLAGS_DEFAULT;
@@ -267,37 +279,43 @@ class Macros {
                     }
                     trace(StringTools.hex(hintFlags));
 
+                    var fname = field.name;
+                    binds.push(macro {
+                        //Reflect.callMethod(instance, Reflect.field(instance, $v{field.name}), []);
+                        instance.$fname();
+                    });
+
+                    bindPtrs.push(macro {
+                        //Reflect.callMethod(instance, Reflect.field(instance, $v{field.name}), []);
+                        instance.$fname();
+                    });
+
                     // check return
-                    var hasReturnValue = true;
-                    switch(_f.ret) {
-                        case TPath(_p):{
-                            if (_p.name == "Void")
-                                hasReturnValue = false;
-                        }
-                        default:
-                    }
+                    var hasReturnValue = switch(_f.ret) {
+                        case (macro:Void): false;
+                        default: true;
+                    };
 
                     regOut.push( macro {
                         var method_info:godot.Types.GDNativeExtensionClassMethodInfo = untyped __cpp__('{
-                            (const char*){0}.utf8_str(),
-                            (void *){1},
-                            (GDNativeExtensionClassMethodCall)&__onBindCall,
-                            (GDNativeExtensionClassMethodPtrCall)&__onBindCallPtr,
-                            (uint32_t){4},
-                            (uint32_t){5},
-                            (GDNativeBool){6},
-                            (GDNativeExtensionClassMethodGetArgumentType)&__onGetArgType,
-                            (GDNativeExtensionClassMethodGetArgumentInfo)&__onGetArgInfo,
+                                (const char*){0}.utf8_str(),                                    // const char *name;
+                                (void *){1},                                                    // void *method_userdata;
+                                (GDNativeExtensionClassMethodCall)&__onBindCall,                // GDNativeExtensionClassMethodCall call_func;
+                                (GDNativeExtensionClassMethodPtrCall)&__onBindCallPtr,          // GDNativeExtensionClassMethodPtrCall ptrcall_func;
+                                (uint32_t){2},                                                  // uint32_t method_flags; /* GDNativeExtensionClassMethodFlags */
+                                (uint32_t){3},                                                  // uint32_t argument_count;
+                                (GDNativeBool){4},                                              // GDNativeBool has_return_value;
+                                (GDNativeExtensionClassMethodGetArgumentType)&__onGetArgType,   //(GDNativeExtensionClassMethodGetArgumentType) get_argument_type_func;
+                                (GDNativeExtensionClassMethodGetArgumentInfo)&__onGetArgInfo,   // GDNativeExtensionClassMethodGetArgumentInfo get_argument_info_func; /* name and hint information for the argument can be omitted in release builds. Class name should always be present if it applies. */
+                                nullptr,// GDNativeExtensionClassMethodGetArgumentMetadata get_argument_metadata_func;
+                                0,// uint32_t default_argument_count;
+                                nullptr// GDNativeVariantPtr *default_arguments;
                         }',
-                            $v{field.name}, // const char *name;
-                            $v{i},  // void *method_userdata;
-                            bc,     // GDNativeExtensionClassMethodCall call_func;
-                            bcptr,  // GDNativeExtensionClassMethodPtrCall ptrcall_func;
-                            $v{hintFlags}, // uint32_t method_flags; /* GDNativeExtensionClassMethodFlags */
-                            $v{_f.args.length}, // uint32_t argument_count;
-                            $v{hasReturnValue}, // GDNativeBool has_return_value;
-                            argTypeFunc, //(GDNativeExtensionClassMethodGetArgumentType) get_argument_type_func;
-                            argInfoFunc // GDNativeExtensionClassMethodGetArgumentInfo get_argument_info_func; /* name and hint information for the argument can be omitted in release builds. Class name should always be present if it applies. */
+                            $v{field.name}, 
+                            $v{i},  
+                            $v{hintFlags},
+                            $v{_f.args.length}, 
+                            $v{hasReturnValue}
                             // GDNativeExtensionClassMethodGetArgumentMetadata get_argument_metadata_func;
                             // uint32_t default_argument_count;
                             // GDNativeVariantPtr *default_arguments;
@@ -326,10 +344,15 @@ class Macros {
                 }
             });
             
-            // create an individual expression for each method
             bindCalls.push(macro {
                 if (methodId == $v{i}) {
-                    // todo: 
+                    $b{binds};
+                }
+            });
+
+            bindCallPtrs.push(macro {
+                if (methodId == $v{i}) {
+                    $b{bindPtrs};
                 }
             });
         }
@@ -349,6 +372,15 @@ class Macros {
                 hx::SetTopOfStack(&base,true);
                 ${_className}_obj::_hx___free((void *)p_userdata, p_instance);
                 hx::SetTopOfStack((int*)0,true);
+            }
+
+            static GDNativeExtensionClassCallVirtual __onGetVirtualFunc(void *p_userdata, const char *p_name) {
+                int base = 0;
+                hx::SetTopOfStack(&base,true);
+                GDNativeExtensionClassCallVirtual res = nullptr;
+                // TODO:
+                hx::SetTopOfStack((int*)0,true);
+                return res;
             }
 
             static void __onBindCall(
@@ -428,6 +460,8 @@ class Macros {
                 trace("GCRemoveRoot");
                 n.__owner = null;
             }
+
+            //private static function __getVirtualFunc() // TODO:
             
             public static function __registerClass() {
             
@@ -444,7 +478,7 @@ class Macros {
                             nullptr, // GDNativeExtensionClassUnreference unreference_func;
                             (GDNativeExtensionClassCreateInstance)&__onCreate, // this one is mandatory
                             (GDNativeExtensionClassFreeInstance)&__onFree, // this one is mandatory
-                            nullptr, //&ClassDB::get_virtual_func, // GDNativeExtensionClassGetVirtual get_virtual_func;
+                            (GDNativeExtensionClassGetVirtual)&__onGetVirtualFunc,
                             nullptr, // GDNativeExtensionClassGetRID get_rid;
                             (void *)(const char*){0}.utf8_str(), // void *class_userdata;
                         };
@@ -495,194 +529,10 @@ class Macros {
                 _error:godot.Types.VoidPtr) 
             {
                 var methodId = untyped __cpp__('(int){0}', _methodUserData);
-                //$b{bindCalls};
-                /*
-                const MethodBind *bind = reinterpret_cast<const MethodBind *>(p_method_userdata);
-                Variant ret = bind->call(p_instance, p_args, p_argument_count, *r_error);
-                // This assumes the return value is an empty Variant, so it doesn't need to call the destructor first.
-                // Since only NativeExtensionMethodBind calls this from the Godot side, it should always be the case.
-                internal::gdn_interface->variant_new_copy(r_return, ret._native_ptr());
-                */
-                
-                /*
-                */
-            }
-
-            static function __bindCallPtr(
-                _methodUserData:godot.Types.VoidPtr, 
-                _instance:godot.Types.VoidPtr,
-                _args:godot.Types.VoidPtr,
-                _ret:godot.Types.VoidPtr) 
-            {
-                var methodId = untyped __cpp__('(int){0}', _methodUserData);
-                //$b{bindCallPtrs};
-                //const MethodBind *bind = reinterpret_cast<const MethodBind *>(p_method_userdata);
-                //bind->ptrcall(p_instance, p_args, r_return);        
-            }
-        }
-        return fieldBindingsClass.fields;
-    }
-
-    static function buildFieldBindings(_className:String, _extensionFields:Array<Dynamic>) {
-        //trace(_extensionFields);
-
-        var regOut = [];
-        var argTypes = [];
-        var argInfos = [];
-        var bindCalls = [];
-        var bindCallPtrs = [];
-        for (i in 0..._extensionFields.length) {
-            var field = _extensionFields[i];
-
-            var fieldArgs = [];
-            var fieldArgInfos = [];
-
-            switch (field.kind) {
-                case FFun(_f): {
-
-                    // add functions for looking up arguments
-                    for (j in 0..._f.args.length) {
-                        fieldArgs.push(macro {
-                            if (_arg == $v{j})
-                                return 0;
-                        });
-                        fieldArgInfos.push(macro {
-                            if (_arg == $v{j}) {
-                                var tmp = $v{_f.args[j].name};
-                                untyped __cpp__('{0}.makePermanent()', tmp);
-                                _info.name = untyped __cpp__('{0}.utf8_str()', tmp);
-                            }
-                        });
-                    }
-
-
-                    // build fields hints 
-                    var hintFlags = METHOD_FLAGS_DEFAULT;
-                    for (a in cast(field.access, Array<Dynamic>)) {
-                        switch(a) {
-                            case APublic: hintFlags |= METHOD_FLAG_NORMAL;
-                            case AStatic: hintFlags |= METHOD_FLAG_STATIC;
-                            case AFinal:  hintFlags |= METHOD_FLAG_CONST;
-                            default:
-                        }
-                    }
-                    trace(StringTools.hex(hintFlags));
-
-                    // check return
-                    var hasReturnValue = true;
-                    switch(_f.ret) {
-                        case TPath(_p):{
-                            if (_p.name == "Void")
-                                hasReturnValue = false;
-                        }
-                        default:
-                    }
-
-                    regOut.push( macro {
-                        var method_info:godot.Types.GDNativeExtensionClassMethodInfo = untyped __cpp__('{
-                            (const char*){0}.utf8_str(),
-                            (void *){1},
-                            (GDNativeExtensionClassMethodCall){2},
-                            (GDNativeExtensionClassMethodPtrCall){3},
-                            (uint32_t){4},
-                            (uint32_t){5},
-                            (GDNativeBool){6},
-                            (GDNativeExtensionClassMethodGetArgumentType){7},
-                            (GDNativeExtensionClassMethodGetArgumentInfo){8},
-                        }',
-                            $v{field.name}, // const char *name;
-                            $v{i},  // void *method_userdata;
-                            bc,     // GDNativeExtensionClassMethodCall call_func;
-                            bcptr,  // GDNativeExtensionClassMethodPtrCall ptrcall_func;
-                            $v{hintFlags}, // uint32_t method_flags; /* GDNativeExtensionClassMethodFlags */
-                            $v{_f.args.length}, // uint32_t argument_count;
-                            $v{hasReturnValue}, // GDNativeBool has_return_value;
-                            argTypeFunc, //(GDNativeExtensionClassMethodGetArgumentType) get_argument_type_func;
-                            argInfoFunc // GDNativeExtensionClassMethodGetArgumentInfo get_argument_info_func; /* name and hint information for the argument can be omitted in release builds. Class name should always be present if it applies. */
-                            // GDNativeExtensionClassMethodGetArgumentMetadata get_argument_metadata_func;
-                            // uint32_t default_argument_count;
-                            // GDNativeVariantPtr *default_arguments;
-                        );
-
-                        godot.Types.GodotNativeInterface.classdb_register_extension_class_method(
-                            library, 
-                            __class_name, 
-                            method_info
-                        );
-                    });
-                }
-                case FProp(_g, _s, _t):
-                case FVar(_t):
-            }
-
-            argTypes.push(macro {
-                if (methodId == $v{i}) {
-                    $b{fieldArgs};
-                }
-            });
-
-            argInfos.push(macro {
-                if (methodId == $v{i}) {
-                    $b{fieldArgInfos}
-                }
-            });
-
-            
-            // create an individual expression for each method
-            bindCalls.push(macro {
-                if (methodId == $v{i}) {
-                    // todo: 
-                }
-            });
-        }
-
-        //TODO: add native wrapper functions to make sure we can do HX_TOP_OF_STACK before we call into Haxe
-
-        var fieldBindingsClass = macro class {
-            static function __registerMethods() {
-                var library = untyped __cpp__("godot::internal::library");
-
-                var bc:godot.Types.VoidPtr = 
-                    cast cpp.Pointer.fromHandle(godot.Types.Callable.fromStaticFunction($i{_className}.__bindCall));
-                var bcptr:godot.Types.GDNativeExtensionClassFreeInstance = 
-                    cast cpp.Pointer.fromHandle(godot.Types.Callable.fromStaticFunction($i{_className}.__bindCallPtr));
-
-                // method bindings
-                var argTypeFunc:godot.Types.VoidPtr = 
-                    cast cpp.Pointer.fromHandle(godot.Types.Callable.fromStaticFunction($i{_className}.__getArgType));
-                var argInfoFunc:godot.Types.VoidPtr = 
-                    cast cpp.Pointer.fromHandle(godot.Types.Callable.fromStaticFunction($i{_className}.__getArgInfo));
-
-                $b{regOut};
-            }
-
-            static function __getArgType(_methodUserData:godot.Types.VoidPtr, _arg:Int):Int {
-                var methodId = untyped __cpp__('(int){0}', _methodUserData);
-                $b{argTypes};
-                return 0;
-            }
-
-            static function __getArgInfo(_methodUserData:godot.Types.VoidPtr, _arg:Int, _info:godot.Types.GDNativePropertyInfoPtr):Void {
-                var methodId = untyped __cpp__('(int){0}', _methodUserData);
-                if (_arg < 0) {                    
-                    _info.type = $v{VARIANT_TYPE_OBJECT};
-                    _info.name = __class_name;
-                    _info.class_name = "";
-                    _info.hint_string = "";
-                    return;
-                }
-                $b{argInfos}
-            }
-
-            static function __bindCall(
-                _methodUserData:godot.Types.VoidPtr, 
-                _instance:godot.Types.VoidPtr,
-                _args:godot.Types.VoidPtr, 
-                _argCount:Int,
-                _ret:godot.Types.VoidPtr,
-                _error:godot.Types.VoidPtr) 
-            {
-                var methodId = untyped __cpp__('(int){0}', _methodUserData);
+                var instance:$ctType = untyped __cpp__(
+                    $v{"("+_typePath.name+"(("+_typePath.name+"_obj*){0}))"}, // TODO: this is a little hacky!
+                    _instance
+                );
                 $b{bindCalls};
                 /*
                 const MethodBind *bind = reinterpret_cast<const MethodBind *>(p_method_userdata);
@@ -691,9 +541,6 @@ class Macros {
                 // Since only NativeExtensionMethodBind calls this from the Godot side, it should always be the case.
                 internal::gdn_interface->variant_new_copy(r_return, ret._native_ptr());
                 */
-                
-                /*
-                */
             }
 
             static function __bindCallPtr(
@@ -703,14 +550,16 @@ class Macros {
                 _ret:godot.Types.VoidPtr) 
             {
                 var methodId = untyped __cpp__('(int){0}', _methodUserData);
+                var instance:$ctType = untyped __cpp__(
+                    $v{"("+_typePath.name+"(("+_typePath.name+"_obj*){0}))"}, // TODO: this is a little hacky!
+                    _instance
+                );
                 $b{bindCallPtrs};
                 //const MethodBind *bind = reinterpret_cast<const MethodBind *>(p_method_userdata);
                 //bind->ptrcall(p_instance, p_args, r_return);        
             }
-        };
-
+        }
         return fieldBindingsClass.fields;
     }
-
 #end
 }
