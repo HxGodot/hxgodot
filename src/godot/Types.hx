@@ -14,6 +14,7 @@ typedef GDNativeExtensionClassCreationInfo = Int;
 typedef GDNativeExtensionClassMethodInfo = Int;
 typedef GodotNativeInterface = Int;
 typedef GDNativePropertyInfoPtr = Int;
+typedef GDNativeExtensionClassCallVirtual = Int;
 
 #else
 
@@ -26,6 +27,7 @@ typedef GDNativeExtensionClassFreeInstance = cpp.Star<cpp.Callable<VoidPtr->Void
 typedef Callable<T> = cpp.Callable<T>;
 typedef GDNativeExtensionClassMethodCall = cpp.Star<cpp.Callable<VoidPtr->VoidPtr->VoidPtr->Int->VoidPtr->VoidPtr->Void>>;
 typedef GDNativeExtensionClassMethodPtrCall = cpp.Star<cpp.Callable<VoidPtr->VoidPtr->VoidPtr->VoidPtr->Void>>;
+typedef GDNativeExtensionClassCallVirtual = VoidPtr;
 
 // simple extern class to make the includes work
 @:include("godot_cpp/godot.hpp")

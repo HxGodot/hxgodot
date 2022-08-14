@@ -64,6 +64,8 @@ class Macros {
 
     inline public static var VARIANT_TYPE_VARIANT_MAX = 37;
 
+    static var virtuals:Map<String, haxe.macro.Field> = new Map();
+
     macro static public function build():Array<haxe.macro.Field> {
         var pos = Context.currentPos();
         var cls = Context.getLocalClass();
@@ -84,6 +86,8 @@ class Macros {
         // forward only the classname without a path to godot
         var tokens = cls.get().superClass.t.toString().split(".");
         var parent_class_name = tokens[tokens.length-1];
+
+        trace(fields);
 
         //trace(className);
         //trace(parent_class_name);
@@ -112,6 +116,7 @@ class Macros {
         
         // register these extension fields
         var extensionFields = [];
+        var virtualFields = new Map<String, haxe.macro.Field>();
 
         for (field in fields) {
             //trace(field);
@@ -140,11 +145,22 @@ class Macros {
                                 
                             default:
                         }
-                        
+                    
+                    case ":gdVirtual":
+                        virtuals.set('${typePath.name}.${field.name}', field);
                     case ":expose":
                         extensionFields.push(field);
                 }
             }
+
+            // collect overrides and check them vs. engine fields of the same name
+            for (a in cast(field.access, Array<Dynamic>)) {
+                switch(a) {
+                    case AOverride: virtualFields.set(field.name, field);
+                    default:
+                }
+            }
+
         }
 
         if (isEngineClass) {
@@ -153,19 +169,32 @@ class Macros {
         }
         else {
             // find the first engine-class up the inheritance chain
-            var engine_parent = cls.get().superClass.t.get();
-            while (engine_parent != null) {
-                if (engine_parent.meta.has(":gdEngineClass")) {
-                    break;
+            var engine_parent = null;
+            // also collect all engine virtuals up the chain
+            var engineVirtuals = [];
+            var next = cls.get().superClass.t.get();
+            while (next != null) {
+                if (engine_parent == null && next.meta.has(":gdEngineClass")) {
+                    engine_parent = next;
                 }
-                engine_parent = engine_parent.superClass.t.get();
+                
+                // TODO: this can be slow?
+                for (k=>v in virtualFields) {
+                    for (f in next.fields.get())
+                        if (f.name == k)
+                            engineVirtuals.push(v);
+                }
+
+                next = next.superClass != null ? next.superClass.t.get() : null;
             }
 
             if (engine_parent == null)
                 throw "Impossible";
 
+            trace("////////////////////////////////////////////////////////////////////////////////");
+
             // we got an extension class, so make sure we got the whole extension bindings for the fields covered!
-            fields = fields.concat(buildFieldBindings(className, classMeta, typePath, extensionFields));
+            fields = fields.concat(buildFieldBindings(className, classMeta, typePath, extensionFields, engineVirtuals));
 
             // properly bootstrap this class
             fields = fields.concat(buildPostInit(className, parent_class_name, engine_parent.name));
@@ -205,7 +234,7 @@ class Macros {
         return postInitClass.fields;
     }
 
-    static function buildFieldBindings(_className:String, _classMeta, _typePath, _extensionFields:Array<Dynamic>) {
+    static function buildFieldBindings(_className:String, _classMeta, _typePath, _extensionFields:Array<Dynamic>, _virtualFields:Array<Dynamic>) {
         var pos = Context.currentPos();
         var ctType = TPath(_typePath);
 
@@ -214,6 +243,8 @@ class Macros {
         var argInfos = [];
         var bindCalls = [];
         var bindCallPtrs = [];
+
+        // build everything for the extension fields
         for (i in 0..._extensionFields.length) {
             var field = _extensionFields[i];
 
@@ -247,6 +278,14 @@ class Macros {
                                 if (_arg == $v{j})
                                     return $v{argType};
                             });
+                            fieldArgInfos.push(macro {
+                                if (_arg == $v{j}) {
+                                    _info.name = __class_name;
+                                    _info.type = $v{argType};
+                                    _info.class_name = "";
+                                    _info.hint_string = "";
+                                }
+                            });
                             continue;
                         }
 
@@ -263,6 +302,7 @@ class Macros {
                                 var tmp = $v{_f.args[j].name};
                                 untyped __cpp__('{0}.makePermanent()', tmp);
                                 _info.name = untyped __cpp__('{0}.utf8_str()', tmp);
+                                _info.type = $v{argType};
                             }
                         });
                     }
@@ -357,8 +397,33 @@ class Macros {
             });
         }
 
+        // build callbacks for the virtuals
+        var vCallbacks = '';
+        var virtualFuncCallbacks = [];
+        var virtualFuncImpl = [];
+        for (f in _virtualFields) {
+            trace(f);
+
+            virtualFuncCallbacks.push(macro {
+                if (_name == $v{f.name}) 
+                    return untyped __cpp__($v{"(GDNativeExtensionClassCallVirtual)&"+_className+"_"+f.name+"__onVirtualCall"});
+            });
+
+            vCallbacks += '
+                static void ${_className}_${f.name}__onVirtualCall(GDExtensionClassInstancePtr p_instance, const GDNativeTypePtr *p_args, GDNativeTypePtr r_ret) {
+                    int base = 0;
+                    hx::SetTopOfStack(&base,true);
+                    GDNativeExtensionClassCallVirtual res = nullptr;
+                    ${_typePath.name} tmp = (${_typePath.name}((${_typePath.name}_obj*)p_instance));
+                    // TODO: THIS IS SHIT! We need to hand this back into haxe so we can macrofy the argument :/
+                    tmp->${f.name}();
+                    hx::SetTopOfStack((int*)0,true);
+                }
+            ';
+        }
+
         // add the callback wrappers, so we can play along with GC
-        var cppCode = '
+        var cppCode = vCallbacks + '
             static GDNativeObjectPtr __onCreate(void *p_userdata) {
                 int base = 0;
                 hx::SetTopOfStack(&base,true);
@@ -377,8 +442,7 @@ class Macros {
             static GDNativeExtensionClassCallVirtual __onGetVirtualFunc(void *p_userdata, const char *p_name) {
                 int base = 0;
                 hx::SetTopOfStack(&base,true);
-                GDNativeExtensionClassCallVirtual res = nullptr;
-                // TODO:
+                GDNativeExtensionClassCallVirtual res = (GDNativeExtensionClassCallVirtual)${_className}_obj::_hx___getVirtualFunc(p_userdata, p_name);
                 hx::SetTopOfStack((int*)0,true);
                 return res;
             }
@@ -437,7 +501,6 @@ class Macros {
             }
         ';
         _classMeta.add(":cppFileCode", [macro $v{cppCode}], pos);
-
         
         var fieldBindingsClass = macro class {
             private static function __create(_data:godot.Types.VoidPtr):godot.Types.GDNativeObjectPtr { 
@@ -461,7 +524,16 @@ class Macros {
                 n.__owner = null;
             }
 
-            //private static function __getVirtualFunc() // TODO:
+            //private static function __getVirtualFunc(GDExtensionClassInstancePtr p_instance, const GDNativeTypePtr *p_args, GDNativeTypePtr r_ret)
+            private static function __getVirtualFunc(_userData:godot.Types.VoidPtr, _name:String):godot.Types.GDNativeExtensionClassCallVirtual {
+                var instance:$ctType = untyped __cpp__(
+                    $v{"("+_typePath.name+"(("+_typePath.name+"_obj*){0}))"}, // TODO: this is a little hacky!
+                    _userData
+                );
+                $b{virtualFuncCallbacks};
+                //return untyped __cpp__('${_className}_${f.name}__onVirtualCall
+                return untyped __cpp__('nullptr'); // should never happen
+            }
             
             public static function __registerClass() {
             
@@ -510,6 +582,7 @@ class Macros {
 
             static function __getArgInfo(_methodUserData:godot.Types.VoidPtr, _arg:Int, _info:godot.Types.GDNativePropertyInfoPtr):Void {
                 var methodId = untyped __cpp__('(int){0}', _methodUserData);
+                /*
                 if (_arg < 0) {                    
                     _info.type = $v{VARIANT_TYPE_OBJECT};
                     _info.name = __class_name;
@@ -517,6 +590,7 @@ class Macros {
                     _info.hint_string = "";
                     return;
                 }
+                */
                 $b{argInfos}
             }
 

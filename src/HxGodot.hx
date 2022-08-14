@@ -26,5 +26,6 @@ class HxGodot {
 
         // new macro based solution
         HxExample2.__registerClass();
+        HxOther.__registerClass();
     }
 }
