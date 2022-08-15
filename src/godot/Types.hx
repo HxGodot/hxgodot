@@ -64,6 +64,9 @@ typedef GDNativePropertyInfoPtr = cpp.Star<GDNativePropertyInfo>;
 extern class GodotNativeInterface {
     @:native("godot::internal::gdn_interface->print_error")
     public static function print_error(_m:String, _function:String, _file:String, _line:Int):Void;
+
+    @:native("godot::internal::gdn_interface->print_warning")
+    public static function print_warning(_m:String, _function:String, _file:String, _line:Int):Void;
     
     @:native("godot::internal::gdn_interface->classdb_construct_object")
     public static function classdb_construct_object(_class:cpp.ConstCharStar):VoidPtr;

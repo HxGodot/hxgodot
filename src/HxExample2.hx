@@ -15,6 +15,10 @@ class HxExample2 extends godot.Node {
         simple_func();
     }
 
+    override function _process(_delta:Float):Void {
+        trace('_process($_delta) called');
+    }
+
     override function _enter_tree():Void {
         trace("_enter_tree called");
     }

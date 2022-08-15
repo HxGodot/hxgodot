@@ -18,7 +18,7 @@ class HxGodot {
         //
 
         haxe.Log.trace = function(v:Dynamic, ?infos:haxe.PosInfos) {
-            GodotNativeInterface.print_error(Std.string(v), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
+            GodotNativeInterface.print_warning(Std.string(v), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
         }
 
         // TODO: we need to register all customclasses somewhere. Adding them manually here sucks, I guess.

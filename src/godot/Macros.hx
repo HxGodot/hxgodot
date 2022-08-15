@@ -238,6 +238,16 @@ class Macros {
         var pos = Context.currentPos();
         var ctType = TPath(_typePath);
 
+        function _mapHxTypeToGodot(_type) {
+            return switch(_type) {
+                case (macro : Bool): VARIANT_TYPE_BOOL;
+                case (macro : Int): VARIANT_TYPE_INT;
+                case (macro : Float): VARIANT_TYPE_FLOAT;
+                case (macro : String): VARIANT_TYPE_STRING;
+                default: VARIANT_TYPE_NIL;
+            };
+        }
+
         var regOut = [];
         var argTypes = [];
         var argInfos = [];
@@ -257,17 +267,7 @@ class Macros {
                 case FFun(_f): {
 
                     trace(field);
-                    trace(_f);
-
-                    function _mapHxTypeToGodot(_type) {
-                        return switch(_type) {
-                            case (macro : Bool): VARIANT_TYPE_BOOL;
-                            case (macro : Int): VARIANT_TYPE_INT;
-                            case (macro : Float): VARIANT_TYPE_FLOAT;
-                            case (macro : String): VARIANT_TYPE_STRING;
-                            default: VARIANT_TYPE_NIL;
-                        };
-                    }
+                    trace(_f);                    
 
                     // add functions for looking up arguments
                     for (j in -1..._f.args.length) {
@@ -397,29 +397,59 @@ class Macros {
             });
         }
 
-        // build callbacks for the virtuals
+        // build callbacks and implementations for the virtuals 
         var vCallbacks = '';
         var virtualFuncCallbacks = [];
-        var virtualFuncImpl = [];
+        var virtualFuncImpls = [];
+        trace("////////////////////////////////////////////////////////////////////////////////");
+        trace('// Virtuals');
+        trace("////////////////////////////////////////////////////////////////////////////////");
         for (f in _virtualFields) {
+
             trace(f);
 
+            var vname = 'virtual_${_className}_${f.name}';
             virtualFuncCallbacks.push(macro {
                 if (_name == $v{f.name}) 
-                    return untyped __cpp__($v{"(GDNativeExtensionClassCallVirtual)&"+_className+"_"+f.name+"__onVirtualCall"});
+                    return untyped __cpp__($v{"(GDNativeExtensionClassCallVirtual)&"+vname+"__onVirtualCall"});
             });
 
             vCallbacks += '
-                static void ${_className}_${f.name}__onVirtualCall(GDExtensionClassInstancePtr p_instance, const GDNativeTypePtr *p_args, GDNativeTypePtr r_ret) {
+                static void ${vname}__onVirtualCall(GDExtensionClassInstancePtr p_instance, const GDNativeTypePtr *p_args, GDNativeTypePtr r_ret) {
                     int base = 0;
                     hx::SetTopOfStack(&base,true);
                     GDNativeExtensionClassCallVirtual res = nullptr;
-                    ${_typePath.name} tmp = (${_typePath.name}((${_typePath.name}_obj*)p_instance));
-                    // TODO: THIS IS SHIT! We need to hand this back into haxe so we can macrofy the argument :/
-                    tmp->${f.name}();
+                    ${_typePath.name} instance = (${_typePath.name}((${_typePath.name}_obj*)p_instance));
+                    instance->${vname}((void *)p_args, (void *)r_ret); // forward to macrofy the arguments
                     hx::SetTopOfStack((int*)0,true);
                 }
             ';
+
+            // use macros to assemble the arguments
+            var args = [];
+
+            //trace(f.args);
+            // map the argument types correctly
+            switch (f.kind) {
+                case FFun(_f): {
+                    for (argument in _f.args) {
+                        var argType = _mapHxTypeToGodot(argument.type);
+                        trace(argType);
+
+                        // TODO: unpack the arguments behind the pointer
+
+                    }
+                }
+                default: continue;
+            }
+
+            var virtClass = macro class {
+                private function $vname(_args:godot.Types.VoidPtr, _ret:godot.Types.VoidPtr) {
+                    $b{args};
+                }
+            };
+
+            virtualFuncImpls = virtualFuncImpls.concat(virtClass.fields);
         }
 
         // add the callback wrappers, so we can play along with GC
@@ -507,11 +537,12 @@ class Macros {
                 var n = new $_typePath();
                 
                 // make sure hx GC keeps us around as long as godot has an owner for us
-                trace("GCAddRoot");
+                //trace("GCAddRoot");
                 untyped __cpp__("GCAddRoot((hx::Object **)&{0}.mPtr)", n);
                 
                 return n.__owner;
             }
+
             private static function __free(_data:godot.Types.VoidPtr, _ptr:godot.Types.GDNativeObjectPtr) {
 
                 var n:$ctType = untyped __cpp__(
@@ -520,18 +551,17 @@ class Macros {
                 );
 
                 untyped __cpp__("GCRemoveRoot((hx::Object **)&{0}.mPtr)", n);
-                trace("GCRemoveRoot");
+                //trace("GCRemoveRoot");
                 n.__owner = null;
             }
 
-            //private static function __getVirtualFunc(GDExtensionClassInstancePtr p_instance, const GDNativeTypePtr *p_args, GDNativeTypePtr r_ret)
             private static function __getVirtualFunc(_userData:godot.Types.VoidPtr, _name:String):godot.Types.GDNativeExtensionClassCallVirtual {
                 var instance:$ctType = untyped __cpp__(
                     $v{"("+_typePath.name+"(("+_typePath.name+"_obj*){0}))"}, // TODO: this is a little hacky!
                     _userData
                 );
                 $b{virtualFuncCallbacks};
-                //return untyped __cpp__('${_className}_${f.name}__onVirtualCall
+                //return untyped __cpp__('${vname}__onVirtualCall
                 return untyped __cpp__('nullptr'); // should never happen
             }
             
@@ -570,7 +600,6 @@ class Macros {
 
             static function __registerMethods() {
                 var library = untyped __cpp__("godot::internal::library");
-
                 $b{regOut};
             }
 
@@ -582,15 +611,6 @@ class Macros {
 
             static function __getArgInfo(_methodUserData:godot.Types.VoidPtr, _arg:Int, _info:godot.Types.GDNativePropertyInfoPtr):Void {
                 var methodId = untyped __cpp__('(int){0}', _methodUserData);
-                /*
-                if (_arg < 0) {                    
-                    _info.type = $v{VARIANT_TYPE_OBJECT};
-                    _info.name = __class_name;
-                    _info.class_name = "";
-                    _info.hint_string = "";
-                    return;
-                }
-                */
                 $b{argInfos}
             }
 
@@ -633,7 +653,7 @@ class Macros {
                 //bind->ptrcall(p_instance, p_args, r_return);        
             }
         }
-        return fieldBindingsClass.fields;
+        return fieldBindingsClass.fields.concat(virtualFuncImpls);
     }
 #end
 }

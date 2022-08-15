@@ -10,10 +10,10 @@ class Node extends Object {
     public function _ready():Void {}
 
     @:gdVirtual
-    public function _process():Void {}
+    public function _process(_delta:Float):Void {}
 
     @:gdVirtual
-    public function _physics_process():Void {}
+    public function _physics_process(_delta:Float):Void {}
 
     @:gdVirtual
     public function _enter_tree():Void {}
