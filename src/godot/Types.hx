@@ -92,9 +92,6 @@ extern class GodotNativeInterface {
     public static function object_method_bind_ptrcall(_method:GDNativeMethodBindPtr, _method:GDNativeObjectPtr, _args:cpp.Star<GDNativeObjectPtr>, _ret:VoidPtr):VoidPtr;
 
     
-
-
-
     @:native("godot::internal::gdn_interface->classdb_register_extension_class")
     public static function classdb_register_extension_class(
         _library:VoidPtr,

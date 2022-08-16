@@ -5,6 +5,7 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.MacroStringTools;
 import haxe.macro.TypeTools;
+import godot.macros.ArgumentMacros;
 
 using haxe.macro.ExprTools;
 
@@ -267,23 +268,25 @@ class Macros {
                 case FFun(_f): {
 
                     trace(field);
-                    trace(_f);                    
+                    trace(_f);
+
+                    var argExprs = [];
 
                     // add functions for looking up arguments
                     for (j in -1..._f.args.length) {
-
                         if (j == -1) { // deal with the return type
                             var argType = _mapHxTypeToGodot(_f.ret);
                             fieldArgs.push(macro {
                                 if (_arg == $v{j})
                                     return $v{argType};
                             });
+                            
                             fieldArgInfos.push(macro {
                                 if (_arg == $v{j}) {
                                     _info.name = __class_name;
                                     _info.type = $v{argType};
-                                    _info.class_name = "";
-                                    _info.hint_string = "";
+                                    _info.class_name = untyped __cpp__('""');
+                                    _info.hint_string = untyped __cpp__('""');
                                 }
                             });
                             continue;
@@ -292,6 +295,7 @@ class Macros {
                         // map the argument types correctly
                         var argument = _f.args[j];
                         var argType = _mapHxTypeToGodot(argument.type);
+                        argExprs.push(ArgumentMacros.convert(j, "_args", argument.type));
                         
                         fieldArgs.push(macro {
                             if (_arg == $v{j})
@@ -299,10 +303,10 @@ class Macros {
                         });
                         fieldArgInfos.push(macro {
                             if (_arg == $v{j}) {
-                                var tmp = $v{_f.args[j].name};
-                                untyped __cpp__('{0}.makePermanent()', tmp);
-                                _info.name = untyped __cpp__('{0}.utf8_str()', tmp);
+                                _info.name = untyped __cpp__($v{'"${_f.args[j].name}"'});
                                 _info.type = $v{argType};
+                                _info.class_name = untyped __cpp__('""');
+                                _info.hint_string = untyped __cpp__('""');
                             }
                         });
                     }
@@ -319,15 +323,16 @@ class Macros {
                     }
                     trace(StringTools.hex(hintFlags));
 
+                    // TODO: add function arguments
                     var fname = field.name;
                     binds.push(macro {
                         //Reflect.callMethod(instance, Reflect.field(instance, $v{field.name}), []);
-                        instance.$fname();
+                        instance.$fname($a{argExprs});
                     });
 
                     bindPtrs.push(macro {
                         //Reflect.callMethod(instance, Reflect.field(instance, $v{field.name}), []);
-                        instance.$fname();
+                        instance.$fname($a{argExprs});
                     });
 
                     // check return
@@ -384,11 +389,13 @@ class Macros {
                 }
             });
             
+            /*
             bindCalls.push(macro {
                 if (methodId == $v{i}) {
                     $b{binds};
                 }
             });
+            */
 
             bindCallPtrs.push(macro {
                 if (methodId == $v{i}) {
@@ -426,26 +433,28 @@ class Macros {
             ';
 
             // use macros to assemble the arguments
-            var args = [];
+            var virtCall = null;
 
             //trace(f.args);
             // map the argument types correctly
             switch (f.kind) {
                 case FFun(_f): {
-                    for (argument in _f.args) {
-                        var argType = _mapHxTypeToGodot(argument.type);
-                        trace(argType);
-
-                        // TODO: unpack the arguments behind the pointer
-
+                    var args = [];
+                    for (i in 0..._f.args.length) {
+                        var argument = _f.args[i];
+                        var arg = ArgumentMacros.convert(i, "_args", argument.type);
+                        args.push(arg);
                     }
+                    virtCall = macro {
+                        $i{f.name}($a{args});
+                    };
                 }
                 default: continue;
             }
 
             var virtClass = macro class {
                 private function $vname(_args:godot.Types.VoidPtr, _ret:godot.Types.VoidPtr) {
-                    $b{args};
+                    ${virtCall};
                 }
             };
 
