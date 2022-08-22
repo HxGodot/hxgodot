@@ -10,19 +10,20 @@ class HxExample2 extends godot.Node {
     }
 
     @:expose
-    public function simple_func():Int {
+    public function simple_func():Bool {
         trace("simple_func called");
-        return 1;
+        return true;
     }
 
     @:expose
-    public function simple_add(_a:Int, _b:Float, _bool:Bool):Int {
+    public function simple_add(_a:Int, _b:Float, _bool:Bool):Float {
         trace('simple_add called ($_a, $_b, $_bool)');
-        return 1;
+        return _a + _b;
     }
 
     override function _process(_delta:Float):Void {
-        trace('_process($_delta) called');
+        //trace('_process($_delta) called');
+        trace(simple_add(10, _delta, false));
     }
 
     /*

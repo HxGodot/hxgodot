@@ -1,6 +1,51 @@
 package godot;
 
+enum abstract GDNativeVariantType(Int) from Int to Int {
+    var NIL = 0;
+    var BOOL;
+    var INT;
+    var FLOAT;
+    var STRING;
+    var VECTOR2;
+    var VECTOR2I;
+    var RECT2;
+    var RECT2I;
+    var VECTOR3;
+    var VECTOR3I;
+    var TRANSFORM2D;
+    var PLANE;
+    var QUATERNION;
+    var AABB;
+    var BASIS;
+    var TRANSFORM3D;
+    var COLOR;
+    var STRING_NAME;
+    var NODE_PATH;
+    var RID;
+    var OBJECT;
+    var CALLABLE;
+    var SIGNAL;
+    var DICTIONARY;
+    var ARRAY;
+    var PACKED_BYTE_ARRAY;
+    var PACKED_INT32_ARRAY;
+    var PACKED_INT64_ARRAY;
+    var PACKED_FLOAT32_ARRAY;
+    var PACKED_FLOAT64_ARRAY;
+    var PACKED_STRING_ARRAY;
+    var PACKED_VECTOR2_ARRAY;
+    var PACKED_VECTOR3_ARRAY;
+    var PACKED_COLOR_ARRAY;
+    var MAX;
+}
+
 #if macro
+
+/*
+Note: We cant use target specific magic in macros. So we need to abstract/fill in these types
+during macro runtime. Not sure if this duplication is the way to go but it seems to work
+and lets us emit the correct code in macros which in turns gets properly transformed to cpp
+*/
 
 typedef VoidPtr = Int;
 typedef GDNativeObjectPtr = Int;
@@ -15,6 +60,17 @@ typedef GDNativeExtensionClassMethodInfo = Int;
 typedef GodotNativeInterface = Int;
 typedef GDNativePropertyInfoPtr = Int;
 typedef GDNativeExtensionClassCallVirtual = Int;
+typedef GDNativeVariantPtr = Int;
+typedef GDNativeTypePtr = Int;
+
+typedef GDNativeInt = haxe.Int64;
+typedef GDNativeBool = Bool;
+typedef GDObjectInstanceID = haxe.Int64;
+
+typedef GDNativeVariantFromTypeConstructorFunc = Int;
+typedef GDNativeTypeFromVariantConstructorFunc = Int;
+
+
 
 #else
 
@@ -28,6 +84,11 @@ typedef Callable<T> = cpp.Callable<T>;
 typedef GDNativeExtensionClassMethodCall = cpp.Star<cpp.Callable<VoidPtr->VoidPtr->VoidPtr->Int->VoidPtr->VoidPtr->Void>>;
 typedef GDNativeExtensionClassMethodPtrCall = cpp.Star<cpp.Callable<VoidPtr->VoidPtr->VoidPtr->VoidPtr->Void>>;
 typedef GDNativeExtensionClassCallVirtual = VoidPtr;
+typedef GDNativeVariantPtr = VoidPtr;
+typedef GDNativeTypePtr = VoidPtr;
+
+typedef GDNativeVariantFromTypeConstructorFunc = VoidPtr;
+typedef GDNativeTypeFromVariantConstructorFunc = VoidPtr;
 
 // simple extern class to make the includes work
 @:include("godot_cpp/godot.hpp")
@@ -57,6 +118,10 @@ extern class GDNativePropertyInfo {
     */
 }
 typedef GDNativePropertyInfoPtr = cpp.Star<GDNativePropertyInfo>;
+
+typedef GDNativeInt = cpp.Int64;
+typedef GDNativeBool = cpp.UInt8;
+typedef GDObjectInstanceID = cpp.Int64;
 
 // simple extern to work with the static functions of the native interface and proper typing
 @:include("godot_cpp/godot.hpp")
@@ -98,5 +163,26 @@ extern class GodotNativeInterface {
         _classname:cpp.ConstCharStar,
         _parentClass:cpp.ConstCharStar,      
         _extension_funcs:cpp.Star<GDNativeExtensionClassCreationInfo>):VoidPtr;
+
+    
+    // variant    
+    inline public static function get_variant_from_type_constructor(_type:Int):VoidPtr {
+        return cast _get_variant_from_type_constructor(untyped __cpp__('(GDNativeVariantType){0}', _type));
+    }
+    @:native("godot::internal::gdn_interface->get_variant_from_type_constructor")
+    static function _get_variant_from_type_constructor(_type:Int):VoidPtr;
+
+    inline public static function get_variant_to_type_constructor(_type:Int):VoidPtr {
+        return untyped __cpp__('(cpp::Function<void (void *,void *)> *){0}',
+            _get_variant_to_type_constructor(untyped __cpp__('(GDNativeVariantType){0}', _type)));
+    }
+    @:native("godot::internal::gdn_interface->get_variant_to_type_constructor")
+    static function _get_variant_to_type_constructor(_type:Int):VoidPtr;
+
+    @:native("godot::internal::gdn_interface->variant_destroy")
+    public static function variant_destroy(_ptr:GDNativeVariantPtr):Void;
+
+    @:native("godot::internal::gdn_interface->variant_new_copy")
+    public static function variant_new_copy(_ptr0:GDNativeVariantPtr, _ptr1:GDNativeVariantPtr):Void;
 }
 #end

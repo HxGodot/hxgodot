@@ -1,4 +1,4 @@
-package godot;
+package godot.macros;
 
 import godot.Types;
 import haxe.macro.Context;
@@ -17,53 +17,6 @@ class Macros {
     inline public static var METHOD_FLAG_VARARG     = 1 << 4;
     inline public static var METHOD_FLAG_STATIC     = 1 << 5;
     inline public static var METHOD_FLAGS_DEFAULT   = METHOD_FLAG_NORMAL;
-
-
-    inline public static var VARIANT_TYPE_NIL = 0;
-
-    /*  atomic types */
-    inline public static var VARIANT_TYPE_BOOL = 1;
-    inline public static var VARIANT_TYPE_INT = 2;
-    inline public static var VARIANT_TYPE_FLOAT = 3;
-    inline public static var VARIANT_TYPE_STRING = 4;
-
-    /* math types */
-    inline public static var VARIANT_TYPE_VECTOR2 = 5;
-    inline public static var VARIANT_TYPE_VECTOR2I = 6;
-    inline public static var VARIANT_TYPE_RECT2 = 7;
-    inline public static var VARIANT_TYPE_RECT2I = 8;
-    inline public static var VARIANT_TYPE_VECTOR3 = 9;
-    inline public static var VARIANT_TYPE_VECTOR3I = 10;
-    inline public static var VARIANT_TYPE_TRANSFORM2D = 11;
-    inline public static var VARIANT_TYPE_PLANE = 12;
-    inline public static var VARIANT_TYPE_QUATERNION = 13;
-    inline public static var VARIANT_TYPE_AABB = 14;
-    inline public static var VARIANT_TYPE_BASIS = 15;
-    inline public static var VARIANT_TYPE_TRANSFORM3D = 16;
-
-    /* misc types */
-    inline public static var VARIANT_TYPE_COLOR = 17;
-    inline public static var VARIANT_TYPE_STRING_NAME = 18;
-    inline public static var VARIANT_TYPE_NODE_PATH = 19;
-    inline public static var VARIANT_TYPE_RID = 20;
-    inline public static var VARIANT_TYPE_OBJECT = 21;
-    inline public static var VARIANT_TYPE_CALLABLE = 23;
-    inline public static var VARIANT_TYPE_SIGNAL = 24;
-    inline public static var VARIANT_TYPE_DICTIONARY = 25;
-    inline public static var VARIANT_TYPE_ARRAY = 26;
-
-    /* typed arrays */
-    inline public static var VARIANT_TYPE_PACKED_BYTE_ARRAY = 27;
-    inline public static var VARIANT_TYPE_PACKED_INT32_ARRAY = 28;
-    inline public static var VARIANT_TYPE_PACKED_INT64_ARRAY = 29;
-    inline public static var VARIANT_TYPE_PACKED_FLOAT32_ARRAY = 30;
-    inline public static var VARIANT_TYPE_PACKED_FLOAT64_ARRAY = 31;
-    inline public static var VARIANT_TYPE_PACKED_STRING_ARRAY = 32;
-    inline public static var VARIANT_TYPE_PACKED_VECTOR2_ARRAY = 34;
-    inline public static var VARIANT_TYPE_PACKED_VECTOR3_ARRAY = 35;
-    inline public static var VARIANT_TYPE_PACKED_COLOR_ARRAY = 36;
-
-    inline public static var VARIANT_TYPE_VARIANT_MAX = 37;
 
     static var virtuals:Map<String, haxe.macro.Field> = new Map();
 
@@ -241,11 +194,11 @@ class Macros {
 
         function _mapHxTypeToGodot(_type) {
             return switch(_type) {
-                case (macro : Bool): VARIANT_TYPE_BOOL;
-                case (macro : Int): VARIANT_TYPE_INT;
-                case (macro : Float): VARIANT_TYPE_FLOAT;
-                case (macro : String): VARIANT_TYPE_STRING;
-                default: VARIANT_TYPE_NIL;
+                case (macro : Bool): godot.Types.GDNativeVariantType.BOOL;
+                case (macro : Int): godot.Types.GDNativeVariantType.INT;
+                case (macro : Float): godot.Types.GDNativeVariantType.FLOAT;
+                case (macro : String): godot.Types.GDNativeVariantType.STRING;
+                default: godot.Types.GDNativeVariantType.NIL;
             };
         }
 
@@ -274,7 +227,9 @@ class Macros {
 
                     // add functions for looking up arguments
                     for (j in -1..._f.args.length) {
-                        if (j == -1) { // deal with the return type
+
+                        // -1 indicates the return type of the function
+                        if (j == -1) { 
                             var argType = _mapHxTypeToGodot(_f.ret);
                             fieldArgs.push(macro {
                                 if (_arg == $v{j})
@@ -326,13 +281,13 @@ class Macros {
                     // TODO: add function arguments
                     var fname = field.name;
                     binds.push(macro {
-                        //Reflect.callMethod(instance, Reflect.field(instance, $v{field.name}), []);
-                        instance.$fname($a{argExprs});
+                        var ret:godot.Variant = instance.$fname($a{argExprs});
+                        godot.Types.GodotNativeInterface.variant_new_copy(_ret, ret.ptr());
                     });
 
                     bindPtrs.push(macro {
-                        //Reflect.callMethod(instance, Reflect.field(instance, $v{field.name}), []);
-                        instance.$fname($a{argExprs});
+                        var ret = instance.$fname($a{argExprs});
+                        ${ArgumentMacros.encode(_f.ret, "_ret", "ret")};
                     });
 
                     // check return
@@ -389,13 +344,11 @@ class Macros {
                 }
             });
             
-            /*
             bindCalls.push(macro {
                 if (methodId == $v{i}) {
                     $b{binds};
                 }
             });
-            */
 
             bindCallPtrs.push(macro {
                 if (methodId == $v{i}) {

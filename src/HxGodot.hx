@@ -3,6 +3,7 @@ import cpp.link.StaticStd;
 import cpp.link.StaticZlib;
 
 import godot.Types;
+import godot.Variant;
 
 using cpp.NativeString;
 
@@ -13,7 +14,8 @@ using cpp.NativeString;
         <file name='../src/godot_cpp/godot.cpp'/>
         <file name='../src/register_types.cpp'/>        
     </files>")
-class HxGodot { 
+class HxGodot {
+
     static function main() {
         //
 
@@ -22,7 +24,9 @@ class HxGodot {
         }
 
         // TODO: we need to register all customclasses somewhere. Adding them manually here sucks, I guess.
-        //HxExample.register();
+        
+        // setup constructors
+        VariantFactory.__initBindings();
 
         // new macro based solution
         HxExample2.__registerClass();

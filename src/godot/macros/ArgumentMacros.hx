@@ -18,4 +18,13 @@ class ArgumentMacros {
             default: macro { untyped __cpp__('nullptr'); };
         };
     }
+
+    public static function encode(_type:haxe.macro.ComplexType, _dest:String, _src:String) {
+        return switch(_type) {
+            case (macro : Bool): macro { (untyped __cpp__('*((bool*){0}) = {1}', $i{_dest}, $i{_src}):Bool); }
+            case (macro : Int): macro { (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}, $i{_src}):Int); }
+            case (macro : Float): macro { (untyped __cpp__('*((double*){0}) = {1}', $i{_dest}, $i{_src}):Float); }
+            default: macro { untyped __cpp__('nullptr'); };
+        };
+    }
 }
