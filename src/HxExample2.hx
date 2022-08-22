@@ -4,7 +4,7 @@ class HxExample2 extends godot.Node {
         super();
     }
 
-    //@:expose
+    //@:expose // TODO: static function are not correctly bound at the moment
     public static function test() {
         trace("test called");
     }
@@ -23,7 +23,7 @@ class HxExample2 extends godot.Node {
 
     override function _process(_delta:Float):Void {
         //trace('_process($_delta) called');
-        trace(simple_add(10, _delta, false));
+        //trace(simple_add(10, _delta, false));
     }
 
     /*

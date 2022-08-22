@@ -18,7 +18,7 @@ class Macros {
     inline public static var METHOD_FLAG_STATIC     = 1 << 5;
     inline public static var METHOD_FLAGS_DEFAULT   = METHOD_FLAG_NORMAL;
 
-    static var virtuals:Map<String, haxe.macro.Field> = new Map();
+    //static var virtuals:Map<String, haxe.macro.Field> = new Map();
 
     macro static public function build():Array<haxe.macro.Field> {
         var pos = Context.currentPos();
@@ -41,7 +41,7 @@ class Macros {
         var tokens = cls.get().superClass.t.toString().split(".");
         var parent_class_name = tokens[tokens.length-1];
 
-        trace(fields);
+        //trace(fields);
 
         //trace(className);
         //trace(parent_class_name);
@@ -101,7 +101,7 @@ class Macros {
                         }
                     
                     case ":gdVirtual":
-                        virtuals.set('${typePath.name}.${field.name}', field);
+                        //virtuals.set('${typePath.name}.${field.name}', field);
                     case ":expose":
                         extensionFields.push(field);
                 }
@@ -193,13 +193,13 @@ class Macros {
         var ctType = TPath(_typePath);
 
         function _mapHxTypeToGodot(_type) {
-            return switch(_type) {
+            return _type != null ? switch(_type) {
                 case (macro : Bool): godot.Types.GDNativeVariantType.BOOL;
                 case (macro : Int): godot.Types.GDNativeVariantType.INT;
                 case (macro : Float): godot.Types.GDNativeVariantType.FLOAT;
                 case (macro : String): godot.Types.GDNativeVariantType.STRING;
                 default: godot.Types.GDNativeVariantType.NIL;
-            };
+            } : godot.Types.GDNativeVariantType.NIL;
         }
 
         var regOut = [];
@@ -230,6 +230,9 @@ class Macros {
 
                         // -1 indicates the return type of the function
                         if (j == -1) { 
+
+                            trace(_f);
+
                             var argType = _mapHxTypeToGodot(_f.ret);
                             fieldArgs.push(macro {
                                 if (_arg == $v{j})
@@ -260,7 +263,7 @@ class Macros {
                             if (_arg == $v{j}) {
                                 _info.name = untyped __cpp__($v{'"${_f.args[j].name}"'});
                                 _info.type = $v{argType};
-                                _info.class_name = untyped __cpp__('""');
+                                _info.class_name = untyped __cpp__('""'); // TODO: use classname for complextypes here
                                 _info.hint_string = untyped __cpp__('""');
                             }
                         });
@@ -276,25 +279,39 @@ class Macros {
                             default:
                         }
                     }
-                    trace(StringTools.hex(hintFlags));
-
-                    // TODO: add function arguments
-                    var fname = field.name;
-                    binds.push(macro {
-                        var ret:godot.Variant = instance.$fname($a{argExprs});
-                        godot.Types.GodotNativeInterface.variant_new_copy(_ret, ret.ptr());
-                    });
-
-                    bindPtrs.push(macro {
-                        var ret = instance.$fname($a{argExprs});
-                        ${ArgumentMacros.encode(_f.ret, "_ret", "ret")};
-                    });
+                    var isStatic = hintFlags & METHOD_FLAG_STATIC != 0;
 
                     // check return
-                    var hasReturnValue = switch(_f.ret) {
+                    var hasReturnValue = _f.ret != null ? switch(_f.ret) {
                         case (macro:Void): false;
                         default: true;
-                    };
+                    } : false;
+
+                    var fname = field.name;
+                    var methodRoot = "instance";
+
+                    if (isStatic)
+                        methodRoot = _className;
+
+                    if (hasReturnValue) {
+                        binds.push(macro {
+                            var ret:godot.Variant = $i{methodRoot}.$fname($a{argExprs});
+                            godot.Types.GodotNativeInterface.variant_new_copy(_ret, ret.ptr());
+                        });
+
+                        bindPtrs.push(macro {
+                            var ret = $i{methodRoot}.$fname($a{argExprs});
+                            ${ArgumentMacros.encode(_f.ret, "_ret", "ret")};
+                        });
+                    } else {
+                        binds.push(macro {
+                            $i{methodRoot}.$fname($a{argExprs});
+                        });
+
+                        bindPtrs.push(macro {
+                            $i{methodRoot}.$fname($a{argExprs});
+                        });
+                    }
 
                     regOut.push( macro {
                         var method_info:godot.Types.GDNativeExtensionClassMethodInfo = untyped __cpp__('{
@@ -316,6 +333,9 @@ class Macros {
                             $v{hintFlags},
                             $v{_f.args.length}, 
                             $v{hasReturnValue}
+
+                            // TODO: Add support for default arguments!
+
                             // GDNativeExtensionClassMethodGetArgumentMetadata get_argument_metadata_func;
                             // uint32_t default_argument_count;
                             // GDNativeVariantPtr *default_arguments;
@@ -358,15 +378,16 @@ class Macros {
         }
 
         // build callbacks and implementations for the virtuals 
-        var vCallbacks = '';
-        var virtualFuncCallbacks = [];
-        var virtualFuncImpls = [];
         trace("////////////////////////////////////////////////////////////////////////////////");
         trace('// Virtuals');
         trace("////////////////////////////////////////////////////////////////////////////////");
-        for (f in _virtualFields) {
 
-            trace(f);
+        var vCallbacks = '';
+        var virtualFuncCallbacks = [];
+        var virtualFuncImpls = [];
+
+        for (f in _virtualFields) {
+            //trace(f);
 
             var vname = 'virtual_${_className}_${f.name}';
             virtualFuncCallbacks.push(macro {
@@ -388,7 +409,6 @@ class Macros {
             // use macros to assemble the arguments
             var virtCall = null;
 
-            //trace(f.args);
             // map the argument types correctly
             switch (f.kind) {
                 case FFun(_f): {

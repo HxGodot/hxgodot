@@ -2,6 +2,8 @@ extends HxExample2
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	#HxExample2.test();
+
 	var res := simple_func()
 	prints(res)
 
