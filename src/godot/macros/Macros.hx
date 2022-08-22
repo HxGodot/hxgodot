@@ -393,7 +393,7 @@ class Macros {
             var vname = 'virtual_${_className}_${f.name}';
             virtualFuncCallbacks.push(macro {
                 if (_name == $v{f.name}) 
-                    return untyped __cpp__($v{"(GDNativeExtensionClassCallVirtual)&"+vname+"__onVirtualCall"});
+                    return untyped __cpp__($v{"(void *)(GDNativeExtensionClassCallVirtual)&"+vname+"__onVirtualCall"});
             });
 
             vCallbacks += '
@@ -587,13 +587,13 @@ class Macros {
             }
 
             static function __getArgType(_methodUserData:godot.Types.VoidPtr, _arg:Int):Int {
-                var methodId = untyped __cpp__('(int){0}', _methodUserData);
+                var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData);
                 $b{argTypes};
                 return 0;
             }
 
             static function __getArgInfo(_methodUserData:godot.Types.VoidPtr, _arg:Int, _info:godot.Types.GDNativePropertyInfoPtr):Void {
-                var methodId = untyped __cpp__('(int){0}', _methodUserData);
+                var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData);
                 $b{argInfos}
             }
 
@@ -605,7 +605,7 @@ class Macros {
                 _ret:godot.Types.VoidPtr,
                 _error:godot.Types.VoidPtr) 
             {
-                var methodId = untyped __cpp__('(int){0}', _methodUserData);
+                var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData);
                 var instance:$ctType = untyped __cpp__(
                     $v{"("+_typePath.name+"(("+_typePath.name+"_obj*){0}))"}, // TODO: this is a little hacky!
                     _instance
@@ -626,7 +626,7 @@ class Macros {
                 _args:godot.Types.VoidPtr,
                 _ret:godot.Types.VoidPtr) 
             {
-                var methodId = untyped __cpp__('(int){0}', _methodUserData);
+                var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData);
                 var instance:$ctType = untyped __cpp__(
                     $v{"("+_typePath.name+"(("+_typePath.name+"_obj*){0}))"}, // TODO: this is a little hacky!
                     _instance
