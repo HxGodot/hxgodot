@@ -159,6 +159,7 @@ class Macros {
 #if macro
     
     static function buildPostInit(_class_name:String, _parent_class_name:String, _godotBaseclass:String) {
+        var identBindings = '&${_class_name}_obj::___binding_callbacks';
         var postInitClass = macro class {
             static var __class_name = $v{_class_name};
             static var __parent_class_name = $v{_parent_class_name};
@@ -181,7 +182,7 @@ class Macros {
                     __owner, 
                     untyped __cpp__("godot::internal::token"), 
                     cast ptr, 
-                    untyped __cpp__('&___binding_callbacks')
+                    untyped __cpp__($v{identBindings})
                 );
             }
         }
