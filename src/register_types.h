@@ -34,7 +34,7 @@
 #include <godot_cpp/godot.hpp>
 using namespace godot;
 
-void initialize_example_module(ModuleInitializationLevel p_level);
-void uninitialize_example_module(ModuleInitializationLevel p_level);
+void initialize_haxe_module(ModuleInitializationLevel p_level);
+void uninitialize_haxe_module(ModuleInitializationLevel p_level);
 
 #endif // ! EXAMPLE_REGISTER_TYPES_H

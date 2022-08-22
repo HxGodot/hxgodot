@@ -1,5 +1,14 @@
 
 class HxExample2 extends godot.Node {
+
+    /*
+    @:expose
+    inline public var MYVALUE:Int = 100;
+
+    @:property("MyGroup", 10)
+    public var myProp(default, null):Int;
+    */
+
     public function new() {
         super();
     }
@@ -30,9 +39,7 @@ class HxExample2 extends godot.Node {
     override function _ready():Void {
         trace("_ready called");
         //simple_func();
-    }
-
-    
+    }    
 
     override function _enter_tree():Void {
         trace("_enter_tree called");
@@ -40,18 +47,6 @@ class HxExample2 extends godot.Node {
 
     override function _exit_tree():Void {
         trace("_exit_tree called");
-    }
-
-    
-    @:expose
-    public static function test_static(_a:Int, _b:Int):Int {
-        return _a + _b;
-    }
-
-
-    @:expose
-    public static function test_static2():Void {
-        trace("test_static2 called");
     }
     */
     
