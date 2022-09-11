@@ -7,5 +7,5 @@ class Object extends Wrapped {
     }
 
     @:gdBind("Object", "get_class", 201670096)
-    public function get_class():String;
+    public function get_class():String return null;
 }

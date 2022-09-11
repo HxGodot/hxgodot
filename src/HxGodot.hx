@@ -5,8 +5,6 @@ import cpp.link.StaticZlib;
 import godot.Types;
 import godot.Variant;
 
-using cpp.NativeString;
-
 @:buildXml("<files id='haxe'>
         <compilerflag value='-I../godot-headers'/>
         <compilerflag value='-I../src'/>
@@ -23,13 +21,16 @@ class HxGodot {
             GodotNativeInterface.print_warning(Std.string(v), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
         }
 
-        // TODO: we need to register all customclasses somewhere. Adding them manually here sucks, I guess.
-        
         // setup constructors
         VariantFactory.__initBindings();
 
-        // new macro based solution
-        HxExample2.__registerClass();
-        HxOther.__registerClass();
+        // use https://github.com/jasononeil/compiletime to embed all found extensionclasses and use rtti to register them
+        // TODO: the compile-time lib should prolly be replaced with something lightweight in the long run
+        var tmp = CompileTime.getAllClasses(Wrapped);
+        for (t in tmp) {
+            if (Reflect.hasField(t, "__registerClass"))
+                Reflect.field(t, "__registerClass")();
+        }
+        trace(tmp);
     }
 }

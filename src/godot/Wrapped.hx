@@ -2,7 +2,9 @@ package godot;
 
 import godot.Types;
 
+#if !macro
 @:autoBuild(godot.macros.Macros.build())
+#end
 class Wrapped {
     public function new() {
         this.__postInit();

@@ -8,6 +8,7 @@ import haxe.macro.TypeTools;
 import godot.macros.ArgumentMacros;
 
 using haxe.macro.ExprTools;
+using StringTools;
 
 class Macros {
     inline public static var METHOD_FLAG_NORMAL     = 1 << 0;
@@ -19,6 +20,7 @@ class Macros {
     inline public static var METHOD_FLAGS_DEFAULT   = METHOD_FLAG_NORMAL;
 
     //static var virtuals:Map<String, haxe.macro.Field> = new Map();
+    static var extensionClasses:Map<String, Bool> = new Map();
 
     macro static public function build():Array<haxe.macro.Field> {
         var pos = Context.currentPos();
@@ -30,6 +32,7 @@ class Macros {
         var isEngineClass = classMeta.has(":gdEngineClass");
 
         var classNameTokens = className.split(".");
+        var classNameCpp = className.replace(".", "::");
         var typePath:TypePath = {
             sub: null,
             params: [],
@@ -102,7 +105,7 @@ class Macros {
                     
                     case ":gdVirtual":
                         //virtuals.set('${typePath.name}.${field.name}', field);
-                    case ":expose":
+                    case ":export":
                         extensionFields.push(field);
                 }
             }
@@ -119,9 +122,11 @@ class Macros {
 
         if (isEngineClass) {
             // properly bootstrap this class
-            fields = fields.concat(buildPostInit(typePath.name, parent_class_name, typePath.name));
+            fields = fields.concat(buildPostInit(typePath.name, parent_class_name, typePath.name, classNameCpp));
         }
         else {
+            trace(className);
+
             // find the first engine-class up the inheritance chain
             var engine_parent = null;
             // also collect all engine virtuals up the chain
@@ -146,20 +151,21 @@ class Macros {
                 throw "Impossible";
 
             trace("////////////////////////////////////////////////////////////////////////////////");
+            trace('// Class: ${className}');
 
             // we got an extension class, so make sure we got the whole extension bindings for the fields covered!
-            fields = fields.concat(buildFieldBindings(className, classMeta, typePath, extensionFields, engineVirtuals));
+            fields = fields.concat(buildFieldBindings(typePath.name, classMeta, typePath, extensionFields, engineVirtuals, classNameCpp));
 
             // properly bootstrap this class
-            fields = fields.concat(buildPostInit(className, parent_class_name, engine_parent.name));
+            fields = fields.concat(buildPostInit(typePath.name, parent_class_name, engine_parent.name, classNameCpp));
         }
 
         return fields;
     }
 #if macro
     
-    static function buildPostInit(_class_name:String, _parent_class_name:String, _godotBaseclass:String) {
-        var identBindings = '&${_class_name}_obj::___binding_callbacks';
+    static function buildPostInit(_class_name:String, _parent_class_name:String, _godotBaseclass:String, _cppClassName:String) {
+        var identBindings = '&${_cppClassName}_obj::___binding_callbacks';
         var postInitClass = macro class {
             static var __class_name = $v{_class_name};
             static var __parent_class_name = $v{_parent_class_name};
@@ -174,7 +180,7 @@ class Macros {
                         __owner, 
                         __class_name, 
                         cast ptr
-                    );    
+                    );
                 }
                 
                 // register the callbacks, do we need this?
@@ -189,7 +195,7 @@ class Macros {
         return postInitClass.fields;
     }
 
-    static function buildFieldBindings(_className:String, _classMeta, _typePath, _extensionFields:Array<Dynamic>, _virtualFields:Array<Dynamic>) {
+    static function buildFieldBindings(_className:String, _classMeta, _typePath, _extensionFields:Array<Dynamic>, _virtualFields:Array<Dynamic>, _cppClassName:String) {
         var pos = Context.currentPos();
         var ctType = TPath(_typePath);
 
@@ -221,9 +227,10 @@ class Macros {
 
             switch (field.kind) {
                 case FFun(_f): {
-
-                    trace(field);
-                    trace(_f);
+                    trace("////////////////////////////////////////////////////////////////////////////////");
+                    trace('// FFun: ${field.name}');
+                    
+                    //trace(_f);
 
                     var argExprs = [];
 
@@ -351,6 +358,12 @@ class Macros {
                     });
                 }
                 case FProp(_g, _s, _t):
+                    trace("////////////////////////////////////////////////////////////////////////////////");
+                    trace('// FProp: ${field.name}');
+                    trace(field);
+                    trace(_g);
+                    trace(_s);
+                    trace(_t);
                 case FVar(_t):
             }
 
@@ -402,7 +415,7 @@ class Macros {
                     int base = 0;
                     hx::SetTopOfStack(&base,true);
                     GDNativeExtensionClassCallVirtual res = nullptr;
-                    ${_typePath.name} instance = (${_typePath.name}((${_typePath.name}_obj*)p_instance));
+                    ${_cppClassName} instance = (${_cppClassName}((${_cppClassName}_obj*)p_instance));
                     instance->${vname}((void *)p_args, (void *)r_ret); // forward to macrofy the arguments
                     hx::SetTopOfStack((int*)0,true);
                 }
@@ -441,7 +454,7 @@ class Macros {
             static GDNativeObjectPtr __onCreate(void *p_userdata) {
                 int base = 0;
                 hx::SetTopOfStack(&base,true);
-                GDNativeObjectPtr res = ${_className}_obj::_hx___create((void *)p_userdata);
+                GDNativeObjectPtr res = ${_cppClassName}_obj::_hx___create((void *)p_userdata);
                 hx::SetTopOfStack((int*)0,true);
                 return res;
             }
@@ -449,14 +462,14 @@ class Macros {
             static void __onFree(void *p_userdata, GDExtensionClassInstancePtr p_instance) {
                 int base = 0;
                 hx::SetTopOfStack(&base,true);
-                ${_className}_obj::_hx___free((void *)p_userdata, p_instance);
+                ${_cppClassName}_obj::_hx___free((void *)p_userdata, p_instance);
                 hx::SetTopOfStack((int*)0,true);
             }
 
             static GDNativeExtensionClassCallVirtual __onGetVirtualFunc(void *p_userdata, const char *p_name) {
                 int base = 0;
                 hx::SetTopOfStack(&base,true);
-                GDNativeExtensionClassCallVirtual res = (GDNativeExtensionClassCallVirtual)${_className}_obj::_hx___getVirtualFunc(p_userdata, p_name);
+                GDNativeExtensionClassCallVirtual res = (GDNativeExtensionClassCallVirtual)${_cppClassName}_obj::_hx___getVirtualFunc(p_userdata, p_name);
                 hx::SetTopOfStack((int*)0,true);
                 return res;
             }
@@ -471,7 +484,7 @@ class Macros {
             {
                 int base = 0;
                 hx::SetTopOfStack(&base,true);
-                ${_className}_obj::_hx___bindCall(
+                ${_cppClassName}_obj::_hx___bindCall(
                     (void *)method_userdata,
                     (void *)p_instance,
                     (void *)p_args,
@@ -490,7 +503,7 @@ class Macros {
             {
                 int base = 0;
                 hx::SetTopOfStack(&base,true);
-                ${_className}_obj::_hx___bindCallPtr(
+                ${_cppClassName}_obj::_hx___bindCallPtr(
                     (void *)method_userdata,
                     (void *)p_instance,
                     (void *)p_args,
@@ -502,7 +515,7 @@ class Macros {
             static GDNativeVariantType __onGetArgType(void *_methodUserData, int32_t _arg) {
                 int base = 0;
                 hx::SetTopOfStack(&base,true);
-                GDNativeVariantType res = (GDNativeVariantType)${_className}_obj::_hx___getArgType(_methodUserData, _arg);
+                GDNativeVariantType res = (GDNativeVariantType)${_cppClassName}_obj::_hx___getArgType(_methodUserData, _arg);
                 hx::SetTopOfStack((int*)0,true);
                 return res;
             }
@@ -510,7 +523,7 @@ class Macros {
             static void __onGetArgInfo(void *_methodUserData, int32_t _arg, GDNativePropertyInfo *r_info) {
                 int base = 0;
                 hx::SetTopOfStack(&base,true);
-                ${_className}_obj::_hx___getArgInfo(_methodUserData, _arg, r_info);
+                ${_cppClassName}_obj::_hx___getArgInfo(_methodUserData, _arg, r_info);
                 hx::SetTopOfStack((int*)0,true);
             }
         ';
@@ -530,7 +543,7 @@ class Macros {
             private static function __free(_data:godot.Types.VoidPtr, _ptr:godot.Types.GDNativeObjectPtr) {
 
                 var n:$ctType = untyped __cpp__(
-                    $v{"("+_typePath.name+"(("+_typePath.name+"_obj*){0}))"}, // TODO: this is a little hacky!
+                    $v{"("+_cppClassName+"(("+_cppClassName+"_obj*){0}))"}, // TODO: this is a little hacky!
                     _ptr
                 );
 
@@ -541,7 +554,7 @@ class Macros {
 
             private static function __getVirtualFunc(_userData:godot.Types.VoidPtr, _name:String):godot.Types.GDNativeExtensionClassCallVirtual {
                 var instance:$ctType = untyped __cpp__(
-                    $v{"("+_typePath.name+"(("+_typePath.name+"_obj*){0}))"}, // TODO: this is a little hacky!
+                    $v{"("+_cppClassName+"(("+_cppClassName+"_obj*){0}))"}, // TODO: this is a little hacky!
                     _userData
                 );
                 $b{virtualFuncCallbacks};
@@ -608,7 +621,7 @@ class Macros {
             {
                 var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData);
                 var instance:$ctType = untyped __cpp__(
-                    $v{"("+_typePath.name+"(("+_typePath.name+"_obj*){0}))"}, // TODO: this is a little hacky!
+                    $v{"("+_cppClassName+"(("+_cppClassName+"_obj*){0}))"}, // TODO: this is a little hacky!
                     _instance
                 );
                 $b{bindCalls};
@@ -629,7 +642,7 @@ class Macros {
             {
                 var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData);
                 var instance:$ctType = untyped __cpp__(
-                    $v{"("+_typePath.name+"(("+_typePath.name+"_obj*){0}))"}, // TODO: this is a little hacky!
+                    $v{"("+_cppClassName+"(("+_cppClassName+"_obj*){0}))"}, // TODO: this is a little hacky!
                     _instance
                 );
                 $b{bindCallPtrs};

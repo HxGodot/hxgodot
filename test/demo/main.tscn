@@ -4,7 +4,7 @@
 
 [node name="Node" type="Node"]
 
-[node name="HxExample2" type="HxExample2" parent="."]
+[node name="HxExample" type="HxExample" parent="."]
 script = ExtResource("1_t53o3")
 
 [node name="HxOther" type="HxOther" parent="."]

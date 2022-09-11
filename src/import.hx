@@ -1,0 +1,2 @@
+import godot.*;
+import example.*;
