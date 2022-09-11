@@ -65,6 +65,7 @@ typedef GDNativeTypePtr = Int;
 
 typedef GDNativeInt = haxe.Int64;
 typedef GDNativeBool = Bool;
+typedef GDNativeFloat = Float;
 typedef GDObjectInstanceID = haxe.Int64;
 
 typedef GDNativeVariantFromTypeConstructorFunc = Int;
@@ -121,6 +122,7 @@ typedef GDNativePropertyInfoPtr = cpp.Star<GDNativePropertyInfo>;
 
 typedef GDNativeInt = cpp.Int64;
 typedef GDNativeBool = cpp.UInt8;
+typedef GDNativeFloat = cpp.Float32; // TODO: take into account if godot was compiled for doubles
 typedef GDObjectInstanceID = cpp.Int64;
 
 // simple extern to work with the static functions of the native interface and proper typing

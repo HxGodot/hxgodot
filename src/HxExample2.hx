@@ -14,9 +14,9 @@ class HxExample2 extends godot.Node {
     }
 
     //@:expose // TODO: static function are not correctly bound at the moment
-    public static function test() {
-        trace("test called");
-    }
+    //public static function test() {
+    //    trace("test called");
+    //}
 
     @:expose
     public function simple_func():Bool {
@@ -30,10 +30,22 @@ class HxExample2 extends godot.Node {
         return _a + _b;
     }
 
-    override function _process(_delta:Float):Void {
+    //@:expose // TODO: use proper godot class bindings for string
+    public function simple_string(_str:String):String {
+        return _str + " hahaha";
+    }
+
+    @:expose
+    public function simple_add_vector3(_v0:godot.variants.Vector3, _v1:godot.variants.Vector3):godot.variants.Vector3 {
+        trace(_v0);
+        trace(_v1);
+        return _v0 + _v1;
+    }
+
+    // override function _process(_delta:Float):Void {
         //trace('_process($_delta) called');
         //trace(simple_add(10, _delta, false));
-    }
+    // }
 
     /*
     override function _ready():Void {

@@ -10,19 +10,26 @@ func _ready():
 	var res2 := simple_add(69, 0.66, true)
 	test_variant(res2 + 1)
 
+	var res3 = simple_add_vector3(Vector3(400, 300, 500), Vector3(1, 2, 3))
+	test_variant(res3)
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta):
-	simple_add(69, _delta, true)
+	#simple_add(69, _delta, true)
+	pass
 
 # helper function
 func test_variant(res):
-	print(res)
 	match typeof(res):
 		TYPE_NIL:
-			prints("res2 is null")
+			prints("res is null", res)
 		TYPE_BOOL:
-			prints("res2 is a bool")
+			prints("res is a bool", res)
 		TYPE_INT:
-			prints("res2 is an integer")
+			prints("res is an integer", res)
 		TYPE_FLOAT:
-			prints("res2 is a float")
+			prints("res is a float", res)
+		TYPE_STRING:
+			prints("res is a string", res)
+		TYPE_VECTOR3:
+			prints("res is a vector3", res)

@@ -199,6 +199,7 @@ class Macros {
                 case (macro : Int): godot.Types.GDNativeVariantType.INT;
                 case (macro : Float): godot.Types.GDNativeVariantType.FLOAT;
                 case (macro : String): godot.Types.GDNativeVariantType.STRING;
+                case (macro : godot.variants.Vector3): godot.Types.GDNativeVariantType.VECTOR3;
                 default: godot.Types.GDNativeVariantType.NIL;
             } : godot.Types.GDNativeVariantType.NIL;
         }

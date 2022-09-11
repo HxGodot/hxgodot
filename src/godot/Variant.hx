@@ -77,5 +77,11 @@ abstract Variant(GDNativeVariantOpaque) from GDNativeVariantOpaque to GDNativeVa
     @:from inline static function fromFloat(_x:Float):Variant
         return _buildVariant(GDNativeVariantType.FLOAT, _x);
 
+    @:from inline static function fromString(_x:String):Variant
+        return _buildVariant(GDNativeVariantType.STRING, _x);
+
+    @:from inline static function fromVector3(_x:godot.variants.Vector3):Variant
+        return _buildVariant(GDNativeVariantType.VECTOR3, _x);
+
     // TODO: add the other variant things here
 }
