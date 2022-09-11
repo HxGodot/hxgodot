@@ -49,20 +49,39 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
 	}
 
 	inline public function normalize():GDNativeFloat {
-		var len:GDNativeFloat = length();
-		this[0] /= len;
-		this[1] /= len;
-		this[2] /= len;
+		var len = length_squared();
+		if (len == 0.0)
+			this[0] = this[1] = this[2] = 0.0;
+		else {
+			len = Math.sqrt(len);
+			this[0] /= len;
+			this[1] /= len;
+			this[2] /= len;	
+		}		
 		return len;
+	}
+
+	inline public function normalized():Vector3 {
+		var res:Vector3 = this.copy();
+		res.normalize();
+		return res;
 	}
 
 	inline public function dot(rhs:Vector3):GDNativeFloat
 		return this[0] * rhs[0] + this[1] * rhs[1] + this[2] * rhs[2];
 
+	inline public function cross(rhs:Vector3):Vector3 {
+		var res = new Vector3(0,0,0);
+		res[0] = this[1] * rhs[2] - this[2] * rhs[1];
+		res[1] = this[2] * rhs[0] - this[0] * rhs[2];
+		res[2] = this[0] * rhs[1] - this[1] * rhs[0];
+		return res;
+	}
+
 	inline public function length():GDNativeFloat 
 		return Math.sqrt(dot(this));
 
-	inline public function lengthSquared():GDNativeFloat 
+	inline public function length_squared():GDNativeFloat 
 		return dot(this);
 
 	@:op(A == B)
@@ -76,16 +95,17 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
 	@:op(A * B)
 	inline public static function mult(lhs:Vector3, rhs:Vector3):Vector3 {
 		var res = new Vector3(0,0,0);
-		res[0] = lhs[1] * rhs[2] - lhs[2] * rhs[1];
-		res[1] = lhs[2] * rhs[0] - lhs[0] * rhs[2];
-		res[2] = lhs[0] * rhs[1] - lhs[1] * rhs[0];
+		res[0] = lhs[0] * rhs[0];
+		res[1] = lhs[1] * rhs[1];
+		res[2] = lhs[2] * rhs[2];
 		return res;
 	}
 
 	@:op(A *= B)
 	inline public static function multIn(lhs:Vector3, rhs:Vector3):Vector3 {
-		var res = lhs * rhs;
-		lhs.setFromVector3(res);
+		lhs[0] *= rhs[0];
+		lhs[1] *= rhs[1];
+		lhs[2] *= rhs[2];
 		return lhs;
 	}
 
