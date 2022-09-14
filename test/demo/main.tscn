@@ -5,6 +5,9 @@
 [node name="Node" type="Node"]
 
 [node name="HxExample" type="HxExample" parent="."]
+hx_random_MyVector3 = Vector3(1.11, 2.402, 3)
 script = ExtResource("1_t53o3")
 
 [node name="HxOther" type="HxOther" parent="."]
+
+[node name="Node2D" type="Node2D" parent="."]

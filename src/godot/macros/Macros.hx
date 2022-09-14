@@ -201,16 +201,21 @@ class Macros {
 
         function _mapHxTypeToGodot(_type) {
             return _type != null ? switch(_type) {
-                case (macro : Bool): godot.Types.GDNativeVariantType.BOOL;
-                case (macro : Int): godot.Types.GDNativeVariantType.INT;
-                case (macro : Float): godot.Types.GDNativeVariantType.FLOAT;
-                case (macro : String): godot.Types.GDNativeVariantType.STRING;
-                case (macro : godot.variants.Vector3): godot.Types.GDNativeVariantType.VECTOR3;
+                case TPath(_d):
+                    switch(_d.name) {
+                        case 'Bool': godot.Types.GDNativeVariantType.BOOL;
+                        case 'Int', 'Int64': godot.Types.GDNativeVariantType.INT;
+                        case 'Float': godot.Types.GDNativeVariantType.FLOAT;
+                        case 'String': godot.Types.GDNativeVariantType.STRING;
+                        case 'Vector3': godot.Types.GDNativeVariantType.VECTOR3;
+                        default: godot.Types.GDNativeVariantType.NIL;
+                    }
                 default: godot.Types.GDNativeVariantType.NIL;
             } : godot.Types.GDNativeVariantType.NIL;
         }
 
         var regOut = [];
+        var regPropOut = [];
         var argTypes = [];
         var argInfos = [];
         var bindCalls = [];
@@ -233,6 +238,7 @@ class Macros {
                     //trace(_f);
 
                     var argExprs = [];
+                    var argVariantExprs = [];
 
                     // add functions for looking up arguments
                     for (j in -1..._f.args.length) {
@@ -263,6 +269,7 @@ class Macros {
                         var argument = _f.args[j];
                         var argType = _mapHxTypeToGodot(argument.type);
                         argExprs.push(ArgumentMacros.convert(j, "_args", argument.type));
+                        argVariantExprs.push(ArgumentMacros.convertVariant(j, "_args", argument.type));
                         
                         fieldArgs.push(macro {
                             if (_arg == $v{j})
@@ -304,8 +311,10 @@ class Macros {
 
                     if (hasReturnValue) {
                         binds.push(macro {
-                            var ret:godot.Variant = $i{methodRoot}.$fname($a{argExprs});
-                            godot.Types.GodotNativeInterface.variant_new_copy(_ret, ret.ptr());
+                            var ret:godot.Variant = $i{methodRoot}.$fname($a{argVariantExprs});
+                            godot.Types.GodotNativeInterface.variant_destroy(_ret);
+                            godot.Types.GodotNativeInterface.variant_new_copy(_ret, ret.native_ptr());
+                            ret.delete();
                         });
 
                         bindPtrs.push(macro {
@@ -357,13 +366,91 @@ class Macros {
                         );
                     });
                 }
-                case FProp(_g, _s, _t):
+                case FProp(_g, _s, _type): {
                     trace("////////////////////////////////////////////////////////////////////////////////");
                     trace('// FProp: ${field.name}');
                     trace(field);
                     trace(_g);
                     trace(_s);
-                    trace(_t);
+                    trace(_type);
+
+                    
+                    var argType = _mapHxTypeToGodot(_type);
+
+                    // TODO: rewrite Haxe Properties in order to always have a getter/setter
+                    var hint = macro $v{GDPropertyHint.NONE};
+                    var hint_string = macro $v{""};
+                    var usage = macro $v{7}; // TODO: we should prolly expose this
+                    var group = null;
+                    var group_prefix = null;
+                    var sub_group = null;
+                    var sub_group_prefix = null;
+
+                    for (m in cast(field.meta, Array<Dynamic>)) {
+                        switch(m.name) {
+                            case ':hint': {
+                                hint = macro ${m.params[0]};
+                                hint_string = macro ${m.params[1]};
+                            }
+                            case ':group': {
+                                group = macro ${m.params[0]};
+                                group_prefix = macro ${m.params[1]};
+                            }
+                            case ':subGroup': {
+                                sub_group = macro ${m.params[0]};
+                                sub_group_prefix = macro ${m.params[1]};
+                            }
+                        }
+                    }                    
+
+                    if (group != null) {
+                        regPropOut.push( macro {
+                            godot.Types.GodotNativeInterface.classdb_register_extension_class_property_group(
+                                library,
+                                __class_name,
+                                ${group},
+                                ${group_prefix}
+                            );    
+                        });
+                    } else if (sub_group != null) {
+                        regPropOut.push( macro {
+                            godot.Types.GodotNativeInterface.classdb_register_extension_class_property_subgroup(
+                                library,
+                                __class_name,
+                                ${sub_group},
+                                ${sub_group_prefix}
+                            );    
+                        });
+                    }
+
+                    regPropOut.push( macro {
+                        var propInfo:godot.Types.GDNativePropertyInfo = untyped __cpp__('{
+                            (uint32_t){0}, // uint32_t type;
+                            (const char*){1}.utf8_str(),// const char *name;
+                            (const char*){2}.utf8_str(),// const char *class_name;
+                            {3},// uint32_t hint;
+                            {4}.utf8_str(),// const char *hint_string;
+                            7// uint32_t usage;
+                        }',
+                            $v{argType},
+                            $v{field.name},
+                            __class_name,
+                            ${hint},
+                            ${hint_string}
+                        );
+                        godot.Types.GodotNativeInterface.classdb_register_extension_class_property(
+                            library, 
+                            __class_name, 
+                            propInfo,
+                            $v{"set_"+field.name},
+                            $v{"get_"+field.name}
+                        );
+                    });
+
+                    
+                }
+
+
                 case FVar(_t):
             }
 
@@ -597,7 +684,10 @@ class Macros {
 
             static function __registerMethods() {
                 var library = untyped __cpp__("godot::internal::library");
+                // register all methods
                 $b{regOut};
+                // getter and setters have been registered, now register the properties
+                $b{regPropOut};
             }
 
             static function __getArgType(_methodUserData:godot.Types.VoidPtr, _arg:Int):Int {

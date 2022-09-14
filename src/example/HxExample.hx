@@ -1,20 +1,57 @@
 package example;
 
+import godot.variants.Vector3;
+
 class HxExample extends godot.Node {
 
-    /*
+    @:isVar
     @:export
+    @:hint(GDPropertyHint.RANGE, "0,64,0.01")
+    @:group("My Haxe Properties", "hx_")
+    public var hx_ImportantFloat(get, set):Float = 22;
+
+    @:export
+    function set_hx_ImportantFloat(_v:Float):Float {
+        trace("Hello " + _v);
+        hx_ImportantFloat = _v;
+        return _v;
+    }
+
+    @:export
+    function get_hx_ImportantFloat():Float {
+        return hx_ImportantFloat;
+    }
+
+    @:isVar
+    @:export
+    @:hint(GDPropertyHint.NONE, "suffix:m")
+    @:subGroup("Random Properties", "hx_random")
+    public var hx_random_MyVector3(get, set):Vector3 = new Vector3(1,2,3);
+
+    @:export
+    function set_hx_random_MyVector3(_v:Vector3):Vector3 {
+        hx_random_MyVector3 = _v;
+        return _v;
+    }
+
+    @:export
+    function get_hx_random_MyVector3():Vector3 {
+        return hx_random_MyVector3;
+    }
+
+    // ...
+
+
+    /*
+    //@:export
     inline public var MYVALUE:Int = 100;
     */
-
-    @:export("MyGroup", 10)
-    public var myProp(default, null):Int;
 
     public function new() {
         super();
     }
 
-    @:export // TODO: static function are not correctly bound at the moment
+    //@:export // TODO: static function are not correctly bound at the moment
     public static function test() {
         trace("test called");
     }
@@ -31,7 +68,7 @@ class HxExample extends godot.Node {
         return _a + _b;
     }
 
-    //@:export // TODO: use proper godot class bindings for string
+    ////@:export // TODO: use proper godot class bindings for string
     public function simple_string(_str:String):String {
         return _str + " hahaha";
     }

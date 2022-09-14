@@ -147,24 +147,32 @@ extern class GodotNativeInterface {
     @:native("godot::internal::gdn_interface->object_set_instance_binding")
     public static function object_set_instance_binding(_owner:VoidPtr, _token:VoidPtr, _binding:VoidPtr, _bindingCallbacks:VoidPtr):VoidPtr;
 
+    @:native("godot::internal::gdn_interface->classdb_register_extension_class_method")
+    public static function classdb_register_extension_class_method(_library:VoidPtr, _classname:cpp.ConstCharStar, _method_info:cpp.Star<GDNativeExtensionClassMethodInfo>):Void;
+
+    @:native("godot::internal::gdn_interface->classdb_register_extension_class_property")
+    public static function classdb_register_extension_class_property(_library:VoidPtr, _classname:cpp.ConstCharStar, _property:GDNativePropertyInfoPtr, _setter:cpp.ConstCharStar, _getter:cpp.ConstCharStar):Void;
+
+    @:native("godot::internal::gdn_interface->classdb_register_extension_class_property_group")
+    public static function classdb_register_extension_class_property_group(_library:VoidPtr, _classname:cpp.ConstCharStar, _groupName:cpp.ConstCharStar, _prefix:cpp.ConstCharStar):Void;
+
+    @:native("godot::internal::gdn_interface->classdb_register_extension_class_property_subgroup")
+    public static function classdb_register_extension_class_property_subgroup(_library:VoidPtr, _classname:cpp.ConstCharStar, _subGroupName:cpp.ConstCharStar, _prefix:cpp.ConstCharStar):Void;
     
     @:native("godot::internal::gdn_interface->classdb_get_method_bind")
     public static function classdb_get_method_bind(_obj:cpp.ConstCharStar, _method:cpp.ConstCharStar, _hash:Int):VoidPtr;
 
-
-    @:native("godot::internal::gdn_interface->classdb_register_extension_class_method")
-    public static function classdb_register_extension_class_method(_library:VoidPtr, _classname:cpp.ConstCharStar, _method_info:cpp.Star<GDNativeExtensionClassMethodInfo>):Void;
-
     @:native("godot::internal::gdn_interface->object_method_bind_ptrcall")
     public static function object_method_bind_ptrcall(_method:GDNativeMethodBindPtr, _method:GDNativeObjectPtr, _args:cpp.Star<GDNativeObjectPtr>, _ret:VoidPtr):VoidPtr;
 
-    
     @:native("godot::internal::gdn_interface->classdb_register_extension_class")
     public static function classdb_register_extension_class(
         _library:VoidPtr,
         _classname:cpp.ConstCharStar,
         _parentClass:cpp.ConstCharStar,      
         _extension_funcs:cpp.Star<GDNativeExtensionClassCreationInfo>):VoidPtr;
+
+
 
     
     // variant    

@@ -12,6 +12,7 @@ func _ready():
 
 	var res3 = simple_add_vector3(Vector3(400, 300, 500), Vector3(1, 2, 3))
 	test_variant(res3)
+	print(hx_random_MyVector3)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta):
