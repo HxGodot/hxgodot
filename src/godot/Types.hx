@@ -179,7 +179,7 @@ extern class GodotNativeInterface {
     inline public static function get_variant_from_type_constructor(_type:Int):VoidPtr {
         return cast _get_variant_from_type_constructor(untyped __cpp__('(GDNativeVariantType){0}', _type));
     }
-    @:native("godot::internal::gdn_interface->get_variant_from_type_constructor")
+    @:native("(void *)godot::internal::gdn_interface->get_variant_from_type_constructor")
     static function _get_variant_from_type_constructor(_type:Int):VoidPtr;
 
     inline public static function get_variant_to_type_constructor(_type:Int):VoidPtr {
