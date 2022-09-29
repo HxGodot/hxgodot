@@ -11,7 +11,10 @@ import godot.Variant;
         <file name='../src/hxcpp_ext/Dynamic2.cpp'/>
         <file name='../src/godot_cpp/godot.cpp'/>
         <file name='../src/register_types.cpp'/>        
-    </files>")
+    </files>
+    <linker id='dll' exe='g++' if='macos'>
+        <flag value='-Wl,-undefined,dynamic_lookup'/>
+    </linker>")
 class HxGodot {
 
     static function main() {

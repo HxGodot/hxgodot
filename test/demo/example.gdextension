@@ -4,8 +4,8 @@ entry_symbol = "haxe_library_init"
 
 [libraries]
 
-macos.debug = ""
-macos.release = ""
+macos.debug = "bin/HxGodot-debug.dylib"
+macos.release = "bin/HxGodot.dylib"
 windows.debug.x86_32 = ""
 windows.release.x86_32 = "bin/HxGodot.dll"
 windows.debug.x86_64 = "bin/HxGodot-debug.dll"
