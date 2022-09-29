@@ -1,6 +1,8 @@
 --macro include('example', true)
+--macro include('godot.variants', true)
 -main HxGodot
 -cpp bin/
+-cp gen
 -cp src
 -lib compiletime
 -D HXCPP_M64

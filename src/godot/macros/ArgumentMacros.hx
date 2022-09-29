@@ -31,7 +31,7 @@ class ArgumentMacros {
                     }
                     case 'Int64': macro { (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}, $i{_src}):haxe.Int64); }
                     case 'Float': macro { (untyped __cpp__('*((double*){0}) = {1}', $i{_dest}, $i{_src}):Float); }
-                    //case 'String': macro { (untyped __cpp__('*((const char*){0}) = {1}.utf8_str()', $i{_dest}, $i{_src}):String); }
+                    //case 'GDString': macro { (untyped __cpp__('*((const char*){0}) = (const char*){1}->_native_ptr()', $i{_dest}, $i{_src}):String); }
                     case 'Vector3':
                         macro {
                             untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*3)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
@@ -49,7 +49,19 @@ class ArgumentMacros {
                     case 'Bool': macro { (untyped __cpp__('*(bool *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}, $v{_index}, $v{_offset}):Bool); }
                     case 'Int', 'Int64': macro { (untyped __cpp__('(int64_t)*(int32_t *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}, $v{_index}, $v{_offset}):Int); }
                     case 'Float': macro { (untyped __cpp__('*(double *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}, $v{_index}, $v{_offset}):Float); }
-                    //case 'String': macro { (untyped __cpp__('*(const char *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}, $v{_index}, $v{_offset}):String); }
+                    case 'GDString': macro {
+                        var str = new GDString();
+                        (untyped __cpp__(
+                            'memcpy({4}->opaque, (uint8_t *)(*((({0} **){1})+{2})+{3}), {5})',
+                            $i{ptrSize},
+                            $i{_args},
+                            $v{_index},
+                            $v{_offset},
+                            str,
+                            GDString.STRING_SIZE
+                        ));
+                        str;
+                    }
                     case 'Vector3':
                         macro { 
                             var v:Array<godot.Types.GDNativeFloat> = cpp.NativeArray.create(3);

@@ -13,4 +13,5 @@ class Wrapped {
     public var __owner:VoidPtr = null; // pointer to the godot-side parent class we need to keep around
 
     function __postInit() {} // override
+    function __cleanUp() {}
 }

@@ -75,6 +75,22 @@ abstract Variant(GDNativeVariantOpaquePtr) from GDNativeVariantOpaquePtr to GDNa
         return res;
     }
 
+    inline private static function _buildVariant2(_type:GDNativeVariantType, _x:GDNativeTypePtr):Variant {
+        var res = new Variant();
+        //trace(res);
+        var constructor = VariantFactory.from_type_constructor.get(_type);
+
+        untyped __cpp__('
+            ((GDNativeVariantFromTypeConstructorFunc){0})({1}, {2});
+            ', 
+            constructor, 
+            res.native_ptr(), 
+            _x
+        );
+        //trace(res);
+        return res;
+    }
+
     @:from inline static function fromBool(_x:Bool):Variant
         return _buildVariant(GDNativeVariantType.BOOL, _x);
 
@@ -89,11 +105,11 @@ abstract Variant(GDNativeVariantOpaquePtr) from GDNativeVariantOpaquePtr to GDNa
     @:from inline static function fromFloat(_x:Float):Variant
         return _buildVariant(GDNativeVariantType.FLOAT, _x);
 
-    @:from inline static function fromString(_x:String):Variant
-        return _buildVariant(GDNativeVariantType.STRING, _x);
+    @:from inline static function fromGDString(_x:godot.variants.GDString):Variant
+        return _buildVariant2(GDNativeVariantType.STRING, _x.native_ptr());
 
     @:from inline static function fromVector3(_x:godot.variants.Vector3):Variant
-        return _buildVariant(GDNativeVariantType.VECTOR3, _x);
+        return _buildVariant2(GDNativeVariantType.VECTOR3, _x.native_ptr());
 
     // TODO: add the other variant things here
 }
