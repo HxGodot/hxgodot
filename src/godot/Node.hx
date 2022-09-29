@@ -6,19 +6,14 @@ class Node extends Object {
         super();
     }
 
-    @:gdVirtual
     public function _ready():Void {}
 
-    @:gdVirtual
     public function _process(_delta:Float):Void {}
 
-    @:gdVirtual
     public function _physics_process(_delta:Float):Void {}
 
-    @:gdVirtual
     public function _enter_tree():Void {}
 
-    @:gdVirtual
     public function _exit_tree():Void {}
 
 }

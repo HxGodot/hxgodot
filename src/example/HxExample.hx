@@ -1,9 +1,11 @@
 package example;
 
 import godot.variants.Vector3;
+import godot.variants.GDString;
 
 class HxExample extends godot.Node {
 
+    //
     @:isVar
     @:export
     @:hint(GDPropertyHint.RANGE, "0,64,0.01")
@@ -12,7 +14,7 @@ class HxExample extends godot.Node {
 
     @:export
     function set_hx_ImportantFloat(_v:Float):Float {
-        trace("Hello " + _v);
+        trace("Setting ImportantFloat to: " + _v);
         hx_ImportantFloat = _v;
         return _v;
     }
@@ -22,6 +24,25 @@ class HxExample extends godot.Node {
         return hx_ImportantFloat;
     }
 
+    //
+    @:isVar
+    @:export
+    @:hint(GDPropertyHint.MULTILINE_TEXT, "")
+    public var hx_ImportantString(get, set):GDString = "Initial String Value";
+
+    @:export
+    function set_hx_ImportantString(_v:GDString):GDString {
+        trace("Setting String to: " + _v);
+        hx_ImportantString = _v;
+        return _v;
+    }
+
+    @:export
+    function get_hx_ImportantString():GDString {
+        return hx_ImportantString;
+    }
+
+    //
     @:isVar
     @:export
     @:hint(GDPropertyHint.NONE, "suffix:m")
@@ -79,10 +100,18 @@ class HxExample extends godot.Node {
         return _v0 + _v1;
     }
 
-    // override function _process(_delta:Float):Void {
+    static var c = 0;
+    override function _process(_delta:Float):Void {
+        /* TODO: move this into a GC-Object Singleton and use _notification
+        c++;
+        if (c > 1000) {
+            cpp.NativeGc.run(true);
+            c = 0;
+        }
+        */
         //trace('_process($_delta) called');
         //trace(simple_add(10, _delta, false));
-    // }
+    }
 
     /*
     override function _ready():Void {

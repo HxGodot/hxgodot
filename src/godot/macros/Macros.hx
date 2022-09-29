@@ -55,17 +55,17 @@ class Macros {
                 #include <hxcpp_ext/Dynamic2.h>
             "], pos);
         classMeta.add(":headerClassCode", [macro "
-                static void *___binding_create_callback(void *p_token, void *p_instance) {                                     
-                    return nullptr;                                                                                            
-                }                                                                                                              
-                static void ___binding_free_callback(void *p_token, void *p_instance, void *p_binding) {                       
-                }                                                                                                              
+                static void *___binding_create_callback(void *p_token, void *p_instance) {
+                    return nullptr;
+                }
+                static void ___binding_free_callback(void *p_token, void *p_instance, void *p_binding) {
+                }
                 static GDNativeBool ___binding_reference_callback(void *p_token, void *p_instance, GDNativeBool p_reference) { 
-                    return true;                                                                                               
-                }                                                                                                              
-                static constexpr GDNativeInstanceBindingCallbacks ___binding_callbacks = {                                     
-                    ___binding_create_callback,                                                                                
-                    ___binding_free_callback,                                                                                  
+                    return true;
+                }
+                static constexpr GDNativeInstanceBindingCallbacks ___binding_callbacks = {
+                    ___binding_create_callback,
+                    ___binding_free_callback,
                     ___binding_reference_callback,
                 };
             "], pos);
@@ -73,6 +73,7 @@ class Macros {
         
         // register these extension fields
         var extensionFields = [];
+        var extensionProperties = [];
         var virtualFields = new Map<String, haxe.macro.Field>();
 
         for (field in fields) {
@@ -102,11 +103,14 @@ class Macros {
                                 
                             default:
                         }
-                    
-                    case ":gdVirtual":
-                        //virtuals.set('${typePath.name}.${field.name}', field);
                     case ":export":
-                        extensionFields.push(field);
+                        switch (field.kind) {
+                            case FFun(_f):
+                                extensionFields.push(field);
+                            case FProp(_g, _s, _type):
+                                extensionProperties.push(field);
+                            case FVar(_t):
+                        }
                 }
             }
 
@@ -117,7 +121,6 @@ class Macros {
                     default:
                 }
             }
-
         }
 
         if (isEngineClass) {
@@ -125,8 +128,6 @@ class Macros {
             fields = fields.concat(buildPostInit(typePath.name, parent_class_name, typePath.name, classNameCpp));
         }
         else {
-            trace(className);
-
             // find the first engine-class up the inheritance chain
             var engine_parent = null;
             // also collect all engine virtuals up the chain
@@ -154,7 +155,7 @@ class Macros {
             trace('// Class: ${className}');
 
             // we got an extension class, so make sure we got the whole extension bindings for the fields covered!
-            fields = fields.concat(buildFieldBindings(typePath.name, classMeta, typePath, extensionFields, engineVirtuals, classNameCpp));
+            fields = fields.concat(buildFieldBindings(typePath.name, classMeta, typePath, extensionFields, engineVirtuals, classNameCpp, extensionProperties));
 
             // properly bootstrap this class
             fields = fields.concat(buildPostInit(typePath.name, parent_class_name, engine_parent.name, classNameCpp));
@@ -175,7 +176,7 @@ class Macros {
 
                 var ptr:cpp.RawPointer<cpp.Void> = untyped __cpp__('(void*){0}.mPtr', this);
                 
-                if (!$v{_class_name == _godotBaseclass}) { // deadcode elimination will get rid of this
+                if ($v{_class_name != _godotBaseclass}) { // deadcode elimination will get rid of this
                     godot.Types.GodotNativeInterface.object_set_instance(
                         __owner, 
                         __class_name, 
@@ -191,11 +192,15 @@ class Macros {
                     untyped __cpp__($v{identBindings})
                 );
             }
+
+            override function __cleanUp() {
+
+            }
         }
         return postInitClass.fields;
     }
 
-    static function buildFieldBindings(_className:String, _classMeta, _typePath, _extensionFields:Array<Dynamic>, _virtualFields:Array<Dynamic>, _cppClassName:String) {
+    static function buildFieldBindings(_className:String, _classMeta, _typePath, _extensionFields:Array<Dynamic>, _virtualFields:Array<Dynamic>, _cppClassName:String, _extensionProperties:Array<Dynamic>) {
         var pos = Context.currentPos();
         var ctType = TPath(_typePath);
 
@@ -206,7 +211,7 @@ class Macros {
                         case 'Bool': godot.Types.GDNativeVariantType.BOOL;
                         case 'Int', 'Int64': godot.Types.GDNativeVariantType.INT;
                         case 'Float': godot.Types.GDNativeVariantType.FLOAT;
-                        case 'String': godot.Types.GDNativeVariantType.STRING;
+                        case 'GDString': godot.Types.GDNativeVariantType.STRING;
                         case 'Vector3': godot.Types.GDNativeVariantType.VECTOR3;
                         default: godot.Types.GDNativeVariantType.NIL;
                     }
@@ -366,6 +371,38 @@ class Macros {
                         );
                     });
                 }
+                default:
+                //case FProp(_g, _s, _type):
+                //case FVar(_t):
+            }
+
+            argTypes.push(macro {
+                if (methodId == $v{i}) {
+                    $b{fieldArgs};
+                }
+            });
+
+            argInfos.push(macro {
+                if (methodId == $v{i}) {
+                    $b{fieldArgInfos}
+                }
+            });
+            
+            bindCalls.push(macro {
+                if (methodId == $v{i}) {
+                    $b{binds};
+                }
+            });
+
+            bindCallPtrs.push(macro {
+                if (methodId == $v{i}) {
+                    $b{bindPtrs};
+                }
+            });
+        }
+
+        for (field in _extensionProperties) {
+            switch(field.kind) {
                 case FProp(_g, _s, _type): {
                     trace("////////////////////////////////////////////////////////////////////////////////");
                     trace('// FProp: ${field.name}');
@@ -446,37 +483,9 @@ class Macros {
                             $v{"get_"+field.name}
                         );
                     });
-
-                    
                 }
-
-
-                case FVar(_t):
+                default:
             }
-
-            argTypes.push(macro {
-                if (methodId == $v{i}) {
-                    $b{fieldArgs};
-                }
-            });
-
-            argInfos.push(macro {
-                if (methodId == $v{i}) {
-                    $b{fieldArgInfos}
-                }
-            });
-            
-            bindCalls.push(macro {
-                if (methodId == $v{i}) {
-                    $b{binds};
-                }
-            });
-
-            bindCallPtrs.push(macro {
-                if (methodId == $v{i}) {
-                    $b{bindPtrs};
-                }
-            });
         }
 
         // build callbacks and implementations for the virtuals 

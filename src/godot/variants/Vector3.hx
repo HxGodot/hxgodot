@@ -16,6 +16,14 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
 	inline private static function _alloc(_x:GDNativeFloat, _y:GDNativeFloat, _z:GDNativeFloat):__Vector3
         return [_x, _y, _z];
 
+    inline public function native_ptr():GDNativeTypePtr {
+    	#if !macro
+    	return cast cpp.NativeArray.getBase(this).getBase();
+    	#else
+    	return 0;
+    	#end
+    }
+
 	public var x(get, set):GDNativeFloat;
 	inline function get_x() return this[0];
 	inline function set_x(_v:GDNativeFloat) {this[0] = _v; return _v;}

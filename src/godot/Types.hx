@@ -37,6 +37,46 @@ enum abstract GDNativeVariantType(Int) from Int to Int {
     var PACKED_VECTOR3_ARRAY;
     var PACKED_COLOR_ARRAY;
     var MAX;
+
+    inline public static function fromString(_str:String):Int {
+        return switch (_str) {
+            case "Nil": NIL;
+            case "bool": BOOL;
+            case "int": INT;
+            case "float": FLOAT;
+            case "String": STRING;
+            case "Vector2": VECTOR2;
+            case "Vector2i": VECTOR2I;
+            case "Rect2": RECT2;
+            case "Rect2i": RECT2I;
+            case "Vector3": VECTOR3;
+            case "Vector3i": VECTOR3I;
+            case "Transform2D": TRANSFORM2D;
+            case "Plane": PLANE;
+            case "Quaternion": QUATERNION;
+            case "AABB": AABB;
+            case "Basis": BASIS;
+            case "Transform3D": TRANSFORM3D;
+            case "Color": COLOR;
+            case "StringName": STRING_NAME;
+            case "NodePath": NODE_PATH;
+            case "RID": RID;
+            case "Callable": CALLABLE;
+            case "Signal": SIGNAL;
+            case "Dictionary": DICTIONARY;
+            case "Array": ARRAY;
+            case "PackedByteArray": PACKED_BYTE_ARRAY;
+            case "PackedInt32Array": PACKED_INT32_ARRAY;
+            case "PackedInt64Array": PACKED_INT64_ARRAY;
+            case "PackedFloat32Array": PACKED_FLOAT32_ARRAY;
+            case "PackedFloat64Array": PACKED_FLOAT64_ARRAY;
+            case "PackedStringArray": PACKED_STRING_ARRAY;
+            case "PackedVector2Array": PACKED_VECTOR2_ARRAY;
+            case "PackedVector3Array": PACKED_VECTOR3_ARRAY;
+            //case "PackedColorArray": 
+            default: PACKED_COLOR_ARRAY;
+        }
+    }
 }
 
 #if macro
@@ -62,6 +102,7 @@ typedef GDNativePropertyInfoPtr = Int;
 typedef GDNativeExtensionClassCallVirtual = Int;
 typedef GDNativeVariantPtr = Int;
 typedef GDNativeTypePtr = Int;
+typedef GDNativeStringPtr = Int;
 
 typedef GDNativeInt = haxe.Int64;
 typedef GDNativeBool = Bool;
@@ -71,7 +112,9 @@ typedef GDObjectInstanceID = haxe.Int64;
 typedef GDNativeVariantFromTypeConstructorFunc = Int;
 typedef GDNativeTypeFromVariantConstructorFunc = Int;
 
-
+typedef GDNativePtrConstructor = Int;
+typedef GDNativePtrDestructor = Int;
+typedef GDNativePtrBuiltInMethod = Int;
 
 #else
 
@@ -87,9 +130,14 @@ typedef GDNativeExtensionClassMethodPtrCall = cpp.Star<cpp.Callable<VoidPtr->Voi
 typedef GDNativeExtensionClassCallVirtual = VoidPtr;
 typedef GDNativeVariantPtr = VoidPtr;
 typedef GDNativeTypePtr = VoidPtr;
+typedef GDNativeStringPtr = VoidPtr;
 
 typedef GDNativeVariantFromTypeConstructorFunc = VoidPtr;
 typedef GDNativeTypeFromVariantConstructorFunc = VoidPtr;
+
+typedef GDNativePtrConstructor = VoidPtr;
+typedef GDNativePtrDestructor = VoidPtr;
+typedef GDNativePtrBuiltInMethod = VoidPtr;
 
 // simple extern class to make the includes work
 @:include("godot_cpp/godot.hpp")
@@ -194,5 +242,31 @@ extern class GodotNativeInterface {
 
     @:native("godot::internal::gdn_interface->variant_new_copy")
     public static function variant_new_copy(_ptr0:GDNativeVariantPtr, _ptr1:GDNativeVariantPtr):Void;
+
+
+    // built-ins
+    inline public static function variant_get_ptr_constructor(_type:Int, _constructor:Int):GDNativePtrConstructor {
+        return cast _variant_get_ptr_constructor(untyped __cpp__('(GDNativeVariantType){0}', _type), _constructor);
+    }
+    @:native("godot::internal::gdn_interface->variant_get_ptr_constructor")
+    static function _variant_get_ptr_constructor(_type:Int, _constructor:Int):GDNativePtrConstructor;
+
+    inline public static function variant_get_ptr_destructor(_type:Int):GDNativePtrConstructor {
+        return cast _variant_get_ptr_destructor(untyped __cpp__('(GDNativeVariantType){0}', _type));
+    }
+    @:native("godot::internal::gdn_interface->variant_get_ptr_destructor")
+    static function _variant_get_ptr_destructor(_type:Int):GDNativePtrConstructor;
+
+    inline public static function variant_get_ptr_builtin_method(_type:Int, _method:cpp.ConstCharStar, _hash:cpp.Int64):GDNativePtrBuiltInMethod {
+        return untyped __cpp__('godot::internal::gdn_interface->variant_get_ptr_builtin_method((GDNativeVariantType){0}, {1}, {2})', _type, _method, _hash);
+        //return cast _variant_get_ptr_builtin_method(, _method, _hash);
+    }
+
+    @:native("godot::internal::gdn_interface->string_new_with_utf8_chars")
+    public static function string_new_with_utf8_chars(_dest:GDNativeStringPtr, _contents:cpp.ConstCharStar):Void;
+
+    @:native("godot::internal::gdn_interface->string_to_utf8_chars")
+    public static function string_to_utf8_chars(_dest:GDNativeStringPtr, _text:cpp.RawPointer<cpp.Char>, _writeLength:Int):Int;
+
 }
 #end
