@@ -6,7 +6,7 @@ class TypeMacros {
         return switch(_t) {
             case "Nil": "Void";
             case "bool": "Bool";
-            case "int": "Int";
+            case "int": "cpp.Int64";
             case "float": "Float";
             // case "Vector2":
             // case "Vector2i":
@@ -44,7 +44,7 @@ class TypeMacros {
 
     public static function isTypeNative(_type:String) {
         return switch(_type) {
-            case "Void", "Bool", "Float", "Int": true;
+            case "Void", "Bool", "Float", "cpp.Int64": true;
             default: false;
         }
     }
@@ -53,7 +53,7 @@ class TypeMacros {
         return switch(_type) {
             case "Bool": false;
             case "Float": 0.0;
-            case "Int": 0;
+            case "cpp.Int64": 0;
             default: false;
         }
     }
