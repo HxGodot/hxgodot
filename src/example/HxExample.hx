@@ -15,6 +15,7 @@ class HxExample extends godot.Node {
     @:export
     function set_hx_ImportantFloat(_v:Float):Float {
         trace("Setting ImportantFloat to: " + _v);
+        trace(GDString.num_scientific(_v));
         hx_ImportantFloat = _v;
         return _v;
     }

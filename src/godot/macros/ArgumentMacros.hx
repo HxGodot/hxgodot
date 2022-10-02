@@ -119,7 +119,8 @@ class ArgumentMacros {
                     "abstract",
                     "typedef",
                     "final",
-                    "inline": '_$_str';
+                    "inline",
+                    "char": '_hx_$_str';
             default: _str;
         }
     }

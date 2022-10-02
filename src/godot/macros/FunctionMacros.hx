@@ -10,7 +10,7 @@ enum FunctionBindType {
     CONSTRUCTOR(index:Int);
     DESTRUCTOR;
     METHOD;
-    STATIC_FUNCTION;
+    STATIC_METHOD;
     OPERATOR;
 }
 
@@ -194,10 +194,9 @@ class FunctionMacros {
             if (conCallArgs.length > 0) {
                 exprs.push(macro {
                     ${vArgs};
-                    untyped __cpp__('((GDNativePtrBuiltInMethod){0})({1}, (const GDNativeTypePtr*)call_args.data(), nullptr, {3});', 
+                    untyped __cpp__('((GDNativePtrBuiltInMethod){0})({1}, (const GDNativeTypePtr*)call_args.data(), nullptr, {2});', 
                         $i{mname},
                         this.native_ptr(),
-                        ret,
                         $v{conCallArgs.length}
                     );
                 });
@@ -219,7 +218,7 @@ class FunctionMacros {
             if (conCallArgs.length > 0) {
                 exprs.push(macro {
                     ${vArgs};
-                    untyped __cpp__('((GDNativePtrBuiltInMethod){0})({1}, (const GDNativeTypePtr*)call_args.data(), (GDNativeTypePtr)&{2}, {3});', 
+                    untyped __cpp__('((GDNativePtrBuiltInMethod){0})({1}, (const GDNativeTypePtr*)call_args.data(), (GDNativeTypePtr){2}, {3});', 
                         $i{mname},
                         this.native_ptr(),
                         ret,
@@ -228,7 +227,7 @@ class FunctionMacros {
                 });
             } else {
                 exprs.push(macro {
-                    untyped __cpp__('((GDNativePtrBuiltInMethod){0})({1}, nullptr, (GDNativeTypePtr)&{2}, 0);', 
+                    untyped __cpp__('((GDNativePtrBuiltInMethod){0})({1}, nullptr, (GDNativeTypePtr){2}, 0);', 
                         $i{mname},
                         this.native_ptr(),
                         ret
@@ -239,17 +238,19 @@ class FunctionMacros {
             if (TypeMacros.isTypeNative(_bind.returnType.name)) {
                 // a native return type
                 body = macro {
-                    var ret:$typePath = $v{defaultValue};
+                    var ret2:$typePath = $v{defaultValue};
+                    var ret = cpp.Native.addressOf(ret2);
                     $b{exprs};
-                    return ret;
+                    return ret2;
                 };
             } else {
                 // // we have a managed return type, create it properly
                 var typePath = _bind.returnType;
                 body = macro {
-                    var ret = new $typePath();
+                    var ret2 = new $typePath();
+                    var ret = ret2.native_ptr();
                     $b{exprs};
-                    return ret;
+                    return ret2;
                 };
             }
         }
@@ -260,6 +261,113 @@ class FunctionMacros {
             kind: FFun({
                 args: argExprs,
                 expr: body,
+                params: [],
+                ret: TPath(_bind.returnType)
+            })
+        });
+    }
+
+    // 
+    public static function buildStaticMethod(_bind:FunctionBind, _fields:Array<Field>, _abstractFields:Array<Field>) {
+        var mname = '_method_${_bind.name}';
+
+        // preprocess the arguments
+        var argExprs = [];
+        var conCallArgs = [];
+        for (a in _bind.arguments) {
+            var argName = '${a.name}';
+            argExprs.push({name:argName, type:TPath(a.type)});            
+            if (TypeMacros.isTypeNative(a.type.name))
+                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr)&${argName}")');
+            else
+                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr){0}", ${argName}.native_ptr())');
+        }
+        var vArgs = _assembleCallArgs(conCallArgs);
+
+        // now build the function body
+        var body = null;
+        if (_bind.returnType.name == "Void") {
+            var exprs = [];
+            if (conCallArgs.length > 0) {
+                exprs.push(macro {
+                    ${vArgs};
+                    untyped __cpp__('((GDNativePtrBuiltInMethod){0})(nullptr, (const GDNativeTypePtr*)call_args.data(), nullptr, {1});', 
+                        $i{mname},
+                        $v{conCallArgs.length}
+                    );
+                });
+            } else {
+                exprs.push(macro {
+                    untyped __cpp__('((GDNativePtrBuiltInMethod){0})(nullptr, nullptr, nullptr, 0);', 
+                        $i{mname}
+                    );
+                });
+            }
+            body = macro {
+                $b{exprs};
+            };
+        } else {
+            var typePath = TPath(_bind.returnType);
+            var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
+            var exprs = [];
+            if (conCallArgs.length > 0) {
+                exprs.push(macro {
+                    ${vArgs};
+                    untyped __cpp__('((GDNativePtrBuiltInMethod){0})(nullptr, (const GDNativeTypePtr*)call_args.data(), (GDNativeTypePtr){1}, {2});', 
+                        $i{mname},
+                        ret,
+                        $v{conCallArgs.length}
+                    );
+                });
+            } else {
+                exprs.push(macro {
+                    untyped __cpp__('((GDNativePtrBuiltInMethod){0})(nullptr, nullptr, (GDNativeTypePtr){1}, 0);', 
+                        $i{mname},
+                        ret
+                    );
+                });
+            }
+
+            if (TypeMacros.isTypeNative(_bind.returnType.name)) {
+                // a native return type
+                body = macro {
+                    var ret2:$typePath = $v{defaultValue};
+                    var ret = cpp.Native.addressOf(ret2);
+                    $b{exprs};
+                    return ret2;
+                };
+            } else {
+                // // we have a managed return type, create it properly
+                var typePath = _bind.returnType;
+                body = macro {
+                    var ret2 = new $typePath();
+                    var ret = ret2.native_ptr();
+                    $b{exprs};
+                    return ret2;
+                };
+            }
+        }
+        _fields.push({
+            name: _bind.name,
+            access: _bind.access,
+            pos: Context.currentPos(),
+            kind: FFun({
+                args: argExprs,
+                expr: body,
+                params: [],
+                ret: TPath(_bind.returnType)
+            })
+        });
+
+        // forward static fields to abstract
+        var callArgs = [for (a in _bind.arguments) a.name];
+        _abstractFields.push({
+            name: _bind.name,
+            access: [AInline, APublic, AStatic],
+            pos: Context.currentPos(),
+            kind: FFun({
+                args: argExprs,
+                expr: Context.parse('{ return ${_bind.clazz.name}.${_bind.name}(${callArgs.join(",")}); }', Context.currentPos()),
                 params: [],
                 ret: TPath(_bind.returnType)
             })

@@ -159,7 +159,7 @@ class ClassGenMacros {
                 binds.push({
                     clazz: clazz,
                     name: '${m.name}',
-                    type: m.is_static ? FunctionBindType.STATIC_FUNCTION : FunctionBindType.METHOD,
+                    type: m.is_static ? FunctionBindType.STATIC_METHOD : FunctionBindType.METHOD,
                     returnType: {name:retType , pack:retPack},
                     access: access,
                     arguments: args,
@@ -187,6 +187,7 @@ class ClassGenMacros {
                     case FunctionBindType.CONSTRUCTOR(index): FunctionMacros.buildConstructorWithAbstract(bind, index, fields, abstractFields);
                     case FunctionBindType.DESTRUCTOR: FunctionMacros.buildDestructor(bind, fields);
                     case FunctionBindType.METHOD: FunctionMacros.buildMethod(bind, fields);
+                    case FunctionBindType.STATIC_METHOD: FunctionMacros.buildStaticMethod(bind, fields, abstractFields);
                     default:
                 }
             }
