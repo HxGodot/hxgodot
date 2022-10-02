@@ -1,5 +1,5 @@
 --macro include('example', true)
---macro include('godot.variants', true)
+--macro include('godot.variant', true)
 -main HxGodot
 -cpp bin/
 -cp gen

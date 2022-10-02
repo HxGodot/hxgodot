@@ -316,10 +316,9 @@ class Macros {
 
                     if (hasReturnValue) {
                         binds.push(macro {
-                            var ret:godot.Variant = $i{methodRoot}.$fname($a{argVariantExprs});
+                            var ret:godot.variant.Variant = $i{methodRoot}.$fname($a{argVariantExprs});
                             godot.Types.GodotNativeInterface.variant_destroy(_ret);
                             godot.Types.GodotNativeInterface.variant_new_copy(_ret, ret.native_ptr());
-                            ret.delete();
                         });
 
                         bindPtrs.push(macro {
