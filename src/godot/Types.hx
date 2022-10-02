@@ -252,13 +252,13 @@ extern class GodotNativeInterface {
     inline public static function variant_get_ptr_constructor(_type:Int, _constructor:Int):GDNativePtrConstructor {
         return cast _variant_get_ptr_constructor(untyped __cpp__('(GDNativeVariantType){0}', _type), _constructor);
     }
-    @:native("godot::internal::gdn_interface->variant_get_ptr_constructor")
+    @:native("(void *)godot::internal::gdn_interface->variant_get_ptr_constructor")
     static function _variant_get_ptr_constructor(_type:Int, _constructor:Int):GDNativePtrConstructor;
 
     inline public static function variant_get_ptr_destructor(_type:Int):GDNativePtrConstructor {
         return cast _variant_get_ptr_destructor(untyped __cpp__('(GDNativeVariantType){0}', _type));
     }
-    @:native("godot::internal::gdn_interface->variant_get_ptr_destructor")
+    @:native("(void *)godot::internal::gdn_interface->variant_get_ptr_destructor")
     static function _variant_get_ptr_destructor(_type:Int):GDNativePtrConstructor;
 
     inline public static function variant_get_ptr_builtin_method(_type:Int, _method:cpp.ConstCharStar, _hash:cpp.Int64):GDNativePtrBuiltInMethod {
