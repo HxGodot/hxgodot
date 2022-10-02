@@ -137,6 +137,7 @@ typedef GDNativeTypeFromVariantConstructorFunc = VoidPtr;
 
 typedef GDNativePtrConstructor = VoidPtr;
 typedef GDNativePtrDestructor = VoidPtr;
+//typedef GDNativePtrBuiltInMethod = cpp.Star<cpp.Callable<GDNativeTypePtr->cpp.ConstStar<GDNativeTypePtr>->GDNativeTypePtr->Int->Void>>;
 typedef GDNativePtrBuiltInMethod = VoidPtr;
 
 // simple extern class to make the includes work
@@ -258,7 +259,7 @@ extern class GodotNativeInterface {
     static function _variant_get_ptr_destructor(_type:Int):GDNativePtrConstructor;
 
     inline public static function variant_get_ptr_builtin_method(_type:Int, _method:cpp.ConstCharStar, _hash:cpp.Int64):GDNativePtrBuiltInMethod {
-        return untyped __cpp__('godot::internal::gdn_interface->variant_get_ptr_builtin_method((GDNativeVariantType){0}, {1}, {2})', _type, _method, _hash);
+        return untyped __cpp__('(cpp::Function<void (void *,const void **,void *,int)> *)godot::internal::gdn_interface->variant_get_ptr_builtin_method((GDNativeVariantType){0}, {1}, {2})', _type, _method, _hash);
         //return cast _variant_get_ptr_builtin_method(, _method, _hash);
     }
 

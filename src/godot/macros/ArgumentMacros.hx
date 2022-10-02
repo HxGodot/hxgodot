@@ -1,7 +1,7 @@
 package godot.macros;
 
 import godot.Types;
-import godot.variants.Vector3;
+import godot.variant.Vector3;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.MacroStringTools;
@@ -77,5 +77,50 @@ class ArgumentMacros {
                 }
             default: macro { untyped __cpp__('nullptr'); };
         } : macro { untyped __cpp__('nullptr'); };
+    }
+
+    public static function guardAgainstKeywords(_str:String):String {
+        return switch(_str) {
+            case    "implements",
+                    "extends",
+                    "function",
+                    "var",
+                    "if",
+                    "else",
+                    "while",
+                    "do",
+                    "for",
+                    "break",
+                    "return",
+                    "continue",
+                    "switch",
+                    "case",
+                    "default",
+                    "try",
+                    "catch",
+                    "new",
+                    "throw",
+                    "untyped",
+                    "cast",
+                    "macro",
+                    "package",
+                    "import",
+                    "using",
+                    "public",
+                    "private",
+                    "static",
+                    "extern",
+                    "dynamic",
+                    "override",
+                    "overload",
+                    "class",
+                    "interface",
+                    "enum",
+                    "abstract",
+                    "typedef",
+                    "final",
+                    "inline": '_$_str';
+            default: _str;
+        }
     }
 }

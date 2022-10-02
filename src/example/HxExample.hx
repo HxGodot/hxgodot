@@ -1,7 +1,7 @@
 package example;
 
-import godot.variants.Vector3;
-import godot.variants.GDString;
+import godot.variant.Vector3;
+import godot.variant.GDString;
 
 class HxExample extends godot.Node {
 
@@ -33,6 +33,7 @@ class HxExample extends godot.Node {
     @:export
     function set_hx_ImportantString(_v:GDString):GDString {
         trace("Setting String to: " + _v);
+        trace("Similarity to Foo: " + _v.similarity("Foo"));
         hx_ImportantString = _v;
         return _v;
     }
@@ -95,7 +96,7 @@ class HxExample extends godot.Node {
     }
 
     @:export
-    public function simple_add_vector3(_v0:godot.variants.Vector3, _v1:godot.variants.Vector3):godot.variants.Vector3 {
+    public function simple_add_vector3(_v0:godot.variant.Vector3, _v1:godot.variant.Vector3):godot.variant.Vector3 {
         trace('simple_add_vector3 called ($_v0, $_v1)');
         return _v0 + _v1;
     }

@@ -3,7 +3,7 @@ import cpp.link.StaticStd;
 import cpp.link.StaticZlib;
 
 import godot.Types;
-import godot.Variant;
+import godot.variant.Variant;
 
 @:buildXml("<files id='haxe'>
         <compilerflag value='-I../godot-headers'/>
@@ -25,11 +25,11 @@ class HxGodot {
         }
 
         // setup constructors
-        VariantFactory.__initBindings();
+        __Variant.__initBindings();
 
         // use https://github.com/jasononeil/compiletime to embed all found extensionclasses and use rtti to register them
         // TODO: the compile-time lib should prolly be replaced with something lightweight in the long run
-        var builtins = CompileTime.getAllClasses(godot.variants.IBuiltIn);
+        var builtins = CompileTime.getAllClasses(godot.variant.IBuiltIn);
         for (t in builtins) {
             if (Reflect.hasField(t, "__init_bindings"))
                 Reflect.field(t, "__init_bindings")();
