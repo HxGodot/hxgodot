@@ -12,6 +12,8 @@ enum FunctionBindType {
     METHOD;
     STATIC_METHOD;
     OPERATOR;
+    PROPERTY_SET;
+    PROPERTY_GET;
 }
 
 @:structInit
@@ -368,6 +370,94 @@ class FunctionMacros {
             kind: FFun({
                 args: argExprs,
                 expr: Context.parse('{ return ${_bind.clazz.name}.${_bind.name}(${callArgs.join(",")}); }', Context.currentPos()),
+                params: [],
+                ret: TPath(_bind.returnType)
+            })
+        });
+    }
+
+    // 
+    public static function buildPropertyMethod(_bind:FunctionBind, _fields:Array<Field>) {
+        var mname = '_${_bind.name}';
+
+        // preprocess the arguments
+        var argExprs = [];
+        var conCallArgs = [];
+        for (a in _bind.arguments) {
+            var argName = '${a.name}';
+            argExprs.push({name:argName, type:TPath(a.type)});            
+            if (TypeMacros.isTypeNative(a.type.name))
+                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr)&${argName}")');
+            else
+                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr){0}", ${argName}.native_ptr())');
+        }
+
+        // now either build a getter or setter body
+        var body = null;
+        var typePath = TPath(_bind.returnType);
+        var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
+        if (_bind.type == FunctionBindType.PROPERTY_GET) { // Getter
+            var exprs = [macro {
+                untyped __cpp__('((GDNativePtrGetter){0})({1}, (const GDNativeTypePtr){2});', 
+                    $i{mname},
+                    this.native_ptr(),
+                    ret
+                );
+            }];
+            if (TypeMacros.isTypeNative(_bind.returnType.name)) {
+                // a native return type
+                body = macro {
+                    var ret2:$typePath = $v{defaultValue};
+                    var ret = cpp.Native.addressOf(ret2);
+                    $b{exprs};
+                    return ret2;
+                };
+            } else {
+                // // we have a managed return type, create it properly
+                var typePath = _bind.returnType;
+                body = macro {
+                    var ret2 = new $typePath();
+                    var ret = ret2.native_ptr();
+                    $b{exprs};
+                    return ret2;
+                };
+            }
+        } else { // Setter
+            var aName = _bind.arguments[0].name;
+            var exprs = [macro {
+                untyped __cpp__('((GDNativePtrSetter){0})({1}, (GDNativeTypePtr){2});', 
+                    $i{mname},
+                    this.native_ptr(),
+                    arg
+                );
+            }];
+            if (TypeMacros.isTypeNative(_bind.returnType.name)) {
+                // a native return type
+                body = macro {
+                    var arg = cpp.Native.addressOf($i{aName});
+                    $b{exprs};
+                    return $i{aName};
+                };
+            } else {
+                // // we have a managed return type, create it properly
+                var typePath = _bind.returnType;
+                body = macro {
+                    var arg = $i{aName}.native_ptr();
+                    $b{exprs};
+                    return $i{aName};
+                };
+            }
+        }
+
+        // add the field
+        _fields.push({
+            name: _bind.name,
+            access: _bind.access,
+            pos: Context.currentPos(),
+            meta: [{name: ':noCompletion', pos: Context.currentPos()}],
+            kind: FFun({
+                args: argExprs,
+                expr: body,
                 params: [],
                 ret: TPath(_bind.returnType)
             })
