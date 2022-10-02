@@ -170,14 +170,64 @@ class ClassGenMacros {
                 });
             }
 
+            // members
+            var members = [];
+            if (b.members != null) {
+                for (m in cast(b.members, Array<Dynamic>)) {
+                    if (!TypeMacros.isTypeAllowed(m.type))
+                        continue;
+
+                    var mType = TypeMacros.getTypeName(m.type);
+                    var mPack = TypeMacros.isTypeNative(mType) ? [] : ["godot", "variant"];
+
+                    members.push({
+                        name: m.name,
+                        access: [APublic],
+                        pos: Context.currentPos(),
+                        kind: FProp("get", "set", TPath({name:mType , pack:mPack}))
+                    });
+
+                    var mname = '_get_${m.name}';
+                    binds.push({
+                        clazz: clazz,
+                        name: 'get_${m.name}',
+                        type: FunctionBindType.PROPERTY_GET,
+                        returnType: {name:mType , pack:mPack},
+                        access: [],
+                        arguments: [],
+                        macros: {
+                            field: (macro class {@:noCompletion static var $mname:godot.Types.GDNativePtrGetter;}).fields[0],
+                            fieldSetter: '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_getter(${type}, "${m.name}"))'
+                        }
+                    });
+
+                    mname = '_set_${m.name}';
+                    binds.push({
+                        clazz: clazz,
+                        name: 'set_${m.name}',
+                        type: FunctionBindType.PROPERTY_SET,
+                        returnType: {name:mType , pack:mPack},
+                        access: [],
+                        arguments: [{
+                            name: "_v",
+                            type: {name:mType , pack:mPack}
+                        }],
+                        macros: {
+                            field: (macro class {@:noCompletion static var $mname:godot.Types.GDNativePtrSetter;}).fields[0],
+                            fieldSetter: '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_setter(${type}, "${m.name}"))'
+                        }
+                    });
+                }
+            }
+
             // now worry about the nasty details of expression and type-building
             var abstractFields = [];
             var fields = [];
-            var setters = [];
+            var pointerInits = [];
             var pointers = [];
 
             for (bind in binds) {
-                setters.push(Context.parse(
+                pointerInits.push(Context.parse(
                     bind.macros.fieldSetter, 
                     Context.currentPos()
                 ));
@@ -188,6 +238,7 @@ class ClassGenMacros {
                     case FunctionBindType.DESTRUCTOR: FunctionMacros.buildDestructor(bind, fields);
                     case FunctionBindType.METHOD: FunctionMacros.buildMethod(bind, fields);
                     case FunctionBindType.STATIC_METHOD: FunctionMacros.buildStaticMethod(bind, fields, abstractFields);
+                    case FunctionBindType.PROPERTY_GET, FunctionBindType.PROPERTY_SET: FunctionMacros.buildPropertyMethod(bind, fields);
                     default:
                 }
             }
@@ -205,10 +256,10 @@ class ClassGenMacros {
             var init = macro class {
                 @:noCompletion
                 public static function __init_bindings() {
-                    $b{setters};
+                    $b{pointerInits};
                 }
             };
-            //cls.fields = cls.fields.concat(members);
+            cls.fields = cls.fields.concat(members);
             //cls.fields = cls.fields.concat(methods);
             cls.fields = cls.fields.concat(fields);
             cls.fields = cls.fields.concat(init.fields);
