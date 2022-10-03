@@ -41,6 +41,14 @@ class HxExample extends godot.Node {
         for (i in 0...tmp1.length())
             trace(tmp1[i]);
 
+        var arr = new godot.variant.GDArray();
+        arr.push_back("x1");
+        arr.push_back("x2");
+
+        for (v in 0...arr.size()) {
+            trace(arr[v]);
+        }
+
         hx_ImportantFloat = _v;
         return _v;
     }

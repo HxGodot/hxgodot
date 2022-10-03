@@ -313,6 +313,19 @@ extern class GodotNativeInterface {
     @:native("godot::internal::gdn_interface->get_variant_to_type_constructor")
     static function _get_variant_to_type_constructor(_type:Int):VoidPtr;
 
+    /*
+    inline public static function get_variant_from_type_constructor(_type:Int):GDNativeVariantFromTypeConstructorFunc {
+        return untyped __cpp__('(cpp::Function<void (GDNativeVariantType)> *)::godot::internal::gdn_interface->get_variant_from_type_constructor((GDNativeVariantType){0})', _type);
+    }
+
+    inline public static function get_variant_to_type_constructor(_type:Int):GDNativeTypeFromVariantConstructorFunc {
+        return untyped __cpp__('(cpp::Function<void (GDNativeVariantType)> *)::godot::internal::gdn_interface->get_variant_to_type_constructor((GDNativeVariantType){0})', _type);
+    }
+
+    @:native("godot::internal::gdn_interface->variant_new_nil")
+    public static function variant_new_nil(_ptr:GDNativeVariantPtr):Void;
+    */
+
     @:native("godot::internal::gdn_interface->variant_destroy")
     public static function variant_destroy(_ptr:GDNativeVariantPtr):Void;
 

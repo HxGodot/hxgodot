@@ -567,7 +567,7 @@ class FunctionMacros {
         if (_bind.type == FunctionBindType.INDEX_GET) {
             var index = _bind.arguments[0].name;
             var exprs = [macro {
-                untyped __cpp__('((GDNativePtrIndexedGetter){0})({1}, {2}, (const GDNativeTypePtr){3});', 
+                untyped __cpp__('((GDNativePtrIndexedGetter){0})({1}, {2}, (GDNativeTypePtr){3});', 
                     $i{mname},
                     this.native_ptr(),
                     $i{index},
