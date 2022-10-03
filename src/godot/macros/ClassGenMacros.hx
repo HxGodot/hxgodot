@@ -221,7 +221,6 @@ class ClassGenMacros {
             }
 
             // operators
-            var operators = [];
             if (b.operators != null) {
                 for (o in cast(b.operators, Array<Dynamic>)) {
                     if (!TypeMacros.isTypeAllowed(o.return_type))
@@ -280,6 +279,44 @@ class ClassGenMacros {
                 }
             }
 
+            // indexing
+            if (b.indexing_return_type != null) {
+                // this class can be indexed into
+                if (TypeMacros.isTypeAllowed(b.indexing_return_type)) {
+                    var retType = TypeMacros.getTypeName(b.indexing_return_type);
+                    var retPack = TypeMacros.isTypeNative(retType) ? [] : ["godot", "variant"];
+                    var ret = {name:retType , pack:retPack};
+
+                    var iname = '_index_get';
+                    binds.push({
+                        clazz: clazz,
+                        name: 'index_get',
+                        type: FunctionBindType.INDEX_GET,
+                        returnType: ret,
+                        access: [APublic],
+                        arguments: [{name: "_index", type: {name:"Int" , pack:[]}}],
+                        macros: {
+                            field: (macro class {@:noCompletion static var $iname:godot.Types.GDNativePtrIndexedGetter;}).fields[0],
+                            fieldSetter: '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_getter(${type}))'
+                        }
+                    });
+
+                    var iname = '_index_set';
+                    binds.push({
+                        clazz: clazz,
+                        name: 'index_set',
+                        type: FunctionBindType.INDEX_SET,
+                        returnType: ret,
+                        access: [APublic],
+                        arguments: [{name: "_index", type: {name:"Int" , pack:[]}}, {name: "_value", type: ret}],
+                        macros: {
+                            field: (macro class {@:noCompletion static var $iname:godot.Types.GDNativePtrIndexedSetter;}).fields[0],
+                            fieldSetter: '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_setter(${type}))'
+                        }
+                    });
+                }                        
+            }
+
             // now worry about the nasty details of expression and type-building
             var abstractFields = [];
             var fields = [];
@@ -300,6 +337,7 @@ class ClassGenMacros {
                     case FunctionBindType.STATIC_METHOD: FunctionMacros.buildStaticMethod(bind, fields, abstractFields);
                     case FunctionBindType.PROPERTY_GET, FunctionBindType.PROPERTY_SET: FunctionMacros.buildPropertyMethod(bind, fields);
                     case FunctionBindType.OPERATOR: FunctionMacros.buildOperatorOverload(bind, abstractFields);
+                    case FunctionBindType.INDEX_GET, FunctionBindType.INDEX_SET: FunctionMacros.buildIndexing(bind, abstractFields);
                     default:
                 }
             }
@@ -321,7 +359,6 @@ class ClassGenMacros {
                 }
             };
             cls.fields = cls.fields.concat(members);
-            //cls.fields = cls.fields.concat(methods);
             cls.fields = cls.fields.concat(fields);
             cls.fields = cls.fields.concat(init.fields);
             cls.fields = cls.fields.concat(pointers);

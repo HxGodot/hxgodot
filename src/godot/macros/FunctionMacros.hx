@@ -14,6 +14,8 @@ enum FunctionBindType {
     OPERATOR;
     PROPERTY_SET;
     PROPERTY_GET;
+    INDEX_SET;
+    INDEX_GET;
 }
 
 @:structInit
@@ -476,7 +478,6 @@ class FunctionMacros {
     }
 
     public static function buildOperatorOverload(_bind:FunctionBind, _abstractFields:Array<Field>) {
-        // (const GDNativeTypePtr p_left, const GDNativeTypePtr p_right, GDNativeTypePtr r_result);
         var oname = '${_bind.clazz.name}._${_bind.name}';
 
         // preprocess the arguments
@@ -538,6 +539,96 @@ class FunctionMacros {
             access: _bind.access,
             pos: Context.currentPos(),
             meta: [{name: ':op', params:[Context.parse('A ${_bind.macros.extra} B', Context.currentPos())], pos: Context.currentPos()}],
+            kind: FFun({
+                args: argExprs,
+                expr: body,
+                params: [],
+                ret: TPath(_bind.returnType)
+            })
+        });
+    }
+
+    //
+    public static function buildIndexing(_bind:FunctionBind, _abstractFields:Array<Field>) {
+        var mname = '${_bind.clazz.name}._${_bind.name}';
+
+        // preprocess the arguments
+        var argExprs = [];
+        var conCallArgs = [];
+        for (a in _bind.arguments) {
+            var argName = '${a.name}';
+            argExprs.push({name:argName, type:TPath(a.type)});
+        }
+
+        var body = null;
+        var typePath = TPath(_bind.returnType);
+        var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
+
+        if (_bind.type == FunctionBindType.INDEX_GET) {
+            var index = _bind.arguments[0].name;
+            var exprs = [macro {
+                untyped __cpp__('((GDNativePtrIndexedGetter){0})({1}, {2}, (const GDNativeTypePtr){3});', 
+                    $i{mname},
+                    this.native_ptr(),
+                    $i{index},
+                    ret
+                );
+            }];
+
+            if (TypeMacros.isTypeNative(_bind.returnType.name)) {
+                // a native return type
+                body = macro {
+                    var ret2:$typePath = $v{defaultValue};
+                    var ret = cpp.Native.addressOf(ret2);
+                    $b{exprs};
+                    return ret2;
+                };
+            } else {
+                // // we have a managed return type, create it properly
+                var typePath = _bind.returnType;
+                body = macro {
+                    var ret2 = new $typePath();
+                    var ret = ret2.native_ptr();
+                    $b{exprs};
+                    return ret2;
+                };
+            }
+        } else {
+            var index = _bind.arguments[0].name;
+            var aName = _bind.arguments[1].name;
+            var exprs = [macro {
+                untyped __cpp__('((GDNativePtrIndexedSetter){0})({1}, {2}, (const GDNativeTypePtr){3});', 
+                    $i{mname},
+                    this.native_ptr(),
+                    $i{index},
+                    arg
+                );
+            }];
+
+            if (TypeMacros.isTypeNative(_bind.returnType.name)) {
+                // a native return type
+                body = macro {
+                    var arg = cpp.Native.addressOf($i{aName});
+                    $b{exprs};
+                    return $i{aName};
+                };
+            } else {
+                // // we have a managed return type, create it properly
+                var typePath = _bind.returnType;
+                body = macro {
+                    var arg = $i{aName}.native_ptr();
+                    $b{exprs};
+                    return $i{aName};
+                };
+            }
+        }
+
+        // now add the field to the abstract
+        _abstractFields.push({
+            name: _bind.name,
+            access: _bind.access,
+            pos: Context.currentPos(),
+            meta: [{name: ':op', params:[Context.parse('[]', Context.currentPos())], pos: Context.currentPos()}],
             kind: FFun({
                 args: argExprs,
                 expr: body,

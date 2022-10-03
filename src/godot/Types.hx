@@ -184,6 +184,8 @@ typedef GDNativePtrBuiltInMethod = Int;
 typedef GDNativePtrGetter = Int;
 typedef GDNativePtrSetter = Int;
 typedef GDNativePtrOperatorEvaluator = Int;
+typedef GDNativePtrIndexedGetter = Int;
+typedef GDNativePtrIndexedSetter = Int;
 
 #else
 
@@ -210,6 +212,8 @@ typedef GDNativePtrBuiltInMethod = VoidPtr;
 typedef GDNativePtrGetter = VoidPtr;
 typedef GDNativePtrSetter = VoidPtr;
 typedef GDNativePtrOperatorEvaluator = VoidPtr;
+typedef GDNativePtrIndexedGetter = VoidPtr;
+typedef GDNativePtrIndexedSetter = VoidPtr;
 
 // simple extern class to make the includes work
 @:include("godot_cpp/godot.hpp")
@@ -343,6 +347,14 @@ extern class GodotNativeInterface {
 
     inline public static function variant_get_ptr_operator_evaluator(_op:GDNativeVariantOperator, _left:GDNativeVariantType, _right:GDNativeVariantType):GDNativePtrOperatorEvaluator {
         return untyped __cpp__('(cpp::Function<void (GDNativeVariantOperator,GDNativeVariantType,GDNativeVariantType)> *)godot::internal::gdn_interface->variant_get_ptr_operator_evaluator((GDNativeVariantOperator){0}, (GDNativeVariantType){1}, (GDNativeVariantType){2})', _op, _left, _right);
+    }
+
+    inline public static function variant_get_ptr_indexed_getter(_type:Int):GDNativePtrIndexedGetter {
+        return untyped __cpp__('(cpp::Function<void (const void *)> *)godot::internal::gdn_interface->variant_get_ptr_indexed_getter((GDNativeVariantType){0})', _type);
+    }
+
+    inline public static function variant_get_ptr_indexed_setter(_type:Int):GDNativePtrIndexedSetter {
+        return untyped __cpp__('(cpp::Function<void (const void *)> *)godot::internal::gdn_interface->variant_get_ptr_indexed_setter((GDNativeVariantType){0})', _type);
     }
 
     @:native("godot::internal::gdn_interface->string_new_with_utf8_chars")

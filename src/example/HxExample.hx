@@ -27,6 +27,8 @@ class HxExample extends godot.Node {
         b.x = this.hx_random_MyVector3;
         trace(b);
         trace(b.x);
+        trace(b[4]); // out of bounds <3
+        trace(b[1] = new Vector3(3,2,1));
         trace(b.y);
         trace(b.z);
 
@@ -35,6 +37,9 @@ class HxExample extends godot.Node {
         trace(tmp1 < tmp2); // true
         trace(tmp1 + " " + tmp2); // %s Test2
         trace(tmp1 % tmp2); // Test2
+
+        for (i in 0...tmp1.length())
+            trace(tmp1[i]);
 
         hx_ImportantFloat = _v;
         return _v;
