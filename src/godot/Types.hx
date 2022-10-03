@@ -79,6 +79,72 @@ enum abstract GDNativeVariantType(Int) from Int to Int {
     }
 }
 
+enum abstract GDNativeVariantOperator(Int) from Int to Int {
+    /* comparison */
+    var EQUAL = 0;
+    var NOT_EQUAL;
+    var LESS;
+    var LESS_EQUAL;
+    var GREATER;
+    var GREATER_EQUAL;
+    /* mathematic */
+    var ADD;
+    var SUBTRACT;
+    var MULTIPLY;
+    var DIVIDE;
+    var NEGATE;
+    var POSITIVE;
+    var MODULE;
+    var POWER;
+    /* bitwise */
+    var SHIFT_LEFT;
+    var SHIFT_RIGHT;
+    var BIT_AND;
+    var BIT_OR;
+    var BIT_XOR;
+    var BIT_NEGATE;
+    /* logic */
+    var AND;
+    var OR;
+    var XOR;
+    var NOT;
+    /* containment */
+    var IN;
+    var MAX;
+
+    inline public static function fromString(_str:String):Int {
+        return switch (_str) {
+            case "==": EQUAL;
+            case "!=": NOT_EQUAL;
+            case "<": LESS;
+            case "<=": LESS_EQUAL;
+            case ">": GREATER;
+            case ">=": GREATER_EQUAL;
+            case "+": ADD;
+            case "-": SUBTRACT;
+            case "*": MULTIPLY;
+            case "/": DIVIDE;
+            //case "unary-": NEGATE;
+            //case "unary+": POSITIVE;
+            case "%": MODULE;
+            //case "": POWER;
+            case "<<": SHIFT_LEFT;
+            case ">>": SHIFT_RIGHT;
+            case "&": BIT_AND;
+            case "|": BIT_OR;
+            case "^": BIT_XOR;
+            case "~": BIT_NEGATE;
+            case "and": AND;
+            case "or": OR;
+            case "xor": XOR;
+            case "not": NOT;
+            //case "in": ;
+            default: IN;
+            //case "": MAX;
+        }
+    }
+}
+
 #if macro
 
 /*
@@ -117,6 +183,7 @@ typedef GDNativePtrDestructor = Int;
 typedef GDNativePtrBuiltInMethod = Int;
 typedef GDNativePtrGetter = Int;
 typedef GDNativePtrSetter = Int;
+typedef GDNativePtrOperatorEvaluator = Int;
 
 #else
 
@@ -142,6 +209,7 @@ typedef GDNativePtrDestructor = VoidPtr;
 typedef GDNativePtrBuiltInMethod = VoidPtr;
 typedef GDNativePtrGetter = VoidPtr;
 typedef GDNativePtrSetter = VoidPtr;
+typedef GDNativePtrOperatorEvaluator = VoidPtr;
 
 // simple extern class to make the includes work
 @:include("godot_cpp/godot.hpp")
@@ -271,6 +339,10 @@ extern class GodotNativeInterface {
 
     inline public static function variant_get_ptr_setter(_type:Int, _member:cpp.ConstCharStar):GDNativePtrSetter {
         return untyped __cpp__('(cpp::Function<void (const void *,void *)> *)godot::internal::gdn_interface->variant_get_ptr_setter((GDNativeVariantType){0}, {1})', _type, _member);
+    }
+
+    inline public static function variant_get_ptr_operator_evaluator(_op:GDNativeVariantOperator, _left:GDNativeVariantType, _right:GDNativeVariantType):GDNativePtrOperatorEvaluator {
+        return untyped __cpp__('(cpp::Function<void (GDNativeVariantOperator,GDNativeVariantType,GDNativeVariantType)> *)godot::internal::gdn_interface->variant_get_ptr_operator_evaluator((GDNativeVariantOperator){0}, (GDNativeVariantType){1}, (GDNativeVariantType){2})', _op, _left, _right);
     }
 
     @:native("godot::internal::gdn_interface->string_new_with_utf8_chars")

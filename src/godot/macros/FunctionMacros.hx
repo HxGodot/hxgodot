@@ -41,7 +41,8 @@ class FunctionBind {
     public var arguments:Array<FunctionArgument>;
     public var macros:{
         field:Field,
-        fieldSetter:String
+        fieldSetter:String,
+        ?extra:Dynamic
     };
 }
 
@@ -158,13 +159,28 @@ class FunctionMacros {
     public static function buildDestructor(_bind:FunctionBind, _fields:Array<Field>) {
         _fields.push({
             name: '_destruct',
-            access: [APrivate, AStatic],
+            access: [AInline, APrivate, AStatic],
             pos: Context.currentPos(),
             meta: [{name: ':noCompletion', pos: Context.currentPos()}],
             kind: FFun({
                 args: [{name: '_this', type: TPath(_bind.clazz.typePath)}],
                 expr: macro { 
-                    untyped __cpp__('((GDNativePtrDestructor){0})(&({1}->opaque))', _destructor, _this);
+                    untyped __cpp__('((GDNativePtrDestructor){0})({1})', _destructor, _this.native_ptr());
+                },
+                params: [],
+                ret: TPath(_bind.returnType)
+            })
+        });
+
+        // add an accessible killer function
+        _fields.push({
+            name: 'destruct',
+            access: [AInline, APublic, AStatic],
+            pos: Context.currentPos(),
+            kind: FFun({
+                args: [{name: '_this', type: TPath(_bind.clazz.typePath)}],
+                expr: macro {
+                    _destruct(_this);
                 },
                 params: [],
                 ret: TPath(_bind.returnType)
@@ -382,14 +398,9 @@ class FunctionMacros {
 
         // preprocess the arguments
         var argExprs = [];
-        var conCallArgs = [];
         for (a in _bind.arguments) {
             var argName = '${a.name}';
-            argExprs.push({name:argName, type:TPath(a.type)});            
-            if (TypeMacros.isTypeNative(a.type.name))
-                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr)&${argName}")');
-            else
-                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr){0}", ${argName}.native_ptr())');
+            argExprs.push({name:argName, type:TPath(a.type)});
         }
 
         // now either build a getter or setter body
@@ -455,6 +466,78 @@ class FunctionMacros {
             access: _bind.access,
             pos: Context.currentPos(),
             meta: [{name: ':noCompletion', pos: Context.currentPos()}],
+            kind: FFun({
+                args: argExprs,
+                expr: body,
+                params: [],
+                ret: TPath(_bind.returnType)
+            })
+        });
+    }
+
+    public static function buildOperatorOverload(_bind:FunctionBind, _abstractFields:Array<Field>) {
+        // (const GDNativeTypePtr p_left, const GDNativeTypePtr p_right, GDNativeTypePtr r_result);
+        var oname = '${_bind.clazz.name}._${_bind.name}';
+
+        // preprocess the arguments
+        var argExprs = [];
+        var conCallArgs = [];
+        for (a in _bind.arguments) {
+            var argName = '${a.name}';
+            argExprs.push({name:argName, type:TPath(a.type)});
+            if (TypeMacros.isTypeNative(a.type.name))
+                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr)&${argName}")');
+            else
+                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr){0}", ${argName}.native_ptr())');
+        }
+
+        // now assemble the operator body
+        var body = null;
+        var typePath = TPath(_bind.returnType);
+        var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
+
+        // TODO: this will break, if there are unary operators!
+        if (conCallArgs.length < 2)
+            Context.fatalError('UNSUPPORTED UNARY OPERATOR FOUND! ${_bind.name}', Context.currentPos());
+
+        var left = Context.parse(conCallArgs[0], Context.currentPos());
+        var right = Context.parse(conCallArgs[1], Context.currentPos());
+
+        var exprs = [macro {
+            untyped __cpp__('((GDNativePtrOperatorEvaluator){0})({1}, {2}, {3});', 
+                $i{oname},
+                $left,
+                $right,
+                ret
+            );
+        }];
+
+        // deal with the return type
+        if (TypeMacros.isTypeNative(_bind.returnType.name)) {
+            // a native return type
+            body = macro {
+                var ret2:$typePath = $v{defaultValue};
+                var ret = cpp.Native.addressOf(ret2);
+                $b{exprs};
+                return ret2;
+            };
+        } else {
+            // // we have a managed return type, create it properly
+            var typePath = _bind.returnType;
+            body = macro {
+                var ret2 = new $typePath();
+                var ret = ret2.native_ptr();
+                $b{exprs};
+                return ret2;
+            };
+        }
+
+        // now add the field to the abstract
+        _abstractFields.push({
+            name: _bind.name,
+            access: _bind.access,
+            pos: Context.currentPos(),
+            meta: [{name: ':op', params:[Context.parse('A ${_bind.macros.extra} B', Context.currentPos())], pos: Context.currentPos()}],
             kind: FFun({
                 args: argExprs,
                 expr: body,

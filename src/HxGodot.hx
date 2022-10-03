@@ -24,6 +24,20 @@ class HxGodot {
             GodotNativeInterface.print_warning(Std.string(v), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
         }
 
+        /*
+        sys.thread.Thread.create(() -> {
+            var c = 0;
+            while (true) {
+                c++;
+                if (c > 1000) {
+                    cpp.NativeGc.run(true);
+                    c = 0;
+                }
+
+            }
+        });
+        */
+
         // setup constructors
         __Variant.__initBindings();
 
