@@ -1,5 +1,7 @@
 package godot.macros;
 
+import godot.Types;
+
 class TypeMacros {
 
     public static function getTypeName(_t:String) {
@@ -80,5 +82,76 @@ class TypeMacros {
                 "Color": false;
             default: true; 
         };
+    }
+
+    public static function getOpName(_type:GDNativeVariantOperator):String {
+        return switch (_type) {
+            case EQUAL: "EQUAL";
+            case NOT_EQUAL: "NOT_EQUAL";
+            case LESS: "LESS";
+            case LESS_EQUAL: "LESS_EQUAL";
+            case GREATER: "GREATER";
+            case GREATER_EQUAL: "GREATER_EQUAL";
+            case ADD: "ADD";
+            case SUBTRACT: "SUBTRACT";
+            case MULTIPLY: "MULTIPLY";
+            case DIVIDE: "DIVIDE";
+            //case NEGATE: "NEGATE";
+            //case POSITIVE: "POSITIVE";
+            case MODULE: "MODULE";
+            //case POWER: "POWER";
+            case SHIFT_LEFT: "SHIFT_LEFT";
+            case SHIFT_RIGHT: "SHIFT_RIGHT";
+            case BIT_AND: "BIT_AND";
+            case BIT_OR: "BIT_OR";
+            case BIT_XOR: "BIT_XOR";
+            //case BIT_NEGATE: "BIT_NEGATE";
+            case AND: "AND";
+            case OR: "OR";
+            case XOR: "XOR";
+            case NOT: "NOT";
+            //case IN: "IN";
+            default: null;
+            //case MAX: "MAX";
+        }
+    }
+
+    public static function isOpTypeAllowed(_type:String):Bool {
+        return switch(_type) {
+            case "Nil": false;
+            default: true;
+        }
+    }
+
+    public static function getOpHaxe(_type:GDNativeVariantOperator):String {
+        return switch (_type) {
+            case EQUAL: "==";
+            case NOT_EQUAL: "!=";
+            case LESS: "<";
+            case LESS_EQUAL: "<=";
+            case GREATER: ">";
+            case GREATER_EQUAL: ">=";
+            case ADD: "+";
+            case SUBTRACT: "-";
+            case MULTIPLY: "*";
+            case DIVIDE: "/";
+            //case NEGATE: "NEGATE";
+            //case POSITIVE: "POSITIVE";
+            case MODULE: "%";
+            //case POWER: "POWER";
+            case SHIFT_LEFT: "<<";
+            case SHIFT_RIGHT: ">>";
+            case BIT_AND: "&";
+            case BIT_OR: "|";
+            case BIT_XOR: "^";
+            //case BIT_NEGATE: "BIT_NEGATE";
+            case AND: "&&";
+            case OR: "||";
+            //case XOR: "XOR";
+            case NOT: "!";
+            //case IN: "IN";
+            default: null;
+            //case MAX: "MAX";
+        }
     }
 }

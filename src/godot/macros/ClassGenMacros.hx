@@ -220,6 +220,103 @@ class ClassGenMacros {
                 }
             }
 
+            // operators
+            if (b.operators != null) {
+                for (o in cast(b.operators, Array<Dynamic>)) {
+                    if (!TypeMacros.isTypeAllowed(o.return_type))
+                        continue;
+                    if (o.right_type != null) {
+                    	if (!TypeMacros.isTypeAllowed(o.right_type))
+                        	continue;
+                        if (!TypeMacros.isOpTypeAllowed(o.right_type))
+                            continue;
+                    }
+
+                    var retType = TypeMacros.getTypeName(o.return_type);
+                    var retPack = TypeMacros.isTypeNative(retType) ? [] : ["godot", "variant"];
+
+                    var opType = godot.Types.GDNativeVariantOperator.fromString(o.name);
+                    var opName = TypeMacros.getOpName(opType);
+
+                    if (opName == null)
+                        continue;
+
+                    // prepare left hand
+                    var args = new Array<FunctionArgument>();
+                    var argType = TypeMacros.getTypeName(abstractName);
+                    var argPack = TypeMacros.isTypeNative(argType) ? [] : ["godot", "variant"];
+                    args.push({
+                        name: '_lhs',
+                        type: {name:argType , pack:argPack}
+                    });
+                    
+                    // prep right hand
+                    var rType = 0x0;
+                    if (o.right_type != null) {
+                        rType = godot.Types.GDNativeVariantType.fromString(o.right_type);
+                        var argType = TypeMacros.getTypeName(o.right_type);
+                        var argPack = TypeMacros.isTypeNative(argType) ? [] : ["godot", "variant"];
+                        args.push({
+                            name: '_rhs',
+                            type: {name:argType , pack:argPack}
+                        });
+                    }
+
+                    var oname = '_operator_${opName}_${o.right_type}';
+                    binds.push({
+                        clazz: clazz,
+                        name: 'operator_${opName}_${o.right_type}',
+                        type: FunctionBindType.OPERATOR,
+                        returnType: {name:retType , pack:retPack},
+                        access: [AStatic, APublic],
+                        arguments: args,
+                        macros: {
+                            field: (macro class {@:noCompletion static var $oname:godot.Types.GDNativePtrOperatorEvaluator;}).fields[0],
+                            fieldSetter: '$oname = godot.Types.GodotNativeInterface.variant_get_ptr_operator_evaluator(${opType}, ${type}, ${rType}))',
+                            extra: TypeMacros.getOpHaxe(opType)
+                        }
+                    });
+                }
+            }
+
+            // indexing
+            if (b.indexing_return_type != null) {
+                // this class can be indexed into
+                if (TypeMacros.isTypeAllowed(b.indexing_return_type)) {
+                    var retType = TypeMacros.getTypeName(b.indexing_return_type);
+                    var retPack = TypeMacros.isTypeNative(retType) ? [] : ["godot", "variant"];
+                    var ret = {name:retType , pack:retPack};
+
+                    var iname = '_index_get';
+                    binds.push({
+                        clazz: clazz,
+                        name: 'index_get',
+                        type: FunctionBindType.INDEX_GET,
+                        returnType: ret,
+                        access: [APublic],
+                        arguments: [{name: "_index", type: {name:"Int" , pack:[]}}],
+                        macros: {
+                            field: (macro class {@:noCompletion static var $iname:godot.Types.GDNativePtrIndexedGetter;}).fields[0],
+                            fieldSetter: '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_getter(${type}))'
+                        }
+                    });
+
+                    var iname = '_index_set';
+                    binds.push({
+                        clazz: clazz,
+                        name: 'index_set',
+                        type: FunctionBindType.INDEX_SET,
+                        returnType: ret,
+                        access: [APublic],
+                        arguments: [{name: "_index", type: {name:"Int" , pack:[]}}, {name: "_value", type: ret}],
+                        macros: {
+                            field: (macro class {@:noCompletion static var $iname:godot.Types.GDNativePtrIndexedSetter;}).fields[0],
+                            fieldSetter: '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_setter(${type}))'
+                        }
+                    });
+                }                        
+            }
+
             // now worry about the nasty details of expression and type-building
             var abstractFields = [];
             var fields = [];
@@ -239,6 +336,8 @@ class ClassGenMacros {
                     case FunctionBindType.METHOD: FunctionMacros.buildMethod(bind, fields);
                     case FunctionBindType.STATIC_METHOD: FunctionMacros.buildStaticMethod(bind, fields, abstractFields);
                     case FunctionBindType.PROPERTY_GET, FunctionBindType.PROPERTY_SET: FunctionMacros.buildPropertyMethod(bind, fields);
+                    case FunctionBindType.OPERATOR: FunctionMacros.buildOperatorOverload(bind, abstractFields);
+                    case FunctionBindType.INDEX_GET, FunctionBindType.INDEX_SET: FunctionMacros.buildIndexing(bind, abstractFields);
                     default:
                 }
             }
@@ -260,7 +359,6 @@ class ClassGenMacros {
                 }
             };
             cls.fields = cls.fields.concat(members);
-            //cls.fields = cls.fields.concat(methods);
             cls.fields = cls.fields.concat(fields);
             cls.fields = cls.fields.concat(init.fields);
             cls.fields = cls.fields.concat(pointers);

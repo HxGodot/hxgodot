@@ -8,16 +8,18 @@ import godot.Types;
     #include <godot_cpp/core/defs.hpp>")
 @:headerClassCode('
 static constexpr size_t GODOT_CPP_VARIANT_SIZE = 24;
-uint8_t opaque[GODOT_CPP_VARIANT_SIZE] = {};
-_FORCE_INLINE_ ::GDNativeTypePtr _native_ptr() const { return const_cast<uint8_t (*)[GODOT_CPP_VARIANT_SIZE]>(&opaque); }
+uint8_t opaque[GODOT_CPP_VARIANT_SIZE] = {0};
+_FORCE_INLINE_ ::GDNativeVariantPtr _native_ptr() const { return const_cast<uint8_t (*)[GODOT_CPP_VARIANT_SIZE]>(&opaque); }
 ')
 class __Variant {
     public static var from_type_constructor = new haxe.ds.Vector<godot.Types.GDNativeVariantFromTypeConstructorFunc>(GDNativeVariantType.MAX);
     public static var to_type_constructor = new haxe.ds.Vector<godot.Types.GDNativeTypeFromVariantConstructorFunc>(GDNativeVariantType.MAX);
 
-    public function new() {}
+    public function new() {
+        //GodotNativeInterface.variant_new_nil(native_ptr()); // WTF!!!!
+    }
 
-    inline public function native_ptr():godot.Types.GDNativeTypePtr {
+    inline public function native_ptr():godot.Types.GDNativeVariantPtr {
         return untyped __cpp__('{0}->_native_ptr()', this);
     }
 
@@ -73,12 +75,24 @@ abstract Variant(__Variant) from __Variant to __Variant {
     }
 
 
+
+
     @:from inline static function fromBool(_x:Bool):Variant
         return _buildVariant(GDNativeVariantType.BOOL, _x);
 
     @:from inline static function fromInt(_x:Int):Variant {
         var tmp = haxe.Int64.ofInt(_x);
         return _buildVariant(GDNativeVariantType.INT, tmp);
+    }
+    @:to inline function toInt():cpp.Int64 {
+        var constructor = __Variant.to_type_constructor.get(GDNativeVariantType.INT);
+        var res:cpp.Int64 = 0;
+        untyped __cpp__('((GDNativeTypeFromVariantConstructorFunc){0})({1}, {2});',
+            constructor, 
+            cpp.Native.addressOf(res),
+            this.native_ptr()
+        );
+        return res;
     }
 
     @:from inline static function fromInt64(_x:haxe.Int64):Variant
@@ -87,10 +101,29 @@ abstract Variant(__Variant) from __Variant to __Variant {
     @:from inline static function fromFloat(_x:Float):Variant
         return _buildVariant(GDNativeVariantType.FLOAT, _x);
 
-
     // STRING
     @:from inline static function fromGDString(_x:godot.variant.GDString):Variant
         return _buildVariant2(GDNativeVariantType.STRING, _x.native_ptr());
+
+    @:to inline function toGDString():godot.variant.GDString {
+        var constructor = __Variant.to_type_constructor.get(GDNativeVariantType.STRING);
+        var tmp = new godot.variant.GDString();
+        untyped __cpp__('((GDNativeTypeFromVariantConstructorFunc){0})({1}, {2});',
+            constructor, 
+            tmp.native_ptr(),
+            this.native_ptr()
+        );
+        return tmp;
+    }
+
+    @:from inline static function fromString(_x:String):Variant
+        return fromGDString((_x:GDString));
+
+    @:to inline function toString():String {
+        return (toGDString():String);
+    }
+    
+
     // ARRAY
     @:from inline static function fromGDArray(_x:godot.variant.GDArray):Variant
         return _buildVariant2(GDNativeVariantType.ARRAY, _x.native_ptr());

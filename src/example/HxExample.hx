@@ -27,8 +27,27 @@ class HxExample extends godot.Node {
         b.x = this.hx_random_MyVector3;
         trace(b);
         trace(b.x);
+        trace(b[4]); // out of bounds <3
+        trace(b[1] = new Vector3(3,2,1));
         trace(b.y);
         trace(b.z);
+
+        var tmp1:GDString = "%s";
+        var tmp2:GDString = "Test2";
+        trace(tmp1 < tmp2); // true
+        trace(tmp1 + " " + tmp2); // %s Test2
+        trace(tmp1 % tmp2); // Test2
+
+        for (i in 0...tmp1.length())
+            trace(tmp1[i]);
+
+        var arr = new godot.variant.GDArray();
+        arr.push_back("x1");
+        arr.push_back("x2");
+
+        for (v in 0...arr.size()) {
+            trace(arr[v]);
+        }
 
         hx_ImportantFloat = _v;
         return _v;
@@ -118,13 +137,13 @@ class HxExample extends godot.Node {
 
     static var c = 0;
     override function _process(_delta:Float):Void {
-        /* TODO: move this into a GC-Object Singleton and use _notification
+        /* TODO: move this into a GC-Object Singleton and use _notification */
         c++;
         if (c > 1000) {
             cpp.NativeGc.run(true);
             c = 0;
         }
-        */
+        
         //trace('_process($_delta) called');
         //trace(simple_add(10, _delta, false));
     }
