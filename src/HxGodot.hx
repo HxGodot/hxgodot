@@ -21,7 +21,17 @@ class HxGodot {
         //
 
         haxe.Log.trace = function(v:Dynamic, ?infos:haxe.PosInfos) {
-            GodotNativeInterface.print_warning(Std.string(v), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
+            if (infos.customParams != null) {
+                // TODO: Sucks, but lets do this for now
+                var stack = haxe.CallStack.toString(haxe.CallStack.callStack());
+                var lines = stack.split("\n");
+                lines.reverse();
+                lines.pop();
+                lines.unshift(Std.string(v));
+                GodotNativeInterface.print_error(lines.join('\n'), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
+            } else {
+                GodotNativeInterface.print_warning(Std.string(v), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
+            }
         }
 
         /*

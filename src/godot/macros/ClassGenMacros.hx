@@ -26,6 +26,10 @@ class ClassGenMacros {
         _generateBuiltins(api, sizeKey);
     }
 
+    static function _generateClasses(_api) {
+        
+    }
+
     static function _generateGlobalEnums(_api:Dynamic) {
         var enums = [];
 
