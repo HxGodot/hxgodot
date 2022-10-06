@@ -17,18 +17,49 @@ class ClassGenMacros {
     public static function api() {
         var use64 = Context.defined("HXCPP_M64");
         var useDouble = false; // TODO: Support double Godot builds
-
         var sizeKey = '${useDouble ? "double" : "float"}_${use64 ? "64" : "32"}';
+        var api = haxe.Json.parse(sys.io.File.getContent("./godot-headers/extension_api.json"));
 
         Sys.println('Generating binding classes for Godot ($sizeKey)...');
 
-        var api = haxe.Json.parse(sys.io.File.getContent("./godot-headers/extension_api.json"));
+        _generateGlobalEnums(api);
+        _generateBuiltins(api, sizeKey);
+    }
 
+    static function _generateGlobalEnums(_api:Dynamic) {
+        var enums = [];
+
+        for (e in cast(_api.global_enums, Array<Dynamic>)) {
+            var enumName = e.name;
+            if (StringTools.startsWith(enumName, 'Variant'))
+                continue;
+            var buf = new StringBuf();
+            buf.add('macro enum abstract $enumName(Int) from Int to Int {\n');
+            for (v in cast(e.values, Array<Dynamic>)){
+                buf.add('\tvar ${v.name} = ${v.value};\n');
+            }
+            buf.add('}\n\n');
+            enums.push(buf.toString());
+        }       
+
+        var output = "";
+        for (e in enums)
+            output += e;
+
+        var path = "gen/godot/classes";
+
+        if (sys.FileSystem.exists(path) == false)
+            sys.FileSystem.createDirectory(path);
+
+        sys.io.File.saveContent(path+"/GlobalConstants.hx", output);
+    }
+
+    static function _generateBuiltins(_api:Dynamic, _sizeKey:String) {
         // unpack builtin structure SIZES first
         var builtin_class_sizes = new Map<String, Int>();
-        var bcs = cast(api.builtin_class_sizes, Array<Dynamic>);
+        var bcs = cast(_api.builtin_class_sizes, Array<Dynamic>);
         for (p in bcs) {
-            if (p.build_configuration == sizeKey) {
+            if (p.build_configuration == _sizeKey) {
                 for (s in cast(p.sizes, Array<Dynamic>))
                     builtin_class_sizes.set(s.name, s.size);
                 break;
@@ -36,7 +67,7 @@ class ClassGenMacros {
         }
 
         // now deal with all the built-ins
-        var builtins = cast(api.builtin_classes, Array<Dynamic>);
+        var builtins = cast(_api.builtin_classes, Array<Dynamic>);
         for (b in builtins) {
 
             trace("// builtins");
@@ -226,8 +257,8 @@ class ClassGenMacros {
                     if (!TypeMacros.isTypeAllowed(o.return_type))
                         continue;
                     if (o.right_type != null) {
-                    	if (!TypeMacros.isTypeAllowed(o.right_type))
-                        	continue;
+                        if (!TypeMacros.isTypeAllowed(o.right_type))
+                            continue;
                         if (!TypeMacros.isOpTypeAllowed(o.right_type))
                             continue;
                     }
