@@ -14,9 +14,11 @@ class HxExample extends godot.Node {
 
     @:export
     function set_hx_ImportantFloat(_v:Float):Float {
+
         trace("Setting ImportantFloat to: " + _v);
         trace(GDString.humanize_size(Std.int(_v * 1000)));
 
+        // mess with Basis and Vector3s
         var b = new godot.variant.Basis();
         trace(b);
         trace(b.x);
@@ -32,21 +34,23 @@ class HxExample extends godot.Node {
         trace(b.y);
         trace(b.z);
 
+        // Mess with Strings
         var tmp1:GDString = "%s";
         var tmp2:GDString = "Test2";
-        trace(tmp1 < tmp2); // true
-        trace(tmp1 + " " + tmp2); // %s Test2
-        trace(tmp1 % tmp2); // Test2
+        trace(tmp1 < tmp2);
+        trace(tmp1 + " " + tmp2);
+        trace(tmp1 % tmp2); // Godot's format string <3
 
         for (i in 0...tmp1.length())
             trace(tmp1[i]);
 
+        // mess with arrays
         var arr = new godot.variant.GDArray();
-        arr.push_back("x1");
-        arr.push_back("x2");
+        arr.push_back(1);
+        arr.push_back("x2"); // mix types!
 
         for (v in 0...arr.size()) {
-            trace(arr[v]);
+            trace((arr[v]:Int)); // [1] will fail on cast
         }
 
         hx_ImportantFloat = _v;

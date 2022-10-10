@@ -23,10 +23,54 @@ class __Variant {
         return untyped __cpp__('{0}->_native_ptr()', this);
     }
 
+    public function getVariantType() {
+        return GodotNativeInterface.variant_get_type(this.native_ptr());
+    }
+
     static function __initBindings() {
         for (i in 1...GDNativeVariantType.MAX) {
             from_type_constructor[i] = GodotNativeInterface.get_variant_from_type_constructor(i);
             to_type_constructor[i] = GodotNativeInterface.get_variant_to_type_constructor(i);
+        }
+    }
+
+    public static function getGDNativeVariantTypeString(_type:Int):String {
+        return switch (_type) {
+            case NIL: "Nil";
+            case BOOL: "bool";
+            case INT: "int";
+            case FLOAT: "float";
+            case STRING: "GDString";
+            case VECTOR2: "Vector2";
+            case VECTOR2I: "Vector2i";
+            case RECT2: "Rect2";
+            case RECT2I: "Rect2i";
+            case VECTOR3: "Vector3";
+            case VECTOR3I: "Vector3i";
+            case TRANSFORM2D: "Transform2D";
+            case PLANE: "Plane";
+            case QUATERNION: "Quaternion";
+            case AABB: "AABB";
+            case BASIS: "Basis";
+            case TRANSFORM3D: "Transform3D";
+            case COLOR: "Color";
+            case STRING_NAME: "StringName";
+            case NODE_PATH: "NodePath";
+            case RID: "RID";
+            case CALLABLE: "Callable";
+            case SIGNAL: "Signal";
+            case DICTIONARY: "Dictionary";
+            case ARRAY: "GDArray";
+            case PACKED_BYTE_ARRAY: "PackedByteArray";
+            case PACKED_INT32_ARRAY: "PackedInt32Array";
+            case PACKED_INT64_ARRAY: "PackedInt64Array";
+            case PACKED_FLOAT32_ARRAY: "PackedFloat32Array";
+            case PACKED_FLOAT64_ARRAY: "PackedFloat64Array";
+            case PACKED_STRING_ARRAY: "PackedStringArray";
+            case PACKED_VECTOR2_ARRAY: "PackedVector2Array";
+            case PACKED_VECTOR3_ARRAY: "PackedVector3Array";
+            //case: "PackedColorArray";
+            default: "PACKED_COLOR_ARRAY";
         }
     }
 }
@@ -38,7 +82,6 @@ abstract Variant(__Variant) from __Variant to __Variant {
 
     inline private static function _buildVariant<T>(_type:GDNativeVariantType, _x:T):Variant {
         var res = new Variant();
-        //trace(res);
         var constructor = __Variant.from_type_constructor.get(_type);
 
         var value = _x;
@@ -54,13 +97,11 @@ abstract Variant(__Variant) from __Variant to __Variant {
             res.native_ptr(), 
             tmp
         );
-        //trace(res);
         return res;
     }
 
     inline private static function _buildVariant2(_type:GDNativeVariantType, _x:GDNativeTypePtr):Variant {
         var res = new Variant();
-        //trace(res);
         var constructor = __Variant.from_type_constructor.get(_type);
 
         untyped __cpp__('
@@ -70,50 +111,95 @@ abstract Variant(__Variant) from __Variant to __Variant {
             res.native_ptr(), 
             _x
         );
-        //trace(res);
         return res;
     }
 
+    inline private static function _canConvert(_from:GDNativeVariantType, _to:GDNativeVariantType):Bool {
+        return GodotNativeInterface.variant_can_convert_strict(_from, _to);
+    }
 
-
-
-    @:from inline static function fromBool(_x:Bool):Variant
+    // BOOL
+    @:from inline static function fromBool(_x:Bool):Variant {
         return _buildVariant(GDNativeVariantType.BOOL, _x);
+    }
+    @:to inline function toBool():Bool {
+        var type = this.getVariantType();
+        var res:Bool = false;
+        if (_canConvert(type, GDNativeVariantType.BOOL)) {
+            var constructor = __Variant.to_type_constructor.get(GDNativeVariantType.BOOL);
+            untyped __cpp__('((GDNativeTypeFromVariantConstructorFunc){0})({1}, {2});',
+                constructor, 
+                cpp.Native.addressOf(res),
+                this.native_ptr()
+            );
+        } else {
+            trace('Cannot cast ${__Variant.getGDNativeVariantTypeString(type)} to Bool', true);
+        }
+        return res;
+    }
 
+    // INT
     @:from inline static function fromInt(_x:Int):Variant {
         var tmp = haxe.Int64.ofInt(_x);
         return _buildVariant(GDNativeVariantType.INT, tmp);
     }
     @:to inline function toInt():cpp.Int64 {
-        var constructor = __Variant.to_type_constructor.get(GDNativeVariantType.INT);
+        var type = this.getVariantType();
         var res:cpp.Int64 = 0;
-        untyped __cpp__('((GDNativeTypeFromVariantConstructorFunc){0})({1}, {2});',
-            constructor, 
-            cpp.Native.addressOf(res),
-            this.native_ptr()
-        );
+        if (_canConvert(type, GDNativeVariantType.INT)) {
+            var constructor = __Variant.to_type_constructor.get(GDNativeVariantType.INT);
+            untyped __cpp__('((GDNativeTypeFromVariantConstructorFunc){0})({1}, {2});',
+                constructor, 
+                cpp.Native.addressOf(res),
+                this.native_ptr()
+            );
+        } else {
+            trace('Cannot cast ${__Variant.getGDNativeVariantTypeString(type)} to Int', true);
+        }
         return res;
     }
 
     @:from inline static function fromInt64(_x:haxe.Int64):Variant
         return _buildVariant(GDNativeVariantType.INT, _x);
 
-    @:from inline static function fromFloat(_x:Float):Variant
+    // FLOAT
+    @:from inline static function fromFloat(_x:Float):Variant {
         return _buildVariant(GDNativeVariantType.FLOAT, _x);
+    }
+    @:to inline function toFloat():Float {
+        var type = this.getVariantType();
+        var res = 0.0;
+        if (_canConvert(type, GDNativeVariantType.FLOAT)) {
+            var constructor = __Variant.to_type_constructor.get(GDNativeVariantType.FLOAT);
+            untyped __cpp__('((GDNativeTypeFromVariantConstructorFunc){0})({1}, {2});',
+                constructor, 
+                cpp.Native.addressOf(res),
+                this.native_ptr()
+            );
+        } else  {
+            trace('Cannot cast ${__Variant.getGDNativeVariantTypeString(type)} to Float', true);
+        }
+        return res;
+    }
 
     // STRING
-    @:from inline static function fromGDString(_x:godot.variant.GDString):Variant
+    @:from inline static function fromGDString(_x:godot.variant.GDString):Variant {
         return _buildVariant2(GDNativeVariantType.STRING, _x.native_ptr());
-
+    }
     @:to inline function toGDString():godot.variant.GDString {
-        var constructor = __Variant.to_type_constructor.get(GDNativeVariantType.STRING);
-        var tmp = new godot.variant.GDString();
-        untyped __cpp__('((GDNativeTypeFromVariantConstructorFunc){0})({1}, {2});',
-            constructor, 
-            tmp.native_ptr(),
-            this.native_ptr()
-        );
-        return tmp;
+        var type = this.getVariantType();
+        var res = new godot.variant.GDString();
+        if (_canConvert(type, GDNativeVariantType.STRING)) {
+            var constructor = __Variant.to_type_constructor.get(GDNativeVariantType.STRING);
+            untyped __cpp__('((GDNativeTypeFromVariantConstructorFunc){0})({1}, {2});',
+                constructor, 
+                res.native_ptr(),
+                this.native_ptr()
+            );
+        } else {
+            trace('Cannot cast ${__Variant.getGDNativeVariantTypeString(type)} to GDString', true);
+        }
+        return res;
     }
 
     @:from inline static function fromString(_x:String):Variant
@@ -121,8 +207,7 @@ abstract Variant(__Variant) from __Variant to __Variant {
 
     @:to inline function toString():String {
         return (toGDString():String);
-    }
-    
+    }    
 
     // ARRAY
     @:from inline static function fromGDArray(_x:godot.variant.GDArray):Variant

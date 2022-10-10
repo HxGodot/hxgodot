@@ -296,8 +296,6 @@ extern class GodotNativeInterface {
         _parentClass:cpp.ConstCharStar,      
         _extension_funcs:cpp.Star<GDNativeExtensionClassCreationInfo>):VoidPtr;
 
-
-
     
     // variant    
     inline public static function get_variant_from_type_constructor(_type:Int):VoidPtr {
@@ -369,6 +367,13 @@ extern class GodotNativeInterface {
     inline public static function variant_get_ptr_indexed_setter(_type:Int):GDNativePtrIndexedSetter {
         return untyped __cpp__('(cpp::Function<void (const void *)> *)godot::internal::gdn_interface->variant_get_ptr_indexed_setter((GDNativeVariantType){0})', _type);
     }
+
+    inline public static function variant_can_convert_strict(_from:GDNativeVariantType, _to:GDNativeVariantType):Bool {
+        return untyped __cpp__('godot::internal::gdn_interface->variant_can_convert_strict((GDNativeVariantType){0}, (GDNativeVariantType){1})', _from, _to);
+    }
+
+    @:native("godot::internal::gdn_interface->variant_get_type")
+    public static function variant_get_type(_ptr0:GDNativeVariantPtr):GDNativeVariantType;
 
     @:native("godot::internal::gdn_interface->string_new_with_utf8_chars")
     public static function string_new_with_utf8_chars(_dest:GDNativeStringPtr, _contents:cpp.ConstCharStar):Void;
