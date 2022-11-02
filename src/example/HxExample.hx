@@ -15,6 +15,8 @@ class HxExample extends godot.Node {
     @:export
     function set_hx_ImportantFloat(_v:Float):Float {
 
+        var test = new HxExample();
+
         trace("Setting ImportantFloat to: " + _v);
         trace(GDString.humanize_size(Std.int(_v * 1000)));
 
@@ -141,15 +143,18 @@ class HxExample extends godot.Node {
 
     static var c = 0;
     override function _process(_delta:Float):Void {
-        /* TODO: move this into a GC-Object Singleton and use _notification */
-        c++;
-        if (c > 1000) {
-            cpp.NativeGc.run(true);
-            c = 0;
-        }
-        
         //trace('_process($_delta) called');
         //trace(simple_add(10, _delta, false));
+    }
+
+    override function _enter_tree():Void {
+        trace("_enter_tree called");
+        var name:String = GDString.fromStringName(this.get_name());
+        this.print_tree_pretty();
+        trace(name);
+
+        var node = new godot.Node();
+        node = null;
     }
 
     /*
@@ -158,9 +163,7 @@ class HxExample extends godot.Node {
         //simple_func();
     }    
 
-    override function _enter_tree():Void {
-        trace("_enter_tree called");
-    }
+    
 
     override function _exit_tree():Void {
         trace("_exit_tree called");

@@ -16,6 +16,7 @@ enum FunctionBindType {
     PROPERTY_GET;
     INDEX_SET;
     INDEX_GET;
+    VIRTUAL_METHOD;
 }
 
 @:structInit
@@ -24,6 +25,7 @@ class ClassContext {
     @:optional public var abstractName:String;
     public var type:Int;
     public var typePath:TypePath;
+    @:optional public var hasDestructor:Bool;
 }
 
 @:structInit
@@ -59,13 +61,14 @@ class FunctionMacros {
         // preprocess the arguments
         var argExprs = [];
         var conCallArgs = [];
-        for (a in _bind.arguments) {
+        for (i in 0..._bind.arguments.length) {
+            var a = _bind.arguments[i];
             var argName = '${a.name}';
             argExprs.push({name:argName, type:TPath(a.type)});            
             if (TypeMacros.isTypeNative(a.type.name))
-                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr)&${argName}")');
+                conCallArgs.push({type: '(const GDNativeTypePtr)&', name: argName});
             else
-                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr){0}", ${argName}.native_ptr())');
+                conCallArgs.push({type: '(const GDNativeTypePtr)', name: '${argName}.native_ptr()'});
         }
         var vArgs = _assembleCallArgs(conCallArgs);
 
@@ -90,6 +93,8 @@ class FunctionMacros {
 
         // add static factory function to class
         var tpath = _bind.clazz.typePath;
+        var destr = _bind.clazz.hasDestructor ? 
+            macro cpp.vm.Gc.setFinalizer(inst, cpp.Callable.fromStaticFunction(_destruct)) : macro {};
         _fields.push({
             name: _bind.name,
             access: _bind.access,
@@ -99,7 +104,7 @@ class FunctionMacros {
                 args: argExprs,
                 expr: macro {
                     var inst = new $tpath();
-                    cpp.vm.Gc.setFinalizer(inst, cpp.Callable.fromStaticFunction(_destruct));
+                    $destr;
 
                     $b{exprs};
 
@@ -191,7 +196,7 @@ class FunctionMacros {
     }
 
     // 
-    public static function buildMethod(_bind:FunctionBind, _fields:Array<Field>) {
+    public static function buildBuiltInMethod(_bind:FunctionBind, _fields:Array<Field>) {
         var mname = '_method_${_bind.name}';
 
         // preprocess the arguments
@@ -201,9 +206,9 @@ class FunctionMacros {
             var argName = '${a.name}';
             argExprs.push({name:argName, type:TPath(a.type)});            
             if (TypeMacros.isTypeNative(a.type.name))
-                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr)&${argName}")');
+                conCallArgs.push({type: '(const GDNativeTypePtr)&', name: argName});
             else
-                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr){0}", ${argName}.native_ptr())');
+                conCallArgs.push({type: '(const GDNativeTypePtr)', name: '${argName}.native_ptr()'});
         }
         var vArgs = _assembleCallArgs(conCallArgs);
 
@@ -288,7 +293,7 @@ class FunctionMacros {
     }
 
     // 
-    public static function buildStaticMethod(_bind:FunctionBind, _fields:Array<Field>, _abstractFields:Array<Field>) {
+    public static function buildBuiltInStaticMethod(_bind:FunctionBind, _fields:Array<Field>, _abstractFields:Array<Field>) {
         var mname = '_method_${_bind.name}';
 
         // preprocess the arguments
@@ -298,9 +303,9 @@ class FunctionMacros {
             var argName = '${a.name}';
             argExprs.push({name:argName, type:TPath(a.type)});            
             if (TypeMacros.isTypeNative(a.type.name))
-                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr)&${argName}")');
+                conCallArgs.push({type: '(const GDNativeTypePtr)&', name: argName});
             else
-                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr){0}", ${argName}.native_ptr())');
+                conCallArgs.push({type: '(const GDNativeTypePtr)', name: '${argName}.native_ptr()'});
         }
         var vArgs = _assembleCallArgs(conCallArgs);
 
@@ -395,7 +400,7 @@ class FunctionMacros {
     }
 
     // 
-    public static function buildPropertyMethod(_bind:FunctionBind, _fields:Array<Field>) {
+    public static function buildBuiltInPropertyMethod(_bind:FunctionBind, _fields:Array<Field>) {
         var mname = '_${_bind.name}';
 
         // preprocess the arguments
@@ -417,6 +422,9 @@ class FunctionMacros {
                     ret
                 );
             }];
+
+            // TODO: we need to support managed types for return types here
+            
             if (TypeMacros.isTypeNative(_bind.returnType.name)) {
                 // a native return type
                 body = macro {
@@ -487,7 +495,7 @@ class FunctionMacros {
             var argName = '${a.name}';
             argExprs.push({name:argName, type:TPath(a.type)});
             if (TypeMacros.isTypeNative(a.type.name))
-                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr)&${argName}")');
+                conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr)& {0}", ${argName})');
             else
                 conCallArgs.push('untyped __cpp__("(const GDNativeTypePtr){0}", ${argName}.native_ptr())');
         }
@@ -638,12 +646,220 @@ class FunctionMacros {
         });
     }
 
+    // 
+    public static function buildMethod(_bind:FunctionBind, _fields:Array<Field>) {
+        var mname = '_method_${_bind.name}';
+        // preprocess the arguments
+        var argExprs = [];
+        var conCallArgs = [];
+        for (a in _bind.arguments) {
+            var argName = '${a.name}';
+            argExprs.push({name:argName, type:TPath(a.type)});            
+            if (TypeMacros.isTypeNative(a.type.name))
+                conCallArgs.push({type: '(const GDNativeTypePtr)&', name: argName});
+            else
+                conCallArgs.push({type: '(const GDNativeTypePtr)', name: '${argName}.native_ptr()'});
+        }
+        var vArgs = _assembleCallArgs(conCallArgs);
+
+        // now build the function body
+        var body = null;
+        if (_bind.returnType.name == "Void") {
+            var exprs = [];
+            if (conCallArgs.length > 0) {
+                switch (_bind.type) {
+                    case FunctionBindType.VIRTUAL_METHOD: {}
+                    default: {
+                        exprs.push(macro {
+                            ${vArgs};
+                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, (const GDNativeTypePtr*)call_args.data(), nullptr)', $i{mname}, this.native_ptr());
+                        });
+                    }
+                }
+                
+            } else {
+                switch (_bind.type) {
+                    case FunctionBindType.VIRTUAL_METHOD: {}
+                    default: {
+                        exprs.push(macro {
+                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, nullptr)', $i{mname}, this.native_ptr());
+                        });
+                    }
+                }
+            }
+            body = macro {
+                $b{exprs};
+            };
+        } else {            
+            var typePath = TPath(_bind.returnType);
+            var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
+            var exprs = [];
+            if (conCallArgs.length > 0) {
+                switch (_bind.type) {
+                    case FunctionBindType.VIRTUAL_METHOD: {}
+                    default: {
+                        exprs.push(macro {
+                            ${vArgs};
+                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, (const GDNativeTypePtr*)call_args.data(), {2})', $i{mname}, this.native_ptr(), ret);
+                        });
+                    }
+                }
+            } else {
+                switch (_bind.type) {
+                    case FunctionBindType.VIRTUAL_METHOD: {}
+                    default: {
+                        exprs.push(macro {
+                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', $i{mname}, this.native_ptr(), ret);
+                        });
+                    }
+                }
+            }
+
+            if (_bind.type == FunctionBindType.VIRTUAL_METHOD) {
+                if (TypeMacros.isTypeNative(_bind.returnType.name)) {
+                    // a native return type
+                    body = macro {
+                        return $v{defaultValue};
+                    };
+                } else {
+                    // // we have a managed return type, create it properly
+                    body = macro {
+                        return null;
+                    };
+                }
+            } else {
+                if (TypeMacros.isTypeNative(_bind.returnType.name)) {
+                    // a native return type
+                    body = macro {
+                        var ret2:$typePath = $v{defaultValue};
+                        var ret = cpp.Native.addressOf(ret2);
+                        $b{exprs};
+                        return ret2;
+                    };
+                } else {
+                    // // we have a managed return type, create it properly
+                    body = _assembleReturn(_bind, exprs);
+                }
+            }
+        }
+        _fields.push({
+            name: _bind.name,
+            access: _bind.access,
+            pos: Context.currentPos(),
+            kind: FFun({
+                args: argExprs,
+                expr: body,
+                params: [],
+                ret: TPath(_bind.returnType)
+            })
+        });
+    }
+
+    /*
+    public static function buildPropertyMethod(_bind:FunctionBind, _fields:Array<Field>) {
+        var mname = '_${_bind.name}';
+
+        // preprocess the arguments
+        var argExprs = [];
+        for (a in _bind.arguments) {
+            var argName = '${a.name}';
+            argExprs.push({name:argName, type:TPath(a.type)});
+        }
+
+        // now either build a getter or setter body
+        var body = null;
+        var typePath = TPath(_bind.returnType);
+        var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
+        if (_bind.type == FunctionBindType.PROPERTY_GET) { // Getter
+            
+            if (_bind.macros.extra.index > -1) {
+                body = macro {
+                    return cast $i{_bind.macros.extra.getter}($v{_bind.macros.extra.index});
+                };
+            } else {
+                body = macro {
+                    return cast $i{_bind.macros.extra.getter}();
+                };
+            }
+           
+        } else { // Setter
+            var aName = _bind.arguments[0].name;
+
+            body = macro {
+                $i{_bind.macros.extra.setter}(cast $i{aName});
+                return $i{aName};
+            };
+        }
+
+        // add the field
+        _fields.push({
+            name: _bind.name,
+            access: _bind.access,
+            pos: Context.currentPos(),
+            meta: [{name: ':noCompletion', pos: Context.currentPos()}],
+            kind: FFun({
+                args: argExprs,
+                expr: body,
+                params: [],
+                ret: TPath(_bind.returnType)
+            })
+        });
+    }
+    */
+
     // utils
-    static function _assembleCallArgs(_conCallArgs:Array<String>) {
+    static function _assembleCallArgs(_conCallArgs:Array<Dynamic>) {
         // wtf is even happening? Well, we assemble a std::array in using several untyped __cpp__ calls to allow for proper typing...
-        var tmp = [for (i in 0..._conCallArgs.length) '{$i}'];
+        var tmp = [];
+        var vals = [];
+        for (i in 0..._conCallArgs.length) {
+            tmp.push('${_conCallArgs[i].type}{$i}');
+            vals.push('${_conCallArgs[i].name}');
+        }
         var sArgs = 'std::array<const GDNativeTypePtr, ${_conCallArgs.length}> call_args = { ${tmp.join(",")} }';
-        var tmp2 = 'untyped __cpp__("$sArgs", ${_conCallArgs.length > 0 ? _conCallArgs.join(",") : null})';
+        var tmp2 = 'untyped __cpp__("$sArgs", ${vals.length > 0 ? vals.join(",") : null})';
         return Context.parse(tmp2, Context.currentPos());
+    }
+
+    static function _assembleReturn(_bind:FunctionBind, _exprs:Array<haxe.macro.Expr>):haxe.macro.Expr {
+        // // we have a managed return type, create it properly
+        var typePath = _bind.returnType;        
+        var body = null;
+        var identBindings = '&${typePath.name}_obj::___binding_callbacks';
+        var ctType = TPath(typePath);
+        
+        if (typePath.pack.length == 1 && typePath.pack[0] == "godot") {
+            body = macro {
+                // managed types need a pointer indirection
+                var retOriginal:godot.Types.VoidPtr = untyped __cpp__('nullptr');
+                var ret:godot.Types.VoidPtr = untyped __cpp__('&{0}', retOriginal);
+                $b{_exprs};
+
+                var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
+                    retOriginal, 
+                    untyped __cpp__("godot::internal::token"), 
+                    untyped __cpp__($v{identBindings})
+                );
+
+                var instance:$ctType = untyped __cpp__(
+                    $v{"(::godot::"+typePath.name+"((::godot::"+typePath.name+"_obj*){0}))"}, // TODO: this is a little hacky!
+                    obj
+                );
+
+                // important! we need to track the original godot instance
+                instance.__owner = retOriginal;
+
+                return cast instance;
+            };
+        } else {
+            body = macro {
+                var ret2 = new $typePath();
+                var ret = ret2.native_ptr();
+                $b{_exprs};
+                return ret2;
+            };
+        }
+
+        return body;        
     }
 }

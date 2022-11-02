@@ -11,7 +11,7 @@ typedef __Vector3 = Array<GDNativeFloat>;
 @:forward
 abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
 
-    inline public function new(?_x:GDNativeFloat=0, ?_y:GDNativeFloat=0, ?_z:GDNativeFloat=0):Vec3 this = _alloc(_x, _y, _z);
+    inline public function new(?_x:GDNativeFloat=0, ?_y:GDNativeFloat=0, ?_z:GDNativeFloat=0):Vector3 this = _alloc(_x, _y, _z);
 
     inline private static function _alloc(_x:GDNativeFloat, _y:GDNativeFloat, _z:GDNativeFloat):__Vector3
         return [_x, _y, _z];

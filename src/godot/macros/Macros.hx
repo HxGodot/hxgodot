@@ -52,16 +52,30 @@ class Macros {
         // add necessary metadata to the class
         classMeta.add(":headerCode", [macro "
                 #include <godot/gdnative_interface.h>
+                #include <godot/native_structs.hpp>
                 #include <hxcpp_ext/Dynamic2.h>
+                #include <cpp/vm/Gc.h>
             "], pos);
         classMeta.add(":headerClassCode", [macro "
                 static void *___binding_create_callback(void *p_token, void *p_instance) {
-                    return nullptr;
+                    int base = 99;
+                    hx::SetTopOfStack(&base,true);
+                    void *res = _hx____binding_create_callback(p_token, p_instance);
+                    hx::SetTopOfStack((int*)0,true);
+                    return res;
                 }
                 static void ___binding_free_callback(void *p_token, void *p_instance, void *p_binding) {
+                    int base = 99;
+                    hx::SetTopOfStack(&base,true);
+                    _hx____binding_free_callback(p_token, p_instance, p_binding);
+                    hx::SetTopOfStack((int*)0,true);
                 }
                 static GDNativeBool ___binding_reference_callback(void *p_token, void *p_instance, GDNativeBool p_reference) { 
-                    return true;
+                    int base = 99;
+                    hx::SetTopOfStack(&base,true);
+                    GDNativeBool res = _hx____binding_reference_callback(p_token, p_instance, p_reference);
+                    hx::SetTopOfStack((int*)0,true);
+                    return res;
                 }
                 static constexpr GDNativeInstanceBindingCallbacks ___binding_callbacks = {
                     ___binding_create_callback,
@@ -77,39 +91,15 @@ class Macros {
         var virtualFields = new Map<String, haxe.macro.Field>();
 
         for (field in fields) {
-            //trace(field);
             for (fmeta in field.meta) {
-                //trace(fmeta);
-                //trace(field.kind);
                 switch (fmeta.name) {
-                    case ":gdBind": // bind godot-side to the extension
-                        switch (field.kind) {
-                            case FFun(f):
-                                var obj = fmeta.params[0];
-                                var method = fmeta.params[1];
-                                var hash = fmeta.params[2];
-
-                                switch (f.ret) {
-                                    case TPath(t):
-                                        f.expr = macro {
-                                            /* TODO:
-                                            var __method_bind = godot.Types.GodotNativeInterface.classdb_get_method_bind($obj, $method, $hash);
-                                            godot.Types.GodotNativeInterface.object_method_bind_ptrcall(__method_bind, __owner, null, null);
-                                            */
-                                            return null;
-                                        };
-                                    default:
-                                }
-                                
-                            default:
-                        }
                     case ":export":
                         switch (field.kind) {
                             case FFun(_f):
                                 extensionFields.push(field);
                             case FProp(_g, _s, _type):
                                 extensionProperties.push(field);
-                            case FVar(_t):
+                            case FVar(_t): // TODO: ADD THESE
                         }
                 }
             }
@@ -125,7 +115,7 @@ class Macros {
 
         if (isEngineClass) {
             // properly bootstrap this class
-            fields = fields.concat(buildPostInit(typePath.name, parent_class_name, typePath.name, classNameCpp));
+            fields = fields.concat(buildPostInit(typePath, parent_class_name, typePath.name, classNameCpp));
         }
         else {
             // find the first engine-class up the inheritance chain
@@ -158,25 +148,63 @@ class Macros {
             fields = fields.concat(buildFieldBindings(typePath.name, classMeta, typePath, extensionFields, engineVirtuals, classNameCpp, extensionProperties));
 
             // properly bootstrap this class
-            fields = fields.concat(buildPostInit(typePath.name, parent_class_name, engine_parent.name, classNameCpp));
+            fields = fields.concat(buildPostInit(typePath, parent_class_name, engine_parent.name, classNameCpp));
         }
 
         return fields;
     }
 #if macro
     
-    static function buildPostInit(_class_name:String, _parent_class_name:String, _godotBaseclass:String, _cppClassName:String) {
-        var identBindings = '&${_cppClassName}_obj::___binding_callbacks';
-        var postInitClass = macro class {
-            static var __class_name = $v{_class_name};
-            static var __parent_class_name = $v{_parent_class_name};
+    static function buildPostInit(_typePath, _parent_class_name:String, _godotBaseclass:String, _cppClassName:String) {
+        var className = _typePath.name;
+        var ctType = TPath(_typePath);
+        var clsId = '${_typePath.pack.join(".")}.${_typePath.name}';
+        var inst = Context.parse('Type.createEmptyInstance($clsId)', Context.currentPos());
 
-            override function __postInit() {
-                __owner = godot.Types.GodotNativeInterface.classdb_construct_object($v{_godotBaseclass});
+        var identBindings = '&${_cppClassName}_obj::___binding_callbacks';
+        var classIdentifier = Context.parse('${_typePath.pack.join(".")}.${_typePath.name}', Context.currentPos());
+        var postInitClass = macro class {
+            static var __class_tag:godot.Types.VoidPtr;
+            static var __class_name:String;
+            static var __parent_class_name:String;
+
+            static function ___binding_create_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr):godot.Types.VoidPtr {
+                var tmp = $inst;
+                //tmp.__owner = _instance;
+                //cpp.vm.Gc.setFinalizer(tmp, cpp.Callable.fromStaticFunction(__static_cleanUp));
+                tmp.addGCRoot();
+                var ptr:cpp.RawPointer<cpp.Void> = untyped __cpp__('(void*){0}.mPtr', tmp);
+                return cast ptr;
+            }
+            static function ___binding_free_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr):Void {
+                var instance:$ctType = untyped __cpp__(
+                    $v{"(::godot::Wrapped((::godot::Wrapped_obj*){0}))"}, // TODO: this is a little hacky!
+                    _binding
+                );
+                instance.removeGCRoot();
+                instance.__owner = null;
+            }
+            static function ___binding_reference_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr, _reference:Bool):Bool { 
+                trace("___binding_reference_callback");
+                return true;
+            }
+
+            static function __init_constant_bindings() {
+                __class_name = $v{className};
+                __parent_class_name = $v{_parent_class_name};
+                __class_tag = godot.Types.GodotNativeInterface.classdb_get_class_tag(__class_name);
+                Wrapped.classTags.set(__class_name, $classIdentifier);
+            }
+
+            override function __postInit(?_finalize = true) {
+                if (_finalize) {
+                    __owner = godot.Types.GodotNativeInterface.classdb_construct_object($v{_godotBaseclass});
+                    cpp.vm.Gc.setFinalizer(this, cpp.Callable.fromStaticFunction(__static_cleanUp));
+                }
 
                 var ptr:cpp.RawPointer<cpp.Void> = untyped __cpp__('(void*){0}.mPtr', this);
                 
-                if ($v{_class_name != _godotBaseclass}) { // deadcode elimination will get rid of this
+                if ($v{className != _godotBaseclass}) { // deadcode elimination will get rid of this
                     godot.Types.GodotNativeInterface.object_set_instance(
                         __owner, 
                         __class_name, 
@@ -193,9 +221,18 @@ class Macros {
                 );
             }
 
-            override function __cleanUp() {
-
+            private static function __static_cleanUp(_w:$ctType) {
+                if (_w.__owner != null)
+                    godot.Types.GodotNativeInterface.object_destroy(_w.__owner);
+                _w.__owner = null;
             }
+            
+            /*
+            override function finalize() {
+                if (__owner != null)
+                    godot.Types.GodotNativeInterface.object_destroy(__owner);   
+            }
+            */
         }
         return postInitClass.fields;
     }
@@ -262,7 +299,7 @@ class Macros {
                             fieldArgInfos.push(macro {
                                 if (_arg == $v{j}) {
                                     _info.name = __class_name;
-                                    _info.type = $v{argType};
+                                    _info.type = untyped __cpp__('(GDNativeVariantType){0}', $v{argType});
                                     _info.class_name = untyped __cpp__('""');
                                     _info.hint_string = untyped __cpp__('""');
                                 }
@@ -283,7 +320,7 @@ class Macros {
                         fieldArgInfos.push(macro {
                             if (_arg == $v{j}) {
                                 _info.name = untyped __cpp__($v{'"${_f.args[j].name}"'});
-                                _info.type = $v{argType};
+                                _info.type = untyped __cpp__('(GDNativeVariantType){0}', $v{argType});
                                 _info.class_name = untyped __cpp__('""'); // TODO: use classname for complextypes here
                                 _info.hint_string = untyped __cpp__('""');
                             }
@@ -461,7 +498,7 @@ class Macros {
 
                     regPropOut.push( macro {
                         var propInfo:godot.Types.GDNativePropertyInfo = untyped __cpp__('{
-                            (uint32_t){0}, // uint32_t type;
+                            (GDNativeVariantType){0}, // GDNativeVariantType type;
                             (const char*){1}.utf8_str(),// const char *name;
                             (const char*){2}.utf8_str(),// const char *class_name;
                             {3},// uint32_t hint;
@@ -507,7 +544,7 @@ class Macros {
 
             vCallbacks += '
                 static void ${vname}__onVirtualCall(GDExtensionClassInstancePtr p_instance, const GDNativeTypePtr *p_args, GDNativeTypePtr r_ret) {
-                    int base = 0;
+                    int base = 99;
                     hx::SetTopOfStack(&base,true);
                     GDNativeExtensionClassCallVirtual res = nullptr;
                     ${_cppClassName} instance = (${_cppClassName}((${_cppClassName}_obj*)p_instance));
@@ -547,7 +584,7 @@ class Macros {
         // add the callback wrappers, so we can play along with GC
         var cppCode = vCallbacks + '
             static GDNativeObjectPtr __onCreate(void *p_userdata) {
-                int base = 0;
+                int base = 99;
                 hx::SetTopOfStack(&base,true);
                 GDNativeObjectPtr res = ${_cppClassName}_obj::_hx___create((void *)p_userdata);
                 hx::SetTopOfStack((int*)0,true);
@@ -555,14 +592,14 @@ class Macros {
             }
 
             static void __onFree(void *p_userdata, GDExtensionClassInstancePtr p_instance) {
-                int base = 0;
+                int base = 99;
                 hx::SetTopOfStack(&base,true);
                 ${_cppClassName}_obj::_hx___free((void *)p_userdata, p_instance);
                 hx::SetTopOfStack((int*)0,true);
             }
 
             static GDNativeExtensionClassCallVirtual __onGetVirtualFunc(void *p_userdata, const char *p_name) {
-                int base = 0;
+                int base = 99;
                 hx::SetTopOfStack(&base,true);
                 GDNativeExtensionClassCallVirtual res = (GDNativeExtensionClassCallVirtual)${_cppClassName}_obj::_hx___getVirtualFunc(p_userdata, p_name);
                 hx::SetTopOfStack((int*)0,true);
@@ -577,7 +614,7 @@ class Macros {
                 GDNativeVariantPtr r_return,
                 GDNativeCallError *r_error)
             {
-                int base = 0;
+                int base = 99;
                 hx::SetTopOfStack(&base,true);
                 ${_cppClassName}_obj::_hx___bindCall(
                     (void *)method_userdata,
@@ -596,7 +633,7 @@ class Macros {
                 const GDNativeTypePtr *p_args,
                 GDNativeTypePtr r_ret)
             {
-                int base = 0;
+                int base = 99;
                 hx::SetTopOfStack(&base,true);
                 ${_cppClassName}_obj::_hx___bindCallPtr(
                     (void *)method_userdata,
@@ -608,7 +645,7 @@ class Macros {
             } 
 
             static GDNativeVariantType __onGetArgType(void *_methodUserData, int32_t _arg) {
-                int base = 0;
+                int base = 99;
                 hx::SetTopOfStack(&base,true);
                 GDNativeVariantType res = (GDNativeVariantType)${_cppClassName}_obj::_hx___getArgType(_methodUserData, _arg);
                 hx::SetTopOfStack((int*)0,true);
@@ -616,7 +653,7 @@ class Macros {
             }
 
             static void __onGetArgInfo(void *_methodUserData, int32_t _arg, GDNativePropertyInfo *r_info) {
-                int base = 0;
+                int base = 99;
                 hx::SetTopOfStack(&base,true);
                 ${_cppClassName}_obj::_hx___getArgInfo(_methodUserData, _arg, r_info);
                 hx::SetTopOfStack((int*)0,true);
@@ -626,24 +663,18 @@ class Macros {
         
         var fieldBindingsClass = macro class {
             private static function __create(_data:godot.Types.VoidPtr):godot.Types.GDNativeObjectPtr { 
-                var n = new $_typePath();
-                
+                var n = new $_typePath();                
                 // make sure hx GC keeps us around as long as godot has an owner for us
-                //trace("GCAddRoot");
-                untyped __cpp__("GCAddRoot((hx::Object **)&{0}.mPtr)", n);
-                
+                n.addGCRoot();                
                 return n.__owner;
             }
 
             private static function __free(_data:godot.Types.VoidPtr, _ptr:godot.Types.GDNativeObjectPtr) {
-
                 var n:$ctType = untyped __cpp__(
                     $v{"("+_cppClassName+"(("+_cppClassName+"_obj*){0}))"}, // TODO: this is a little hacky!
                     _ptr
                 );
-
-                untyped __cpp__("GCRemoveRoot((hx::Object **)&{0}.mPtr)", n);
-                //trace("GCRemoveRoot");
+                n.removeGCRoot();
                 n.__owner = null;
             }
 
@@ -662,10 +693,13 @@ class Macros {
                 // assemble the classinfo
                 var class_info:godot.Types.GDNativeExtensionClassCreationInfo = untyped __cpp__('
                         {
+                            false, false,
                             nullptr, // GDNativeExtensionClassSet set_func;
                             nullptr, // GDNativeExtensionClassGet get_func;
                             nullptr, // GDNativeExtensionClassGetPropertyList get_property_list_func;
                             nullptr, // GDNativeExtensionClassFreePropertyList free_property_list_func;
+                            nullptr, // GDNativeExtensionClassPropertyCanRevert property_can_revert_func;
+                            nullptr, // GDNativeExtensionClassPropertyGetRevert property_get_revert_func;
                             nullptr, // GDNativeExtensionClassNotification notification_func;
                             nullptr, // GDNativeExtensionClassToString to_string_func;
                             nullptr, // GDNativeExtensionClassReference reference_func;

@@ -2,10 +2,14 @@ package godot;
 
 enum abstract GDNativeVariantType(Int) from Int to Int {
     var NIL = 0;
+
+    /*  atomic types */
     var BOOL;
     var INT;
     var FLOAT;
     var STRING;
+
+    /* math types */
     var VECTOR2;
     var VECTOR2I;
     var RECT2;
@@ -13,11 +17,16 @@ enum abstract GDNativeVariantType(Int) from Int to Int {
     var VECTOR3;
     var VECTOR3I;
     var TRANSFORM2D;
+    var VECTOR4;
+    var VECTOR4I;
     var PLANE;
     var QUATERNION;
     var AABB;
     var BASIS;
     var TRANSFORM3D;
+    var PROJECTION;
+
+    /* misc types */
     var COLOR;
     var STRING_NAME;
     var NODE_PATH;
@@ -27,6 +36,8 @@ enum abstract GDNativeVariantType(Int) from Int to Int {
     var SIGNAL;
     var DICTIONARY;
     var ARRAY;
+
+    /* typed arrays */
     var PACKED_BYTE_ARRAY;
     var PACKED_INT32_ARRAY;
     var PACKED_INT64_ARRAY;
@@ -37,6 +48,7 @@ enum abstract GDNativeVariantType(Int) from Int to Int {
     var PACKED_VECTOR3_ARRAY;
     var PACKED_COLOR_ARRAY;
     var MAX;
+    var INVALID;
 
     inline public static function fromString(_str:String):Int {
         return switch (_str) {
@@ -44,7 +56,7 @@ enum abstract GDNativeVariantType(Int) from Int to Int {
             case "bool": BOOL;
             case "int": INT;
             case "float": FLOAT;
-            case "String": STRING;
+            case "String", "GDString": STRING;
             case "Vector2": VECTOR2;
             case "Vector2i": VECTOR2I;
             case "Rect2": RECT2;
@@ -52,6 +64,8 @@ enum abstract GDNativeVariantType(Int) from Int to Int {
             case "Vector3": VECTOR3;
             case "Vector3i": VECTOR3I;
             case "Transform2D": TRANSFORM2D;
+            case "Vector4": VECTOR4;
+            case "Vector4i": VECTOR4I;
             case "Plane": PLANE;
             case "Quaternion": QUATERNION;
             case "AABB": AABB;
@@ -61,10 +75,11 @@ enum abstract GDNativeVariantType(Int) from Int to Int {
             case "StringName": STRING_NAME;
             case "NodePath": NODE_PATH;
             case "RID": RID;
+            case "Object": OBJECT;
             case "Callable": CALLABLE;
             case "Signal": SIGNAL;
             case "Dictionary": DICTIONARY;
-            case "Array": ARRAY;
+            case "Array", "GDArray": ARRAY;
             case "PackedByteArray": PACKED_BYTE_ARRAY;
             case "PackedInt32Array": PACKED_INT32_ARRAY;
             case "PackedInt64Array": PACKED_INT64_ARRAY;
@@ -73,8 +88,8 @@ enum abstract GDNativeVariantType(Int) from Int to Int {
             case "PackedStringArray": PACKED_STRING_ARRAY;
             case "PackedVector2Array": PACKED_VECTOR2_ARRAY;
             case "PackedVector3Array": PACKED_VECTOR3_ARRAY;
-            //case "PackedColorArray": 
-            default: PACKED_COLOR_ARRAY;
+            case "PackedColorArray": PACKED_COLOR_ARRAY;
+            default: OBJECT;
         }
     }
 }
@@ -170,10 +185,10 @@ typedef GDNativeVariantPtr = Int;
 typedef GDNativeTypePtr = Int;
 typedef GDNativeStringPtr = Int;
 
-typedef GDNativeInt = haxe.Int64;
+typedef GDNativeInt = Int;
 typedef GDNativeBool = Bool;
 typedef GDNativeFloat = Float;
-typedef GDObjectInstanceID = haxe.Int64;
+typedef GDObjectInstanceID = Int;
 
 typedef GDNativeVariantFromTypeConstructorFunc = Int;
 typedef GDNativeTypeFromVariantConstructorFunc = Int;
@@ -191,8 +206,8 @@ typedef GDNativePtrIndexedSetter = Int;
 
 // typedef to properly allow typing into the godot-side
 typedef VoidPtr = cpp.Star<cpp.Void>;
-typedef GDNativeObjectPtr = cpp.Star<cpp.Void>;
-typedef GDNativeMethodBindPtr = cpp.Star<cpp.Void>;
+typedef GDNativeObjectPtr = VoidPtr;
+typedef GDNativeMethodBindPtr = VoidPtr;
 typedef GDNativeExtensionClassCreateInstance = cpp.Star<cpp.Callable<VoidPtr->GDNativeObjectPtr>>;
 typedef GDNativeExtensionClassFreeInstance = cpp.Star<cpp.Callable<VoidPtr->VoidPtr->GDNativeObjectPtr>>;
 typedef Callable<T> = cpp.Callable<T>;
@@ -233,7 +248,7 @@ extern class GDNativeExtensionClassMethodInfo {}
 @:native("::GDNativePropertyInfo")
 extern class GDNativePropertyInfo {
     public function new();
-    var type:Int;
+    var type:GDNativeVariantType;
     var name:cpp.ConstCharStar;
     var class_name:cpp.ConstCharStar;
     var hint_string:cpp.ConstCharStar;
@@ -260,16 +275,19 @@ extern class GodotNativeInterface {
     public static function print_warning(_m:String, _function:String, _file:String, _line:Int):Void;
     
     @:native("godot::internal::gdn_interface->classdb_construct_object")
-    public static function classdb_construct_object(_class:cpp.ConstCharStar):VoidPtr;
+    public static function classdb_construct_object(_class:cpp.ConstCharStar):GDNativeObjectPtr;
 
     @:native("godot::internal::gdn_interface->object_destroy")
-    public static function object_destroy(_owner:VoidPtr):Void;
+    public static function object_destroy(_owner:GDNativeObjectPtr):Void;
 
     @:native("godot::internal::gdn_interface->object_set_instance")
-    public static function object_set_instance(_owner:VoidPtr, _extension_class:cpp.ConstCharStar, _instance:VoidPtr):VoidPtr;
+    public static function object_set_instance(_owner:GDNativeObjectPtr, _extension_class:cpp.ConstCharStar, _instance:VoidPtr):VoidPtr;
 
     @:native("godot::internal::gdn_interface->object_set_instance_binding")
-    public static function object_set_instance_binding(_owner:VoidPtr, _token:VoidPtr, _binding:VoidPtr, _bindingCallbacks:VoidPtr):VoidPtr;
+    public static function object_set_instance_binding(_owner:GDNativeObjectPtr, _token:VoidPtr, _binding:VoidPtr, _bindingCallbacks:VoidPtr):VoidPtr;
+
+    @:native("godot::internal::gdn_interface->object_get_instance_binding")
+    public static function object_get_instance_binding(_owner:GDNativeObjectPtr, _token:VoidPtr, _bindingCallbacks:VoidPtr):VoidPtr;
 
     @:native("godot::internal::gdn_interface->classdb_register_extension_class_method")
     public static function classdb_register_extension_class_method(_library:VoidPtr, _classname:cpp.ConstCharStar, _method_info:cpp.Star<GDNativeExtensionClassMethodInfo>):Void;
@@ -284,10 +302,10 @@ extern class GodotNativeInterface {
     public static function classdb_register_extension_class_property_subgroup(_library:VoidPtr, _classname:cpp.ConstCharStar, _subGroupName:cpp.ConstCharStar, _prefix:cpp.ConstCharStar):Void;
     
     @:native("godot::internal::gdn_interface->classdb_get_method_bind")
-    public static function classdb_get_method_bind(_obj:cpp.ConstCharStar, _method:cpp.ConstCharStar, _hash:Int):VoidPtr;
+    public static function classdb_get_method_bind(_obj:cpp.ConstCharStar, _method:cpp.ConstCharStar, _hash:GDNativeInt):VoidPtr;
 
     @:native("godot::internal::gdn_interface->object_method_bind_ptrcall")
-    public static function object_method_bind_ptrcall(_method:GDNativeMethodBindPtr, _method:GDNativeObjectPtr, _args:cpp.Star<GDNativeObjectPtr>, _ret:VoidPtr):VoidPtr;
+    public static function object_method_bind_ptrcall(_method:GDNativeMethodBindPtr, _owner:GDNativeObjectPtr, _args:cpp.Star<GDNativeTypePtr>, _ret:GDNativeTypePtr):Void;
 
     @:native("godot::internal::gdn_interface->classdb_register_extension_class")
     public static function classdb_register_extension_class(
@@ -295,7 +313,6 @@ extern class GodotNativeInterface {
         _classname:cpp.ConstCharStar,
         _parentClass:cpp.ConstCharStar,      
         _extension_funcs:cpp.Star<GDNativeExtensionClassCreationInfo>):VoidPtr;
-
     
     // variant    
     inline public static function get_variant_from_type_constructor(_type:Int):VoidPtr {
@@ -380,6 +397,15 @@ extern class GodotNativeInterface {
 
     @:native("godot::internal::gdn_interface->string_to_utf8_chars")
     public static function string_to_utf8_chars(_dest:GDNativeStringPtr, _text:cpp.RawPointer<cpp.Char>, _writeLength:Int):Int;
+
+    @:native("godot::internal::gdn_interface->classdb_get_class_tag")
+    public static function classdb_get_class_tag(_classname:String):VoidPtr;
+
+    @:native("godot::internal::gdn_interface->object_cast_to")
+    public static function object_cast_to(_obj:GDNativeObjectPtr, _tag:VoidPtr):GDNativeObjectPtr;
+
+    @:native("godot::internal::gdn_interface->global_get_singleton")
+    public static function global_get_singleton(_classname:String):GDNativeObjectPtr;
 
 }
 #end

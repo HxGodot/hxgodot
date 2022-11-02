@@ -81,7 +81,9 @@ class ArgumentMacros {
 
     public static function guardAgainstKeywords(_str:String):String {
         return switch(_str) {
-            case    "implements",
+            case    "in",
+                    "operator",
+                    "implements",
                     "extends",
                     "function",
                     "var",
