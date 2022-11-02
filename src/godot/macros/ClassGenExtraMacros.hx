@@ -31,6 +31,30 @@ class ClassGenExtraMacros {
                 }
                 ops = ops.concat(tmp.fields);
             }
+            case "NodePath": {
+                var tmp = macro class {
+                    @:from inline public static function fromString(_v:String):NodePath {
+                        return NodePath.fromGDString((_v:GDString));
+                    }
+
+                    @:to inline public function toString():String {
+                        return (GDString.fromNodePath(this):String);
+                    }
+                }
+                ops = ops.concat(tmp.fields);
+            }
+            case "StringName": {
+                var tmp = macro class {
+                    @:from inline public static function fromString(_v:String):StringName {
+                        return StringName.fromGDString((_v:GDString));
+                    }
+
+                    @:to inline public function toString():String {
+                        return (GDString.fromStringName(this):String);
+                    }
+                }
+                ops = ops.concat(tmp.fields);
+            }
             default:
         }
         return ops;

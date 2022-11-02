@@ -36,6 +36,7 @@
 
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
+#include <HxGodot.h>
 
 extern "C" void __hxcpp_main();
 
@@ -46,17 +47,22 @@ void initialize_haxe_module(ModuleInitializationLevel p_level) {
         return;
     }
 
+    int i = 99;
+    hx::SetTopOfStack(&i,true);
     // fire up our module
-    int base = 0;
-    hx::SetTopOfStack(&base,true);
     __hxcpp_main();
-    hx::SetTopOfStack((int*)0,true);
+    hx::SetTopOfStack(0,true);
 }
 
 void uninitialize_haxe_module(ModuleInitializationLevel p_level) {
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
         return;
     }
+
+    int i = 99;
+    hx::SetTopOfStack(&i,true);
+    HxGodot_obj::shutdown();
+    hx::SetTopOfStack(0,true);
 }
 
 extern "C" {
@@ -66,11 +72,11 @@ GDNativeBool GDN_EXPORT haxe_library_init(const GDNativeInterface *p_interface, 
     godot::GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_initialization);
 
     // load the hxcpp runtime
-    int base = 0;
-    hx::SetTopOfStack(&base,true);
+    int i = 99;
+    hx::SetTopOfStack(&i,true);
     ::hx::Boot();
     __boot_all();
-    hx::SetTopOfStack((int*)0,true);
+    hx::SetTopOfStack(0,true);
 
     init_obj.register_initializer(initialize_haxe_module);
     init_obj.register_terminator(uninitialize_haxe_module);
