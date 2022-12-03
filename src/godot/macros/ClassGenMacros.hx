@@ -82,12 +82,18 @@ class ClassGenMacros {
             var constructor = null;
             if (c.is_instantiable != null && c.is_instantiable) {
                 var cname = c.name;
-                var tmp = macro class {
-                    public function new() {
-                        super();
+                var tmp = c.is_refcounted ? 
+                    macro class {
+                        public function new() {
+                            super();
+                        };
+                    } :
+                    macro class {
+                        public function new() {
+                            super();
+                        };
                     };
-                }
-                fields.push(tmp.fields[0]);
+                fields = fields.concat(tmp.fields);
             }
 
             // constants
@@ -119,69 +125,6 @@ class ClassGenMacros {
 
             //
             var binds = new Array<FunctionBind>();
-            var properties = [];
-            /*
-            // properties
-            var propertyMap = new Map<String, Bool>();
-            if (c.properties != null) {
-                for (m in cast(c.properties, Array<Dynamic>)) {
-                    if (!TypeMacros.isTypeAllowed(m.type))
-                        continue;
-                    
-                    var mType = TypeMacros.getTypeName(m.type);
-                    var mPack = TypeMacros.getTypePackage(mType);
-
-                    properties.push({
-                        name: m.name,
-                        access: [APublic],
-                        pos: Context.currentPos(),
-                        kind: FProp("get", "set", TPath({name:mType , pack:mPack}))
-                        //kind: FProp("default", "default", TPath({name:mType , pack:mPack}))
-                    });
-
-                    binds.push({
-                        clazz: clazz,
-                        name: 'get_${m.name}',
-                        type: FunctionBindType.PROPERTY_GET,
-                        returnType: {name:mType , pack:mPack},
-                        access: [],
-                        arguments: [],
-                        macros: {
-                            field: null,
-                            fieldSetter: null,
-                            extra: {
-                                setter: TypeMacros.snakeToCamelCase(m.setter), 
-                                getter: TypeMacros.snakeToCamelCase(m.getter),
-                                index: m.index
-                            }
-                        }
-                    });
-
-                    binds.push({
-                        clazz: clazz,
-                        name: 'set_${m.name}',
-                        type: FunctionBindType.PROPERTY_SET,
-                        returnType: {name:mType , pack:mPack},
-                        access: [],
-                        arguments: [{
-                            name: "_v",
-                            type: {name:mType , pack:mPack}
-                        }],
-                        macros: {
-                            field: null,
-                            fieldSetter: null,
-                            extra: {
-                                setter: TypeMacros.snakeToCamelCase(m.setter), 
-                                getter: TypeMacros.snakeToCamelCase(m.getter),
-                                index: m.index
-                            }
-                        }
-                    });
-
-                    propertyMap.set('set_${m.name}', true);
-                    propertyMap.set('get_${m.name}', true);
-                }
-            }*/
 
             // methods
             if (c.methods != null) {
@@ -268,23 +211,110 @@ class ClassGenMacros {
                             access: access,
                             arguments: args,
                             macros: {
-                                field: (macro class {@:noCompletion static var $mname:godot.Types.GDNativePtrBuiltInMethod;}).fields[0],
-                                fieldSetter: '$mname = godot.Types.GodotNativeInterface.classdb_get_method_bind("${cname}", "${m.name}", untyped __cpp__(\'{0}\', $mhash))'
+                                field: (macro class {@:noCompletion public static var $mname:godot.Types.GDNativePtrBuiltInMethod;}).fields[0],
+                                fieldSetter: [
+                                    'var name_${m.name}:godot.variant.StringName = "${m.name}"',
+                                    '$mname = godot.Types.GodotNativeInterface.classdb_get_method_bind(type_${cname}.native_ptr(), name_${m.name}.native_ptr(), untyped __cpp__(\'{0}\', $mhash))'
+                                ]
                             }
                         });
                     }
                 }
-            }           
+            }
+
+            var properties = [];
+            // signals
+            var signals = [];
+            if (c.signals != null) {
+                for (s in cast(c.signals, Array<Dynamic>)) {
+                    var sname = s.name;
+                    var gname = 'get_$sname';
+                    var cls = macro class {
+                        public var $sname(get, never):godot.variant.Signal;
+                        
+                        @:noCompletion
+                        function $gname() {
+                            return godot.variant.Signal.fromObjectSignal(this, $v{sname});
+                        }
+                    };
+                    signals = signals.concat(cls.fields);
+                }                
+            }
+            
+            /*
+            // properties
+            var propertyMap = new Map<String, Bool>();
+            if (c.properties != null) {
+                for (m in cast(c.properties, Array<Dynamic>)) {
+                    if (!TypeMacros.isTypeAllowed(m.type))
+                        continue;
+                    
+                    var mType = TypeMacros.getTypeName(m.type);
+                    var mPack = TypeMacros.getTypePackage(mType);
+
+                    properties.push({
+                        name: m.name,
+                        access: [APublic],
+                        pos: Context.currentPos(),
+                        kind: FProp("get", "set", TPath({name:mType , pack:mPack}))
+                        //kind: FProp("default", "default", TPath({name:mType , pack:mPack}))
+                    });
+
+                    binds.push({
+                        clazz: clazz,
+                        name: 'get_${m.name}',
+                        type: FunctionBindType.PROPERTY_GET,
+                        returnType: {name:mType , pack:mPack},
+                        access: [],
+                        arguments: [],
+                        macros: {
+                            field: null,
+                            fieldSetter: null,
+                            extra: {
+                                setter: TypeMacros.snakeToCamelCase(m.setter), 
+                                getter: TypeMacros.snakeToCamelCase(m.getter),
+                                index: m.index
+                            }
+                        }
+                    });
+
+                    binds.push({
+                        clazz: clazz,
+                        name: 'set_${m.name}',
+                        type: FunctionBindType.PROPERTY_SET,
+                        returnType: {name:mType , pack:mPack},
+                        access: [],
+                        arguments: [{
+                            name: "_v",
+                            type: {name:mType , pack:mPack}
+                        }],
+                        macros: {
+                            field: null,
+                            fieldSetter: null,
+                            extra: {
+                                setter: TypeMacros.snakeToCamelCase(m.setter), 
+                                getter: TypeMacros.snakeToCamelCase(m.getter),
+                                index: m.index
+                            }
+                        }
+                    });
+
+                    propertyMap.set('set_${m.name}', true);
+                    propertyMap.set('get_${m.name}', true);
+                }
+            }*/
 
 
             // now worry about the nasty details of expression and type-building
+            pointerInits.push(Context.parse('var type_${cname}:godot.variant.StringName = "${cname}"',Context.currentPos()));
             for (bind in binds) {
                 if (bind.type != FunctionBindType.VIRTUAL_METHOD) {
-                    if (bind.macros.fieldSetter != null)
-                        pointerInits.push(Context.parse(
-                            bind.macros.fieldSetter, 
-                            Context.currentPos()
-                        ));
+                    if (bind.macros.fieldSetter != null) {
+                        for (s in bind.macros.fieldSetter)
+                            pointerInits.push(Context.parse(
+                                s, Context.currentPos()
+                            ));
+                    }
                     if (bind.macros.field != null)
                         pointers.push(bind.macros.field);
                 }
@@ -315,6 +345,14 @@ class ClassGenMacros {
                 params: [macro "array"],
                 pos: Context.currentPos()
             }];
+
+            if (c.is_refcounted) // set a marker for refcounting
+                cls.meta.push({
+                name: ':gdRefCounted',
+                params: [],
+                pos: Context.currentPos()
+            });
+
             cls.pack = ["godot"];
 
             var init = macro class {
@@ -329,12 +367,13 @@ class ClassGenMacros {
                 var sig = macro class {
                     public static function singleton() {
                         var ret:$typePathComplex = cast Type.createEmptyInstance(Wrapped.classTags.get(__class_name));
-                        ret.__owner = godot.Types.GodotNativeInterface.global_get_singleton(__class_name);
+                        ret.__owner = godot.Types.GodotNativeInterface.global_get_singleton(__class_name.native_ptr());
                         return ret;
                     }
                 };
                 fields = fields.concat(sig.fields);
             }
+            cls.fields = cls.fields.concat(signals);
             cls.fields = cls.fields.concat(properties);
             cls.fields = cls.fields.concat(fields);
             cls.fields = cls.fields.concat(constants);
@@ -441,7 +480,9 @@ class ClassGenMacros {
                     arguments: args,
                     macros: {
                         field: (macro class {@:noCompletion static var $cname:godot.Types.GDNativePtrConstructor;}).fields[0],
-                        fieldSetter: '$cname = godot.Types.GodotNativeInterface.variant_get_ptr_constructor(${type}, ${c.index}))'
+                        fieldSetter: [
+                            '$cname = godot.Types.GodotNativeInterface.variant_get_ptr_constructor(${type}, ${c.index}))'
+                        ]
                     }
                 });
             }
@@ -457,7 +498,9 @@ class ClassGenMacros {
                     arguments: [{name:"_this", type:typePath}],
                     macros: {
                         field: (macro class {@:noCompletion static var _destructor:godot.Types.GDNativePtrDestructor;}).fields[0],
-                        fieldSetter: '_destructor = godot.Types.GodotNativeInterface.variant_get_ptr_destructor(${type}))'
+                        fieldSetter: [
+                            '_destructor = godot.Types.GodotNativeInterface.variant_get_ptr_destructor(${type}))' 
+                        ]
                     }
                 });
             }
@@ -490,7 +533,10 @@ class ClassGenMacros {
                         arguments: [],
                         macros: {
                             field: (macro class {@:noCompletion static var $mname:godot.Types.GDNativePtrGetter;}).fields[0],
-                            fieldSetter: '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_getter(${type}, "${m.name}"))'
+                            fieldSetter: [
+                                'var name_${m.name}:godot.variant.StringName = "${m.name}"',
+                                '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_getter(${type}, name_${m.name}.native_ptr()))'
+                            ]
                         }
                     });
 
@@ -507,7 +553,10 @@ class ClassGenMacros {
                         }],
                         macros: {
                             field: (macro class {@:noCompletion static var $mname:godot.Types.GDNativePtrSetter;}).fields[0],
-                            fieldSetter: '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_setter(${type}, "${m.name}"))'
+                            fieldSetter: [
+                                'var name_${m.name}:godot.variant.StringName = "${m.name}"',
+                                '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_setter(${type}, name_${m.name}.native_ptr()))'
+                            ]
                         }
                     });
 
@@ -545,6 +594,17 @@ class ClassGenMacros {
                     }
                 }
 
+                // deal with varargs
+                var hasVarArg = false;
+                if (m.is_vararg != null && m.is_vararg == true) {
+                    args.push({
+                        name: "vararg",
+                        type: {name:"Rest", params:[TPType(macro : Dynamic)], pack:["haxe"]},
+                        isVarArg: true
+                    });
+                    hasVarArg = true;
+                }
+
                 if (!isAllowed)
                     continue;
 
@@ -571,9 +631,13 @@ class ClassGenMacros {
                     returnType: {name:retType , pack:retPack},
                     access: access,
                     arguments: args,
+                    hasVarArg: hasVarArg,
                     macros: {
-                        field: (macro class {@:noCompletion static var $mname:godot.Types.GDNativePtrBuiltInMethod;}).fields[0],
-                        fieldSetter: '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_builtin_method(${type}, "${m.name}", untyped __cpp__(\'{0}\', $mhash)))'
+                        field: hasVarArg ? null : (macro class {@:noCompletion static var $mname:godot.Types.GDNativePtrBuiltInMethod;}).fields[0],
+                        fieldSetter: hasVarArg ? null : [
+                            'var name_${m.name}:godot.variant.StringName = "${m.name}"',
+                            '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_builtin_method(${type}, name_${m.name}.native_ptr(), untyped __cpp__(\'{0}\', $mhash)))' 
+                        ]
                     }
                 });
             }
@@ -630,7 +694,9 @@ class ClassGenMacros {
                         arguments: args,
                         macros: {
                             field: (macro class {@:noCompletion static var $oname:godot.Types.GDNativePtrOperatorEvaluator;}).fields[0],
-                            fieldSetter: '$oname = godot.Types.GodotNativeInterface.variant_get_ptr_operator_evaluator(${opType}, ${type}, ${rType}))',
+                            fieldSetter: [
+                                '$oname = godot.Types.GodotNativeInterface.variant_get_ptr_operator_evaluator(${opType}, ${type}, ${rType}))'
+                            ],
                             extra: TypeMacros.getOpHaxe(opType)
                         }
                     });
@@ -655,7 +721,9 @@ class ClassGenMacros {
                         arguments: [{name: "_index", type: {name:"Int" , pack:[]}}],
                         macros: {
                             field: (macro class {@:noCompletion static var $iname:godot.Types.GDNativePtrIndexedGetter;}).fields[0],
-                            fieldSetter: '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_getter(${type}))'
+                            fieldSetter: [
+                                '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_getter(${type}))'
+                            ]
                         }
                     });
 
@@ -669,7 +737,9 @@ class ClassGenMacros {
                         arguments: [{name: "_index", type: {name:"Int" , pack:[]}}, {name: "_value", type: ret}],
                         macros: {
                             field: (macro class {@:noCompletion static var $iname:godot.Types.GDNativePtrIndexedSetter;}).fields[0],
-                            fieldSetter: '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_setter(${type}))'
+                            fieldSetter: [
+                                '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_setter(${type}))'
+                            ]
                         }
                     });
                 }                        
@@ -678,15 +748,21 @@ class ClassGenMacros {
             // now worry about the nasty details of expression and type-building
             var abstractFields = [];
             var fields = [];
+            var pointerConstructors = [];
             var pointerInits = [];
             var pointers = [];
 
             for (bind in binds) {
-                pointerInits.push(Context.parse(
-                    bind.macros.fieldSetter, 
-                    Context.currentPos()
-                ));
-                pointers.push(bind.macros.field);
+                if (bind.macros.fieldSetter != null) {
+                    for (s in bind.macros.fieldSetter)
+                        switch (bind.type) {
+                            case FunctionBindType.CONSTRUCTOR(index): pointerConstructors.push(Context.parse(s, Context.currentPos()));
+                            case FunctionBindType.DESTRUCTOR, FunctionBindType.OPERATOR: pointerConstructors.push(Context.parse(s, Context.currentPos()));
+                            default: pointerInits.push(Context.parse(s, Context.currentPos()));
+                        }
+                }
+                if (bind.macros.field != null)
+                    pointers.push(bind.macros.field);
 
                 switch (bind.type) {
                     case FunctionBindType.CONSTRUCTOR(index):
@@ -715,6 +791,9 @@ class ClassGenMacros {
             }
 
             // setup actual class
+            var sizeName = '${b.name.toUpperCase()}_SIZE';
+            var sizeValue = builtin_class_sizes.get(b.name);
+
             var cls = macro class $name implements godot.variant.IBuiltIn {
                 @:noCompletion
                 private function new() {}
@@ -723,21 +802,31 @@ class ClassGenMacros {
                 inline public function native_ptr():godot.Types.GDNativeTypePtr {
                     return untyped __cpp__('{0}->_native_ptr()', this);
                 }
+
+                @:noCompletion
+                inline public function set_native_ptr(_ptr:godot.Types.GDNativeTypePtr):Void {
+                    untyped __cpp__('memcpy(&({0}->opaque[0]), {1}, {2})', this, _ptr, $v{sizeValue});
+                }
             };
             var init = macro class {
+                @:noCompletion
+                public static function __init_builtin_constructors() {
+                    $b{pointerConstructors};
+                }
+            };
+            cls.fields = cls.fields.concat(init.fields);
+            init = macro class {
                 @:noCompletion
                 public static function __init_builtin_bindings() {
                     $b{pointerInits};
                 }
             };
+            cls.fields = cls.fields.concat(init.fields);
             cls.fields = cls.fields.concat(members);
             cls.fields = cls.fields.concat(fields);
-            cls.fields = cls.fields.concat(init.fields);
             cls.fields = cls.fields.concat(pointers);
 
             // opaque pointer code to the class
-            var sizeName = '${b.name.toUpperCase()}_SIZE';
-            var sizeValue = builtin_class_sizes.get(b.name);
             var tmp = '
                 static constexpr size_t $sizeName = ${sizeValue};
                 uint8_t opaque[$sizeName] = {};

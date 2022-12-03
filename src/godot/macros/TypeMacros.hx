@@ -15,7 +15,6 @@ class TypeMacros {
             case "uint16": "cpp.UInt16";
             case "real_t", "float", "double": "Float";
             case "float32": "cpp.Float32";
-            case "double": "cpp.Float64";
             // case "AABB":
             // case "Basis":
             // case "Callable":
@@ -117,7 +116,7 @@ class TypeMacros {
                 // "Vector2",
                 // "Vector2i",
                 // "Vector3i",
-                "Projection", // TODO
+                // "Projection",
                 "Vector4", // TODO
                 "Vector4i": false;  // TODO
                 //"AABB",
@@ -263,4 +262,6 @@ class TypeMacros {
         */
         return _str;
     }
+
+    
 }

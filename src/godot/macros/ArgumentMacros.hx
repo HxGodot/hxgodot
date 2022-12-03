@@ -16,11 +16,11 @@ class ArgumentMacros {
         return _convert(_index, 0, _args, _type);
     }
 
-    public static function convertVariant(_index:Int, _args:String, _type:haxe.macro.ComplexType) {
-        return _convert(_index, 1, _args, _type);
-    }
-
     public static function encode(_type:haxe.macro.ComplexType, _dest:String, _src:String) {
+        function _default() {
+            var val = 'nullptr /* encode: $_type */';
+            return macro { untyped __cpp__($v{val}); };
+        }
         return _type != null ? switch(_type) {
             case TPath(_d):
                 switch(_d.name) {
@@ -36,13 +36,17 @@ class ArgumentMacros {
                         macro {
                             untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*3)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
                         };
-                    default: macro { untyped __cpp__('nullptr'); };
+                    default: _default();
                 }
-            default: macro { untyped __cpp__('nullptr'); };
-        } : macro { untyped __cpp__('nullptr'); };
+            default: _default();
+        } : _default();
     }
 
     private static function _convert(_index:Int, _offset:Int, _args:String, _type:haxe.macro.ComplexType) {
+        function _default() {
+            var val = 'nullptr /* _convert: $_type */';
+            return macro { untyped __cpp__($v{val}); };
+        }
         return _type != null ? switch(_type) {
             case TPath(_d):
                 switch(_d.name) {
@@ -73,10 +77,30 @@ class ArgumentMacros {
                             );
                             v;
                         };
-                    default: macro { untyped __cpp__('nullptr'); };
+                    default: {
+                        var identBindings = '&::godot::${_d.name}_obj::___binding_callbacks';
+                        macro {
+                            // managed types need a pointer indirection
+                            var retOriginal:godot.Types.VoidPtr = 
+                                untyped __cpp__('(const GDNativeObjectPtr)*(({0}**){1})[{2}]', $i{ptrSize}, $i{_args}, $v{_index});
+
+                            var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
+                                retOriginal, 
+                                untyped __cpp__("godot::internal::token"), 
+                                untyped __cpp__($v{identBindings})
+                            );
+
+                            var instance:$_type = untyped __cpp__(
+                                    $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
+                                    obj
+                                );
+
+                            instance;
+                        }
+                    }
                 }
-            default: macro { untyped __cpp__('nullptr'); };
-        } : macro { untyped __cpp__('nullptr'); };
+            default: _default();
+        } : _default();
     }
 
     public static function guardAgainstKeywords(_str:String):String {

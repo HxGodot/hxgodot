@@ -11,7 +11,8 @@ import godot.variant.Variant;
         <compilerflag value='-I../gen'/>
         <file name='../src/hxcpp_ext/Dynamic2.cpp'/>
         <file name='../src/godot_cpp/godot.cpp'/>
-        <file name='../src/register_types.cpp'/>        
+        <file name='../src/utils/RootedObject.cpp'/>
+        <file name='../src/register_types.cpp'/>
     </files>
     <linker id='dll' exe='g++' if='macos'>
         <flag value='-Wl,-undefined,dynamic_lookup'/>
@@ -72,6 +73,10 @@ class HxGodot {
         // TODO: the compile-time lib should prolly be replaced with something lightweight in the long run
         var builtins = CompileTime.getAllClasses(godot.variant.IBuiltIn);
         for (t in builtins) {
+            if (Reflect.hasField(t, "__init_builtin_constructors")) // built-in class constructors and shit
+                Reflect.field(t, "__init_builtin_constructors")();
+        }
+        for (t in builtins) {
             if (Reflect.hasField(t, "__init_builtin_bindings")) // built-in class bindings
                 Reflect.field(t, "__init_builtin_bindings")();
         }
@@ -90,10 +95,9 @@ class HxGodot {
         trace(tmp);
     }
 
-    // tear down GC and cleanup active objects
     public static function shutdown() {
+        // tear down GC and cleanup active objects
         //gcThread.sendMessage(true); // quit gcThread
-        Wrapped.active = null;
-        //cpp.NativeGc.run(true);
+        cpp.NativeGc.run(true);
     } 
 }
