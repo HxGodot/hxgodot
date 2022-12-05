@@ -337,6 +337,7 @@ class Macros {
 
                             retAndArgsInfos.push(macro {
                                 var tmp:godot.Types.GDNativeStringNamePtr = (new godot.variant.StringName()).native_ptr();
+                                var tmp1:godot.Types.GDNativeStringPtr = (new godot.variant.GDString()).native_ptr();
                                 var _cl:godot.Types.GDNativeStringNamePtr = __class_name.native_ptr();
                                 var propInfo:godot.Types.GDNativePropertyInfo = untyped __cpp__('{
                                     (GDNativeVariantType){0},
@@ -350,7 +351,7 @@ class Macros {
                                     _cl,
                                     tmp,
                                     godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE,
-                                    tmp,
+                                    tmp1,
                                     godot.GlobalConstants.PropertyUsageFlags.PROPERTY_USAGE_DEFAULT
                                 );
 
@@ -368,6 +369,7 @@ class Macros {
                         
                         retAndArgsInfos.push(macro {
                             var tmp:godot.Types.GDNativeStringNamePtr = (new godot.variant.StringName()).native_ptr();
+                            var tmp1:godot.Types.GDNativeStringPtr = (new godot.variant.GDString()).native_ptr();
                             var aName:godot.Types.GDNativeStringNamePtr = ($v{'"${_f.args[j].name}"'}:godot.variant.StringName).native_ptr();
                             var propInfo:godot.Types.GDNativePropertyInfo = untyped __cpp__('{
                                 (GDNativeVariantType){0},
@@ -381,7 +383,7 @@ class Macros {
                                 aName,
                                 tmp,
                                 godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE,
-                                tmp,
+                                tmp1,
                                 godot.GlobalConstants.PropertyUsageFlags.PROPERTY_USAGE_DEFAULT
                             );
                             untyped __cpp__('(*arguments_info)[{0}] = {1}', $v{j}, propInfo);
