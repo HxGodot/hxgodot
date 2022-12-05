@@ -8,8 +8,26 @@ using cpp.NativeArray;
 
 typedef __Vector3 = Array<GDNativeFloat>;
 
+private class __Vector3Defaults {
+    public static final X:Vector3 = [1,0,0];
+    public static final Y:Vector3 = [0,1,0];
+    public static final Z:Vector3 = [0,0,1];
+}
+
 @:forward
 abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
+
+    inline public static function RIGHT():Vector3 {
+        return __Vector3Defaults.X;
+    }
+
+    inline public static function UP():Vector3 {
+        return __Vector3Defaults.Y;
+    }
+
+    inline public static function BACK():Vector3 {
+        return __Vector3Defaults.Z;
+    }
 
     inline public function new(?_x:GDNativeFloat=0, ?_y:GDNativeFloat=0, ?_z:GDNativeFloat=0):Vector3 this = _alloc(_x, _y, _z);
 

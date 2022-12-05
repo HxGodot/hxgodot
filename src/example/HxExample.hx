@@ -1,5 +1,6 @@
 package example;
 
+import godot.GlobalConstants;
 import godot.variant.Vector3;
 import godot.variant.GDString;
 
@@ -8,7 +9,7 @@ class HxExample extends godot.Node {
     //
     @:isVar
     @:export
-    @:hint(GDPropertyHint.RANGE, "0,64,0.01")
+    @:hint(PropertyHint.PROPERTY_HINT_RANGE, "0,64,0.01")
     @:group("My Haxe Properties", "hx_")
     public var hx_ImportantFloat(get, set):Float = 22;
 
@@ -67,7 +68,7 @@ class HxExample extends godot.Node {
     //
     @:isVar
     @:export
-    @:hint(GDPropertyHint.MULTILINE_TEXT, "")
+    @:hint(PropertyHint.PROPERTY_HINT_MULTILINE_TEXT, "")
     public var hx_ImportantString(get, set):GDString = "Initial String Value";
 
     @:export
@@ -86,7 +87,7 @@ class HxExample extends godot.Node {
     //
     @:isVar
     @:export
-    @:hint(GDPropertyHint.NONE, "suffix:m")
+    @:hint(PropertyHint.PROPERTY_HINT_NONE, "suffix:m")
     @:subGroup("Random Properties", "hx_random")
     public var hx_random_MyVector3(get, set):Vector3 = new Vector3(1,2,3);
 

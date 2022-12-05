@@ -23,6 +23,10 @@ class __Variant {
         return untyped __cpp__('{0}->_native_ptr()', this);
     }
 
+    inline public function set_native_ptr(_ptr:godot.Types.GDNativeVariantPtr):Void {
+        untyped __cpp__('memcpy(&({0}->opaque[0]), {1}, 24)', this, _ptr);
+    }
+
     public function getVariantType() {
         return GodotNativeInterface.variant_get_type(this.native_ptr());
     }
@@ -210,7 +214,7 @@ abstract Variant(__Variant) from __Variant to __Variant {
 
     @:to inline public function toString():String {
         return (toGDString():String);
-    }    
+    }
 
     // ARRAY
     @:from inline static function fromGDArray(_x:godot.variant.GDArray):Variant
@@ -239,9 +243,45 @@ abstract Variant(__Variant) from __Variant to __Variant {
     // RID
     @:from inline static function fromRID(_x:godot.variant.RID):Variant
         return _buildVariant2(GDNativeVariantType.RID, _x.native_ptr());
+
+    // Object
+    @:from inline static function fromObject(_x:godot.Object):Variant
+        return _buildVariant2(GDNativeVariantType.OBJECT, _x.native_ptr());
+    @:to inline public function toObject():godot.Object {
+        var type = this.getVariantType();
+        var res = Type.createEmptyInstance(godot.Object);
+        if (__Variant._canConvert(type, GDNativeVariantType.OBJECT)) {
+            var constructor = __Variant.to_type_constructor.get(GDNativeVariantType.OBJECT);
+            untyped __cpp__('((GDNativeTypeFromVariantConstructorFunc){0})({1}, {2});',
+                constructor, 
+                res.native_ptr(),
+                this.native_ptr()
+            );
+        } else {
+            trace('Cannot cast ${__Variant.getGDNativeVariantTypeString(type)} to OBJECT', true);
+        }
+
+        return res;
+    }
+
     // Callable
     @:from inline static function fromCallable(_x:godot.variant.Callable):Variant
         return _buildVariant2(GDNativeVariantType.CALLABLE, _x.native_ptr());
+    @:to inline public function toCallable():godot.variant.Callable {
+        var type = this.getVariantType();
+        var res = new godot.variant.Callable();
+        if (__Variant._canConvert(type, GDNativeVariantType.CALLABLE)) {
+            var constructor = __Variant.to_type_constructor.get(GDNativeVariantType.CALLABLE);
+            untyped __cpp__('((GDNativeTypeFromVariantConstructorFunc){0})({1}, {2});',
+                constructor, 
+                res.native_ptr(),
+                this.native_ptr()
+            );
+        } else {
+            trace('Cannot cast ${__Variant.getGDNativeVariantTypeString(type)} to CALLABLE', true);
+        }
+        return res;
+    }
     // Signal
     @:from inline static function fromSignal(_x:godot.variant.Signal):Variant
         return _buildVariant2(GDNativeVariantType.SIGNAL, _x.native_ptr());

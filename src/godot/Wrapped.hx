@@ -5,23 +5,27 @@ import godot.Types;
 #if !macro
 @:autoBuild(godot.macros.Macros.build())
 #end
+@:headerCode('#include <utils/RootedObject.hpp>')
 class Wrapped {
-    public static var activeCount = 0;
-    public static var active = new Map<Wrapped, Bool>();
     public static var classTags = new Map<String, Class<Dynamic>>();
 
     public function new() {
         this.__postInit();
     }
     
+    public var __root:VoidPtr = null;
     public var __owner:VoidPtr = null; // pointer to the godot-side parent class we need to keep around
     inline public function native_ptr():GDNativeObjectPtr {
         return __owner;
     }
 
-    public function convertTo<T:Wrapped>(_cls:Class<T>):T {
+    public function as<T:Wrapped>(_cls:Class<T>):T {
         var ret:T = null;
-        var name = Reflect.field(_cls, "__class_name");
+        var name:godot.variant.StringName = Reflect.field(_cls, "__class_name");
+
+        if (name.hash() == this.getClassName().hash()) // early out if the classnames match!
+            return cast this;
+
         var tag = Reflect.field(_cls, "__class_tag");
         var obj = GodotNativeInterface.object_cast_to(this.native_ptr(), tag);
 
@@ -35,14 +39,25 @@ class Wrapped {
     }
 
     public function addGCRoot() {
-        active.set(this, true);
-        activeCount++;
+        if (__root == null) {
+            __root = untyped __cpp__('(void*)new cpp::utils::RootedObject({0}.mPtr)', this);
+        }
+    }
+
+    public function prepareRemoveGCRoot() {
+        if (__root != null) {
+            untyped __cpp__('((cpp::utils::RootedObject*){0})->prepareRemoval()', __root);
+        }
     }
 
     public function removeGCRoot() {
-        if (active.remove(this))
-            activeCount--;
+        if (__root != null) {
+            untyped __cpp__('delete ((cpp::utils::RootedObject*){0})', __root);
+            __root = null;
+        }
     }
 
     function __postInit(?_finalize = true) {} // override
+
+    function getClassName():godot.variant.StringName { return null; } // override
 }
