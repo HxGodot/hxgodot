@@ -1004,18 +1004,4 @@ ${structHeaderContent.toString()}
         sys.io.File.saveContent(path+"/native_structs.hpp", structHeader.toString());
         
     }
-/*
-@:structAccess
-@:unreflective
-@:include("godot_cpp/godot.hpp")
-@:include("godot/gdnative_interface.h")
-@:native("::GDNativePropertyInfo")
-extern class GDNativePropertyInfo {
-    public function new();
-    var type:GDNativeVariantType;
-    var name:cpp.ConstCharStar;
-    var class_name:cpp.ConstCharStar;
-    var hint_string:cpp.ConstCharStar;
-}
-*/
 }

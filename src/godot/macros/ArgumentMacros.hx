@@ -16,6 +16,10 @@ class ArgumentMacros {
         return _convert(_index, 0, _args, _type);
     }
 
+    public static function convertVariant(_index:Int, _args:String, _type:haxe.macro.ComplexType) {
+        return _convert(_index, 1, _args, _type);
+    }
+
     public static function encode(_type:haxe.macro.ComplexType, _dest:String, _src:String) {
         function _default() {
             var val = 'nullptr /* encode: $_type */';

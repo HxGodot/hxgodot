@@ -25,7 +25,7 @@ class ClassGenExtraMacros {
                         var size = godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDNativeStringPtr){0}', this.native_ptr()), null, 0);
                         var chars:Array<cpp.UInt8> = cpp.NativeArray.create(size+1);
                         godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDNativeStringPtr){0}', this.native_ptr()), cpp.NativeArray.getBase(chars).getBase(), size+1);
-                        chars[size] = 0x00;
+                        chars[size] = 0;
                         return haxe.io.Bytes.ofData(chars).toString();
                     }
                 }

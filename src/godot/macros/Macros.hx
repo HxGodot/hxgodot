@@ -364,7 +364,7 @@ class Macros {
                         var argument = _f.args[j];
                         var argType = _mapHxTypeToGodot(argument.type);
                         argExprs.push(ArgumentMacros.convert(j, "_args", argument.type));
-                        argVariantExprs.push(ArgumentMacros.convert(j, "_args", argument.type));
+                        argVariantExprs.push(ArgumentMacros.convertVariant(j, "_args", argument.type));
                         
                         retAndArgsInfos.push(macro {
                             var tmp:godot.Types.GDNativeStringNamePtr = (new godot.variant.StringName()).native_ptr();
@@ -574,20 +574,22 @@ class Macros {
                     regPropOut.push( macro {
                         var _cl:godot.Types.GDNativeStringNamePtr = __class_name.native_ptr();
                         var fname:godot.variant.StringName = $v{field.name};
-                        var hname:godot.variant.StringName = ${hint_string};
+                        var hname:godot.variant.GDString = ${hint_string};
+                        var fnamePtr = fname.native_ptr();
+                        var hnamePtr = hname.native_ptr();
                         var propInfo:godot.Types.GDNativePropertyInfo = untyped __cpp__('{
                             (GDNativeVariantType){0}, // GDNativeVariantType type;
-                            {1},
-                            {2},
-                            {3},
-                            {4},
-                            {5}
+                            {1}, // GDNativeStringNamePtr name;
+                            {2}, // GDNativeStringNamePtr class_name;
+                            {3}, // uint32_t hint;
+                            {4}, // GDNativeStringPtr hint_string;
+                            {5}  // uint32_t usage;
                         }',
                             $v{argType},
-                            fname.native_ptr(),
+                            fnamePtr,
                             _cl,
                             ${hint},
-                            hname.native_ptr(),
+                            hnamePtr,
                             godot.GlobalConstants.PropertyUsageFlags.PROPERTY_USAGE_DEFAULT
                         );
 
