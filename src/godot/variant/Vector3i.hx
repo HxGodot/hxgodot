@@ -16,7 +16,7 @@ abstract Vector3i(__Vector3i) from __Vector3i to __Vector3i {
     inline private static function _alloc(_x:Int, _y:Int, _z:Int):__Vector3i
         return [_x, _y, _z];
 
-    inline public function native_ptr():GDNativeTypePtr {
+    inline public function native_ptr():GDExtensionTypePtr {
         #if !macro
         return cast cpp.NativeArray.getBase(this).getBase();
         #else

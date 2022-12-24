@@ -17,6 +17,7 @@ class HxMob extends CharacterBody3D {
 	override function _ready() {
 		if (Engine.singleton().is_editor_hint()) // skip if in editor
             return;
+        
 		this.get_node("VisibilityNotifier").as(VisibleOnScreenNotifier3D).screen_exited.connect(
 			//Callable.fromObjectMethod(this, "queue_free"), 0
 			Callable.fromObjectMethod(this, "squash"), 0
@@ -37,13 +38,12 @@ class HxMob extends CharacterBody3D {
 		this.rotate_y(Math.random() * Math.PI / 2 - Math.PI / 4);
 		final randomSpeed = Math.random() * (maxSpeed - minSpeed) + minSpeed;
 		velocity = this.get_transform().basis[2] * -randomSpeed;
-		this.get_node("AnimationPlayer").as(AnimationPlayer).set_speed_scale(randomSpeed / minSpeed);
+		//this.get_node("AnimationPlayer").as(AnimationPlayer).set_speed_scale(randomSpeed / minSpeed);
 	}
 
 	@:export
 	public function squash() {
 		//onSquashed.emitSignal();
-		trace("leaving the screen");
 		queue_free();
 	}
 	

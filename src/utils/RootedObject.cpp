@@ -46,15 +46,16 @@ cpp::utils::RootedObject::RootedObject(hx::Object* _object)
 
 cpp::utils::RootedObject::~RootedObject()
 {
-    hx::GCRemoveRoot(rooted);
-
-    delete rooted;
+    if (rooted != nullptr) {
+        hx::GCRemoveRoot(rooted);
+        delete rooted;
+    }
 }
 
 void cpp::utils::RootedObject::prepareRemoval() 
 {
-     hx::GCRemoveRoot(rooted);
-     rooted = nullptr;
+    hx::GCRemoveRoot(rooted);
+    rooted = nullptr;
 }
 
 hx::Object** cpp::utils::RootedObject::getObjectPtr() const

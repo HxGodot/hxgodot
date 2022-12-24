@@ -72,11 +72,11 @@ class ArgumentMacros {
                     }
                     case 'Vector3':
                         macro { 
-                            var v:Array<godot.Types.GDNativeFloat> = cpp.NativeArray.create(3);
+                            var v:Array<godot.Types.GDExtensionFloat> = cpp.NativeArray.create(3);
                             var d = cpp.NativeArray.address(v, 0);
                             cpp.Native.memcpy(
                                 d,
-                                (untyped __cpp__('(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}, $v{_index}, $v{_offset}):cpp.Star<godot.Types.GDNativeFloat>),
+                                (untyped __cpp__('(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}, $v{_index}, $v{_offset}):cpp.Star<godot.Types.GDExtensionFloat>),
                                 untyped __cpp__('sizeof(float)*3')
                             );
                             v;
@@ -86,7 +86,7 @@ class ArgumentMacros {
                         macro {
                             // managed types need a pointer indirection
                             var retOriginal:godot.Types.VoidPtr = 
-                                untyped __cpp__('(const GDNativeObjectPtr)*(({0}**){1})[{2}]', $i{ptrSize}, $i{_args}, $v{_index});
+                                untyped __cpp__('(const GDExtensionObjectPtr)*(({0}**){1})[{2}]', $i{ptrSize}, $i{_args}, $v{_index});
 
                             var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
                                 retOriginal, 

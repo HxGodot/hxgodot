@@ -1,6 +1,6 @@
 package godot;
 
-enum abstract GDNativeVariantType(Int) from Int to Int {
+enum abstract GDExtensionVariantType(Int) from Int to Int {
     var NIL = 0;
 
     /*  atomic types */
@@ -47,6 +47,7 @@ enum abstract GDNativeVariantType(Int) from Int to Int {
     var PACKED_VECTOR2_ARRAY;
     var PACKED_VECTOR3_ARRAY;
     var PACKED_COLOR_ARRAY;
+    
     var MAX;
     var INVALID;
 
@@ -95,7 +96,7 @@ enum abstract GDNativeVariantType(Int) from Int to Int {
     }
 }
 
-enum abstract GDNativeVariantOperator(Int) from Int to Int {
+enum abstract GDExtensionVariantOperator(Int) from Int to Int {
     /* comparison */
     var EQUAL = 0;
     var NOT_EQUAL;
@@ -161,7 +162,7 @@ enum abstract GDNativeVariantOperator(Int) from Int to Int {
     }
 }
 
-enum abstract GDNativeExtensionClassMethodFlags(Int) from Int to Int {
+enum abstract GDExtensionClassMethodFlags(Int) from Int to Int {
     var NORMAL = 1;
     var EDITOR = 2;
     var CONST = 4;
@@ -171,7 +172,7 @@ enum abstract GDNativeExtensionClassMethodFlags(Int) from Int to Int {
     var DEFAULT = NORMAL;
 }
 
-enum abstract GDNativeExtensionClassMethodArgumentMetadata(Int) from Int to Int {
+enum abstract GDExtensionClassMethodArgumentMetadata(Int) from Int to Int {
     var ARGUMENT_METADATA_NONE = 0;
     var ARGUMENT_METADATA_INT_IS_INT8;
     var ARGUMENT_METADATA_INT_IS_INT16;
@@ -194,87 +195,89 @@ and lets us emit the correct code in macros which in turns gets properly transfo
 */
 
 typedef VoidPtr = Int;
-typedef GDNativeObjectPtr = Int;
-typedef GDNativeMethodBindPtr = Int;
-typedef GDNativeExtensionClassCreateInstance = Int;
-typedef GDNativeExtensionClassFreeInstance = Int;
+typedef ConstVoidPtr = Int;
+typedef GDExtensionObjectPtr = Int;
+typedef GDExtensionMethodBindPtr = Int;
+typedef GDExtensionClassCreateInstance = Int;
+typedef GDExtensionClassFreeInstance = Int;
 typedef Callable<T> = Int;
-typedef GDNativeExtensionClassMethodCall = Int;
-typedef GDNativeExtensionClassMethodPtrCall = Int;
-typedef GDNativeExtensionClassCreationInfo = Int;
-typedef GDNativeExtensionClassMethodInfo = Int;
+typedef GDExtensionClassMethodCall = Int;
+typedef GDExtensionClassMethodPtrCall = Int;
+typedef GDExtensionClassCreationInfo = Int;
+typedef GDExtensionClassMethodInfo = Int;
 typedef GodotNativeInterface = Int;
-typedef GDNativePropertyInfoPtr = Int;
-typedef GDNativeExtensionClassCallVirtual = Int;
-typedef GDNativeVariantPtr = Int;
-typedef GDNativeTypePtr = Int;
-typedef GDNativeStringPtr = Int;
-typedef GDNativeStringNamePtr = Int;
+typedef GDExtensionPropertyInfoPtr = Int;
+typedef GDExtensionClassCallVirtual = Int;
+typedef GDExtensionVariantPtr = Int;
+typedef GDExtensionTypePtr = Int;
+typedef GDExtensionStringPtr = Int;
+typedef GDExtensionStringNamePtr = Int;
 
-typedef GDNativeInt = Int;
-typedef GDNativeBool = Bool;
-typedef GDNativeFloat = Float;
+typedef GDExtensionInt = Int;
+typedef GDExtensionBool = Bool;
+typedef GDExtensionFloat = Float;
 typedef GDObjectInstanceID = Int;
 
-typedef GDNativeVariantFromTypeConstructorFunc = Int;
-typedef GDNativeTypeFromVariantConstructorFunc = Int;
+typedef GDExtensionVariantFromTypeConstructorFunc = Int;
+typedef GDExtensionTypeFromVariantConstructorFunc = Int;
 
-typedef GDNativePtrConstructor = Int;
-typedef GDNativePtrDestructor = Int;
-typedef GDNativePtrBuiltInMethod = Int;
-typedef GDNativePtrGetter = Int;
-typedef GDNativePtrSetter = Int;
-typedef GDNativePtrOperatorEvaluator = Int;
-typedef GDNativePtrIndexedGetter = Int;
-typedef GDNativePtrIndexedSetter = Int;
-typedef GDNativeCallError = Int;
+typedef GDExtensionPtrConstructor = Int;
+typedef GDExtensionPtrDestructor = Int;
+typedef GDExtensionPtrBuiltInMethod = Int;
+typedef GDExtensionPtrGetter = Int;
+typedef GDExtensionPtrSetter = Int;
+typedef GDExtensionPtrOperatorEvaluator = Int;
+typedef GDExtensionPtrIndexedGetter = Int;
+typedef GDExtensionPtrIndexedSetter = Int;
+typedef GDExtensionCallError = Int;
 
 #else
 
 // typedef to properly allow typing into the godot-side
 typedef VoidPtr = cpp.Star<cpp.Void>;
-typedef GDNativeObjectPtr = VoidPtr;
-typedef GDNativeMethodBindPtr = VoidPtr;
-typedef GDNativeExtensionClassCreateInstance = cpp.Star<cpp.Callable<VoidPtr->GDNativeObjectPtr>>;
-typedef GDNativeExtensionClassFreeInstance = cpp.Star<cpp.Callable<VoidPtr->VoidPtr->GDNativeObjectPtr>>;
+typedef ConstVoidPtr = cpp.ConstStar<cpp.Void>;
+typedef GDExtensionObjectPtr = VoidPtr;
+typedef GDExtensionMethodBindPtr = ConstVoidPtr;
+typedef GDExtensionClassCreateInstance = cpp.Star<cpp.Callable<VoidPtr->GDExtensionObjectPtr>>;
+typedef GDExtensionClassFreeInstance = cpp.Star<cpp.Callable<VoidPtr->VoidPtr->GDExtensionObjectPtr>>;
 typedef Callable<T> = cpp.Callable<T>;
-typedef GDNativeExtensionClassMethodCall = cpp.Star<cpp.Callable<VoidPtr->VoidPtr->VoidPtr->Int->VoidPtr->VoidPtr->Void>>;
-typedef GDNativeExtensionClassMethodPtrCall = cpp.Star<cpp.Callable<VoidPtr->VoidPtr->VoidPtr->VoidPtr->Void>>;
-typedef GDNativeExtensionClassCallVirtual = VoidPtr;
-typedef GDNativeVariantPtr = VoidPtr;
-typedef GDNativeTypePtr = VoidPtr;
-typedef GDNativeStringPtr = VoidPtr;
-typedef GDNativeStringNamePtr = VoidPtr;
+typedef GDExtensionClassMethodCall = cpp.Star<cpp.Callable<VoidPtr->VoidPtr->VoidPtr->Int->VoidPtr->VoidPtr->Void>>;
+typedef GDExtensionClassMethodPtrCall = cpp.Star<cpp.Callable<VoidPtr->VoidPtr->VoidPtr->VoidPtr->Void>>;
+typedef GDExtensionClassCallVirtual = VoidPtr;
+typedef GDExtensionVariantPtr = VoidPtr;
+typedef GDExtensionTypePtr = VoidPtr;
+typedef GDExtensionStringPtr = VoidPtr;
+typedef GDExtensionStringNamePtr = VoidPtr;
 
-typedef GDNativeVariantFromTypeConstructorFunc = VoidPtr;
-typedef GDNativeTypeFromVariantConstructorFunc = VoidPtr;
+typedef GDExtensionVariantFromTypeConstructorFunc = VoidPtr;
+typedef GDExtensionTypeFromVariantConstructorFunc = VoidPtr;
 
-typedef GDNativePtrConstructor = VoidPtr;
-typedef GDNativePtrDestructor = VoidPtr;
-typedef GDNativePtrBuiltInMethod = VoidPtr;
-typedef GDNativePtrGetter = VoidPtr;
-typedef GDNativePtrSetter = VoidPtr;
-typedef GDNativePtrOperatorEvaluator = VoidPtr;
-typedef GDNativePtrIndexedGetter = VoidPtr;
-typedef GDNativePtrIndexedSetter = VoidPtr;
+typedef GDExtensionPtrConstructor = VoidPtr;
+typedef GDExtensionPtrDestructor = VoidPtr;
+typedef GDExtensionPtrBuiltInMethod = VoidPtr;
+typedef GDExtensionPtrGetter = VoidPtr;
+typedef GDExtensionPtrSetter = VoidPtr;
+typedef GDExtensionPtrOperatorEvaluator = VoidPtr;
+typedef GDExtensionPtrIndexedGetter = VoidPtr;
+typedef GDExtensionPtrIndexedSetter = VoidPtr;
 
 // simple extern class to make the includes work
 @:include("godot_cpp/godot.hpp")
-@:include("godot/gdnative_interface.h")
-@:native("::GDNativeExtensionClassCreationInfo")
-extern class GDNativeExtensionClassCreationInfo {}
+@:include("godot_cpp/gdextension_interface.h")
+@:native("::GDExtensionClassCreationInfo")
+extern class GDExtensionClassCreationInfo {}
 
 @:include("godot_cpp/godot.hpp")
-@:include("godot/gdnative_interface.h")
-@:native("::GDNativeExtensionClassMethodInfo")
-extern class GDNativeExtensionClassMethodInfo {}
+@:include("godot_cpp/gdextension_interface.h")
+@:native("::GDExtensionClassMethodInfo")
+extern class GDExtensionClassMethodInfo {}
 
 @:structAccess
 @:unreflective
 @:include("godot_cpp/godot.hpp")
-@:include("godot/gdnative_interface.h")
-@:native("::GDNativeCallError")
-extern class GDNativeCallError {
+@:include("godot_cpp/gdextension_interface.h")
+@:native("::GDExtensionCallError")
+extern class GDExtensionCallError {
     public function new();
     var error:cpp.Int32;
     var argument:cpp.Int32;
@@ -284,27 +287,27 @@ extern class GDNativeCallError {
 @:structAccess
 @:unreflective
 @:include("godot_cpp/godot.hpp")
-@:include("godot/gdnative_interface.h")
-@:native("::GDNativePropertyInfo")
-extern class GDNativePropertyInfo {
+@:include("godot_cpp/gdextension_interface.h")
+@:native("::GDExtensionPropertyInfo")
+extern class GDExtensionPropertyInfo {
     public function new();
-    var type:GDNativeVariantType;
-    var name:GDNativeStringNamePtr;
-    var class_name:GDNativeStringNamePtr;
+    var type:GDExtensionVariantType;
+    var name:GDExtensionStringNamePtr;
+    var class_name:GDExtensionStringNamePtr;
     var hint:cpp.Int32; // PropertyHint
-    var hint_string:GDNativeStringPtr;
+    var hint_string:GDExtensionStringPtr;
     var usage:cpp.Int32; // PropertyUsageFlags
 }
-typedef GDNativePropertyInfoPtr = cpp.Star<GDNativePropertyInfo>;
+typedef GDExtensionPropertyInfoPtr = cpp.Star<GDExtensionPropertyInfo>;
 
-typedef GDNativeInt = cpp.Int64;
-typedef GDNativeBool = cpp.UInt8;
-typedef GDNativeFloat = cpp.Float32; // TODO: take into account if godot was compiled for doubles
+typedef GDExtensionInt = cpp.Int64;
+typedef GDExtensionBool = cpp.UInt8;
+typedef GDExtensionFloat = cpp.Float32; // TODO: take into account if godot was compiled for doubles
 typedef GDObjectInstanceID = cpp.Int64;
 
 // simple extern to work with the static functions of the native interface and proper typing
 @:include("godot_cpp/godot.hpp")
-@:include("godot/gdnative_interface.h")
+@:include("godot_cpp/gdextension_interface.h")
 extern class GodotNativeInterface {
     @:native("godot::internal::gdn_interface->mem_free")
     public static function mem_free(_ptr:VoidPtr):Void;
@@ -316,127 +319,127 @@ extern class GodotNativeInterface {
     public static function print_warning(_m:String, _function:String, _file:String, _line:Int):Void;
     
     @:native("godot::internal::gdn_interface->classdb_construct_object")
-    public static function classdb_construct_object(_class:GDNativeStringNamePtr):GDNativeObjectPtr;
+    public static function classdb_construct_object(_class:GDExtensionStringNamePtr):GDExtensionObjectPtr;
 
     @:native("godot::internal::gdn_interface->object_destroy")
-    public static function object_destroy(_owner:GDNativeObjectPtr):Void;
+    public static function object_destroy(_owner:GDExtensionObjectPtr):Void;
 
     @:native("godot::internal::gdn_interface->object_set_instance")
-    public static function object_set_instance(_owner:GDNativeObjectPtr, _extension_class:GDNativeStringNamePtr, _instance:VoidPtr):VoidPtr;
+    public static function object_set_instance(_owner:GDExtensionObjectPtr, _extension_class:GDExtensionStringNamePtr, _instance:VoidPtr):VoidPtr;
 
     @:native("godot::internal::gdn_interface->object_set_instance_binding")
-    public static function object_set_instance_binding(_owner:GDNativeObjectPtr, _token:VoidPtr, _binding:VoidPtr, _bindingCallbacks:VoidPtr):VoidPtr;
+    public static function object_set_instance_binding(_owner:GDExtensionObjectPtr, _token:VoidPtr, _binding:VoidPtr, _bindingCallbacks:VoidPtr):VoidPtr;
 
     @:native("godot::internal::gdn_interface->object_get_instance_binding")
-    public static function object_get_instance_binding(_owner:GDNativeObjectPtr, _token:VoidPtr, _bindingCallbacks:VoidPtr):VoidPtr;
+    public static function object_get_instance_binding(_owner:GDExtensionObjectPtr, _token:VoidPtr, _bindingCallbacks:VoidPtr):VoidPtr;
 
     @:native("godot::internal::gdn_interface->classdb_register_extension_class_method")
-    public static function classdb_register_extension_class_method(_library:VoidPtr, _classname:GDNativeStringNamePtr, _method_info:cpp.Star<GDNativeExtensionClassMethodInfo>):Void;
+    public static function classdb_register_extension_class_method(_library:VoidPtr, _classname:GDExtensionStringNamePtr, _method_info:cpp.Star<GDExtensionClassMethodInfo>):Void;
 
     @:native("godot::internal::gdn_interface->classdb_register_extension_class_property")
-    public static function classdb_register_extension_class_property(_library:VoidPtr, _classname:GDNativeStringNamePtr, _property:GDNativePropertyInfoPtr, _setter:GDNativeStringNamePtr, _getter:GDNativeStringNamePtr):Void;
+    public static function classdb_register_extension_class_property(_library:VoidPtr, _classname:GDExtensionStringNamePtr, _property:GDExtensionPropertyInfoPtr, _setter:GDExtensionStringNamePtr, _getter:GDExtensionStringNamePtr):Void;
 
     @:native("godot::internal::gdn_interface->classdb_register_extension_class_property_group")
-    public static function classdb_register_extension_class_property_group(_library:VoidPtr, _classname:GDNativeStringNamePtr, _groupName:GDNativeStringNamePtr, _prefix:GDNativeStringNamePtr):Void;
+    public static function classdb_register_extension_class_property_group(_library:VoidPtr, _classname:GDExtensionStringNamePtr, _groupName:GDExtensionStringNamePtr, _prefix:GDExtensionStringNamePtr):Void;
 
     @:native("godot::internal::gdn_interface->classdb_register_extension_class_property_subgroup")
-    public static function classdb_register_extension_class_property_subgroup(_library:VoidPtr, _classname:GDNativeStringNamePtr, _subGroupName:GDNativeStringNamePtr, _prefix:GDNativeStringNamePtr):Void;
+    public static function classdb_register_extension_class_property_subgroup(_library:VoidPtr, _classname:GDExtensionStringNamePtr, _subGroupName:GDExtensionStringNamePtr, _prefix:GDExtensionStringNamePtr):Void;
     
-    @:native("godot::internal::gdn_interface->classdb_get_method_bind")
-    public static function classdb_get_method_bind(_obj:GDNativeStringNamePtr, _method:GDNativeStringNamePtr, _hash:GDNativeInt):VoidPtr;
+    @:native("(void*)godot::internal::gdn_interface->classdb_get_method_bind")
+    public static function classdb_get_method_bind(_obj:GDExtensionStringNamePtr, _method:GDExtensionStringNamePtr, _hash:GDExtensionInt):VoidPtr;
 
     @:native("godot::internal::gdn_interface->object_method_bind_ptrcall")
-    public static function object_method_bind_ptrcall(_method:GDNativeMethodBindPtr, _owner:GDNativeObjectPtr, _args:cpp.Star<GDNativeTypePtr>, _ret:GDNativeTypePtr):Void;
+    public static function object_method_bind_ptrcall(_method:GDExtensionMethodBindPtr, _owner:GDExtensionObjectPtr, _args:cpp.ConstStar<GDExtensionTypePtr>, _ret:GDExtensionTypePtr):Void;
 
     @:native("godot::internal::gdn_interface->classdb_register_extension_class")
     public static function classdb_register_extension_class(
         _library:VoidPtr,
-        _classname:GDNativeStringNamePtr,
-        _parentClass:GDNativeStringNamePtr,      
-        _extension_funcs:cpp.Star<GDNativeExtensionClassCreationInfo>):VoidPtr;
+        _classname:GDExtensionStringNamePtr,
+        _parentClass:GDExtensionStringNamePtr,      
+        _extension_funcs:cpp.Star<GDExtensionClassCreationInfo>):VoidPtr;
     
     // variant    
     inline public static function get_variant_from_type_constructor(_type:Int):VoidPtr {
-        return cast _get_variant_from_type_constructor(untyped __cpp__('(GDNativeVariantType){0}', _type));
+        return cast _get_variant_from_type_constructor(untyped __cpp__('(GDExtensionVariantType){0}', _type));
     }
     @:native("(void *)godot::internal::gdn_interface->get_variant_from_type_constructor")
     static function _get_variant_from_type_constructor(_type:Int):VoidPtr;
 
     inline public static function get_variant_to_type_constructor(_type:Int):VoidPtr {
         return untyped __cpp__('(cpp::Function<void (void *,void *)> *){0}',
-            _get_variant_to_type_constructor(untyped __cpp__('(GDNativeVariantType){0}', _type)));
+            _get_variant_to_type_constructor(untyped __cpp__('(GDExtensionVariantType){0}', _type)));
     }
     @:native("godot::internal::gdn_interface->get_variant_to_type_constructor")
     static function _get_variant_to_type_constructor(_type:Int):VoidPtr;
 
     @:native("godot::internal::gdn_interface->variant_destroy")
-    public static function variant_destroy(_ptr:GDNativeVariantPtr):Void;
+    public static function variant_destroy(_ptr:GDExtensionVariantPtr):Void;
 
     @:native("godot::internal::gdn_interface->variant_new_copy")
-    public static function variant_new_copy(_ptr0:GDNativeVariantPtr, _ptr1:GDNativeVariantPtr):Void;
+    public static function variant_new_copy(_ptr0:GDExtensionVariantPtr, _ptr1:GDExtensionVariantPtr):Void;
 
 
     // built-ins
-    inline public static function variant_get_ptr_constructor(_type:Int, _constructor:Int):GDNativePtrConstructor {
-        return cast _variant_get_ptr_constructor(untyped __cpp__('(GDNativeVariantType){0}', _type), _constructor);
+    inline public static function variant_get_ptr_constructor(_type:Int, _constructor:Int):GDExtensionPtrConstructor {
+        return cast _variant_get_ptr_constructor(untyped __cpp__('(GDExtensionVariantType){0}', _type), _constructor);
     }
     @:native("godot::internal::gdn_interface->variant_get_ptr_constructor")
-    static function _variant_get_ptr_constructor(_type:Int, _constructor:Int):GDNativePtrConstructor;
+    static function _variant_get_ptr_constructor(_type:Int, _constructor:Int):GDExtensionPtrConstructor;
 
-    inline public static function variant_get_ptr_destructor(_type:Int):GDNativePtrConstructor {
-        return cast _variant_get_ptr_destructor(untyped __cpp__('(GDNativeVariantType){0}', _type));
+    inline public static function variant_get_ptr_destructor(_type:Int):GDExtensionPtrConstructor {
+        return cast _variant_get_ptr_destructor(untyped __cpp__('(GDExtensionVariantType){0}', _type));
     }
     @:native("godot::internal::gdn_interface->variant_get_ptr_destructor")
-    static function _variant_get_ptr_destructor(_type:Int):GDNativePtrConstructor;
+    static function _variant_get_ptr_destructor(_type:Int):GDExtensionPtrConstructor;
 
-    inline public static function variant_get_ptr_builtin_method(_type:Int, _method:GDNativeStringNamePtr, _hash:cpp.Int64):GDNativePtrBuiltInMethod {
-        return untyped __cpp__('(cpp::Function<void (void *,const void **,void *,int)> *)godot::internal::gdn_interface->variant_get_ptr_builtin_method((GDNativeVariantType){0}, {1}, {2})', _type, _method, _hash);
+    inline public static function variant_get_ptr_builtin_method(_type:Int, _method:GDExtensionStringNamePtr, _hash:cpp.Int64):GDExtensionPtrBuiltInMethod {
+        return untyped __cpp__('(cpp::Function<void (void *,const void **,void *,int)> *)godot::internal::gdn_interface->variant_get_ptr_builtin_method((GDExtensionVariantType){0}, {1}, {2})', _type, _method, _hash);
     }
 
     @:native("godot::internal::gdn_interface->variant_call")
-    public static function variant_call(_self:GDNativeVariantPtr, _method:GDNativeStringPtr, _args:cpp.Star<GDNativeVariantPtr>, _argCount:GDNativeInt, _ret:GDNativeVariantPtr, _error:cpp.Star<GDNativeCallError>):Void;
+    public static function variant_call(_self:GDExtensionVariantPtr, _method:GDExtensionStringPtr, _args:cpp.Star<GDExtensionVariantPtr>, _argCount:GDExtensionInt, _ret:GDExtensionVariantPtr, _error:cpp.Star<GDExtensionCallError>):Void;
 
-    inline public static function variant_get_ptr_getter(_type:Int, _member:GDNativeStringNamePtr):GDNativePtrGetter {
-        return untyped __cpp__('(cpp::Function<void (const void *,void *)> *)godot::internal::gdn_interface->variant_get_ptr_getter((GDNativeVariantType){0}, {1})', _type, _member);
+    inline public static function variant_get_ptr_getter(_type:Int, _member:GDExtensionStringNamePtr):GDExtensionPtrGetter {
+        return untyped __cpp__('(cpp::Function<void (const void *,void *)> *)godot::internal::gdn_interface->variant_get_ptr_getter((GDExtensionVariantType){0}, {1})', _type, _member);
     }
 
-    inline public static function variant_get_ptr_setter(_type:Int, _member:GDNativeStringNamePtr):GDNativePtrSetter {
-        return untyped __cpp__('(cpp::Function<void (const void *,void *)> *)godot::internal::gdn_interface->variant_get_ptr_setter((GDNativeVariantType){0}, {1})', _type, _member);
+    inline public static function variant_get_ptr_setter(_type:Int, _member:GDExtensionStringNamePtr):GDExtensionPtrSetter {
+        return untyped __cpp__('(cpp::Function<void (const void *,void *)> *)godot::internal::gdn_interface->variant_get_ptr_setter((GDExtensionVariantType){0}, {1})', _type, _member);
     }
 
-    inline public static function variant_get_ptr_operator_evaluator(_op:GDNativeVariantOperator, _left:GDNativeVariantType, _right:GDNativeVariantType):GDNativePtrOperatorEvaluator {
-        return untyped __cpp__('(cpp::Function<void (GDNativeVariantOperator,GDNativeVariantType,GDNativeVariantType)> *)godot::internal::gdn_interface->variant_get_ptr_operator_evaluator((GDNativeVariantOperator){0}, (GDNativeVariantType){1}, (GDNativeVariantType){2})', _op, _left, _right);
+    inline public static function variant_get_ptr_operator_evaluator(_op:GDExtensionVariantOperator, _left:GDExtensionVariantType, _right:GDExtensionVariantType):GDExtensionPtrOperatorEvaluator {
+        return untyped __cpp__('(cpp::Function<void (GDExtensionVariantOperator,GDExtensionVariantType,GDExtensionVariantType)> *)godot::internal::gdn_interface->variant_get_ptr_operator_evaluator((GDExtensionVariantOperator){0}, (GDExtensionVariantType){1}, (GDExtensionVariantType){2})', _op, _left, _right);
     }
 
-    inline public static function variant_get_ptr_indexed_getter(_type:Int):GDNativePtrIndexedGetter {
-        return untyped __cpp__('(cpp::Function<void (const void *)> *)godot::internal::gdn_interface->variant_get_ptr_indexed_getter((GDNativeVariantType){0})', _type);
+    inline public static function variant_get_ptr_indexed_getter(_type:Int):GDExtensionPtrIndexedGetter {
+        return untyped __cpp__('(cpp::Function<void (const void *)> *)godot::internal::gdn_interface->variant_get_ptr_indexed_getter((GDExtensionVariantType){0})', _type);
     }
 
-    inline public static function variant_get_ptr_indexed_setter(_type:Int):GDNativePtrIndexedSetter {
-        return untyped __cpp__('(cpp::Function<void (const void *)> *)godot::internal::gdn_interface->variant_get_ptr_indexed_setter((GDNativeVariantType){0})', _type);
+    inline public static function variant_get_ptr_indexed_setter(_type:Int):GDExtensionPtrIndexedSetter {
+        return untyped __cpp__('(cpp::Function<void (const void *)> *)godot::internal::gdn_interface->variant_get_ptr_indexed_setter((GDExtensionVariantType){0})', _type);
     }
 
-    inline public static function variant_can_convert_strict(_from:GDNativeVariantType, _to:GDNativeVariantType):Bool {
-        return untyped __cpp__('godot::internal::gdn_interface->variant_can_convert_strict((GDNativeVariantType){0}, (GDNativeVariantType){1})', _from, _to);
+    inline public static function variant_can_convert_strict(_from:GDExtensionVariantType, _to:GDExtensionVariantType):Bool {
+        return untyped __cpp__('godot::internal::gdn_interface->variant_can_convert_strict((GDExtensionVariantType){0}, (GDExtensionVariantType){1})', _from, _to);
     }
 
     @:native("godot::internal::gdn_interface->variant_get_type")
-    public static function variant_get_type(_ptr0:GDNativeVariantPtr):GDNativeVariantType;
+    public static function variant_get_type(_ptr0:GDExtensionVariantPtr):GDExtensionVariantType;
 
     @:native("godot::internal::gdn_interface->string_new_with_utf8_chars")
-    public static function string_new_with_utf8_chars(_dest:GDNativeStringPtr, _contents:cpp.ConstCharStar):Void;
+    public static function string_new_with_utf8_chars(_dest:GDExtensionStringPtr, _contents:cpp.ConstCharStar):Void;
 
     @:native("godot::internal::gdn_interface->string_to_utf8_chars")
-    public static function string_to_utf8_chars(_dest:GDNativeStringPtr, _text:cpp.RawPointer<cpp.Char>, _writeLength:Int):Int;
+    public static function string_to_utf8_chars(_dest:GDExtensionStringPtr, _text:cpp.RawPointer<cpp.Char>, _writeLength:Int):Int;
 
     @:native("godot::internal::gdn_interface->classdb_get_class_tag")
-    public static function classdb_get_class_tag(_classname:GDNativeStringNamePtr):VoidPtr;
+    public static function classdb_get_class_tag(_classname:GDExtensionStringNamePtr):VoidPtr;
 
     @:native("godot::internal::gdn_interface->object_cast_to")
-    public static function object_cast_to(_obj:GDNativeObjectPtr, _tag:VoidPtr):GDNativeObjectPtr;
+    public static function object_cast_to(_obj:GDExtensionObjectPtr, _tag:VoidPtr):GDExtensionObjectPtr;
 
     @:native("godot::internal::gdn_interface->global_get_singleton")
-    public static function global_get_singleton(_classname:GDNativeStringNamePtr):GDNativeObjectPtr;
+    public static function global_get_singleton(_classname:GDExtensionStringNamePtr):GDExtensionObjectPtr;
 
 }
 #end

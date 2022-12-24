@@ -17,14 +17,14 @@ class ClassGenExtraMacros {
                 var tmp = macro class {
                     @:from inline public static function fromString(_v:String):GDString {
                         var s = new GDString();
-                        godot.Types.GodotNativeInterface.string_new_with_utf8_chars(untyped __cpp__('(GDNativeStringPtr){0}', s.native_ptr()), _v);
+                        godot.Types.GodotNativeInterface.string_new_with_utf8_chars(untyped __cpp__('(GDExtensionStringPtr){0}', s.native_ptr()), _v);
                         return s;
                     }
 
                     @:to inline public function toString():String {
-                        var size = godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDNativeStringPtr){0}', this.native_ptr()), null, 0);
+                        var size = godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDExtensionStringPtr){0}', this.native_ptr()), null, 0);
                         var chars:Array<cpp.UInt8> = cpp.NativeArray.create(size+1);
-                        godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDNativeStringPtr){0}', this.native_ptr()), cpp.NativeArray.getBase(chars).getBase(), size+1);
+                        godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDExtensionStringPtr){0}', this.native_ptr()), cpp.NativeArray.getBase(chars).getBase(), size+1);
                         chars[size] = 0;
                         return haxe.io.Bytes.ofData(chars).toString();
                     }
