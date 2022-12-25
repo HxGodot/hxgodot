@@ -20,7 +20,7 @@ class HxPlayer extends CharacterBody3D {
 
 	static var grpMob:godot.variant.StringName;
 
-	//var animPlayer:AnimationPlayer;
+	var animPlayer:AnimationPlayer;
 	var pivot:Node3D;
 
 	//public var onHit = new CustomSignal<() -> Void>("onHit");
@@ -36,12 +36,8 @@ class HxPlayer extends CharacterBody3D {
         Jump = "Jump";
         grpMob = "mob";
 
-		//animPlayer = this.get_node("AnimationPlayer").as(AnimationPlayer);
+		animPlayer = this.get_node("AnimationPlayer").as(AnimationPlayer);
 		pivot = this.get_node("Pivot").as(Node3D);
-	}
-
-	override function _exit_tree() {
-		trace("foooo");
 	}
 
 	override function _physics_process(_delta:Float):Void {
@@ -64,9 +60,9 @@ class HxPlayer extends CharacterBody3D {
 		var len = direction.normalize();
 		if (len > 0) {
 			pivot.look_at(this.get_transform().origin + direction, Vector3.UP());
-			//animPlayer.set_speed_scale(4);
-		} //else 
-			//animPlayer.set_speed_scale(1);
+			animPlayer.set_speed_scale(4);
+		} else 
+			animPlayer.set_speed_scale(1);
 
 		velocity.x = direction.x * speed;
 		velocity.z = direction.z * speed;

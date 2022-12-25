@@ -208,11 +208,13 @@ class Macros {
                             trace(_f);
 
                             var argType = _mapHxTypeToGodot(_f.ret);
+                            var argTypeString = godot.Types.GDExtensionVariantType.toString(argType);
 
                             retAndArgsInfos.push(macro {
-                                var tmp:godot.Types.GDExtensionStringNamePtr = (new godot.variant.StringName()).native_ptr();
-                                var tmp1:godot.Types.GDExtensionStringPtr = (new godot.variant.GDString()).native_ptr();
                                 var _cl:godot.Types.GDExtensionStringNamePtr = __class_name.native_ptr();
+                                var tName:godot.Types.GDExtensionStringNamePtr = ($v{'${argTypeString}'}:godot.variant.StringName).native_ptr();
+                                var hint_string:godot.Types.GDExtensionStringPtr = (new godot.variant.GDString()).native_ptr();
+
                                 var propInfo:godot.Types.GDExtensionPropertyInfo = untyped __cpp__('{
                                     (GDExtensionVariantType){0},
                                     {1},
@@ -223,9 +225,9 @@ class Macros {
                                 }',
                                     $v{argType},
                                     _cl,
-                                    _cl,
+                                    tName,
                                     godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE,
-                                    tmp1,
+                                    hint_string,
                                     godot.GlobalConstants.PropertyUsageFlags.PROPERTY_USAGE_DEFAULT
                                 );
 
@@ -238,14 +240,14 @@ class Macros {
                         // map the argument types correctly
                         var argument = _f.args[j];
                         var argType = _mapHxTypeToGodot(argument.type);
+                        var argTypeString = godot.Types.GDExtensionVariantType.toString(argType);
                         argExprs.push(ArgumentMacros.convert(j, "_args", argument.type));
                         argVariantExprs.push(ArgumentMacros.convertVariant(j, "_args", argument.type));
                         
                         retAndArgsInfos.push(macro {
-                            var tmp:godot.Types.GDExtensionStringNamePtr = (new godot.variant.StringName()).native_ptr();
-                            var tmp1:godot.Types.GDExtensionStringPtr = (new godot.variant.GDString()).native_ptr();
-                            var aName:godot.Types.GDExtensionStringNamePtr = ($v{'"${_f.args[j].name}"'}:godot.variant.StringName).native_ptr();
-                            var _cl:godot.Types.GDExtensionStringNamePtr = __class_name.native_ptr();
+                            var hint_string:godot.Types.GDExtensionStringPtr = (new godot.variant.GDString()).native_ptr();
+                            var aName:godot.Types.GDExtensionStringNamePtr = ($v{'${argument.name}'}:godot.variant.StringName).native_ptr();
+                            var tName:godot.Types.GDExtensionStringNamePtr = ($v{'${argTypeString}'}:godot.variant.StringName).native_ptr();
                             var propInfo:godot.Types.GDExtensionPropertyInfo = untyped __cpp__('{
                                 (GDExtensionVariantType){0},
                                 {1},
@@ -256,9 +258,9 @@ class Macros {
                             }',
                                 $v{argType},
                                 aName,
-                                _cl,
+                                tName,
                                 godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE,
-                                tmp1,
+                                hint_string,
                                 godot.GlobalConstants.PropertyUsageFlags.PROPERTY_USAGE_DEFAULT
                             );
                             untyped __cpp__('(*arguments_info)[{0}] = {1}', $v{j}, propInfo);
@@ -426,8 +428,8 @@ class Macros {
 
                     if (group != null) {
                         regPropOut.push( macro {
-                            var group:godot.variant.StringName = ${group};
-                            var group_prefix:godot.variant.StringName = ${group_prefix};
+                            var group:godot.variant.GDString = ${group};
+                            var group_prefix:godot.variant.GDString = ${group_prefix};
                             godot.Types.GodotNativeInterface.classdb_register_extension_class_property_group(
                                 library,
                                 __class_name.native_ptr(),
@@ -437,8 +439,8 @@ class Macros {
                         });
                     } else if (sub_group != null) {
                         regPropOut.push( macro {
-                            var sub_group:godot.variant.StringName = ${sub_group};
-                            var sub_group_prefix:godot.variant.StringName = ${sub_group_prefix};
+                            var sub_group:godot.variant.GDString = ${sub_group};
+                            var sub_group_prefix:godot.variant.GDString = ${sub_group_prefix};
                             godot.Types.GodotNativeInterface.classdb_register_extension_class_property_subgroup(
                                 library,
                                 __class_name.native_ptr(),
@@ -448,13 +450,11 @@ class Macros {
                         });
                     }
 
-                    /* TODO: Leak here!
+                    var tmp:String = '"${field.name}"';
                     regPropOut.push( macro {
-                        var _cl:godot.Types.GDExtensionStringNamePtr = __class_name.native_ptr();
+                        var clNamePtr:godot.Types.GDExtensionStringNamePtr = __class_name.native_ptr();
                         var fname:godot.variant.StringName = $v{field.name};
                         var hname:godot.variant.GDString = ${hint_string};
-                        var fnamePtr = fname.native_ptr();
-                        var hnamePtr = hname.native_ptr();
                         var propInfo:godot.Types.GDExtensionPropertyInfo = untyped __cpp__('{
                             (GDExtensionVariantType){0}, // GDExtensionVariantType type;
                             {1}, // GDExtensionStringNamePtr name;
@@ -464,10 +464,10 @@ class Macros {
                             {5}  // uint32_t usage;
                         }',
                             $v{argType},
-                            fnamePtr,
-                            _cl,
+                            fname.native_ptr(),
+                            clNamePtr,
                             ${hint},
-                            hnamePtr,
+                            hname.native_ptr(),
                             godot.GlobalConstants.PropertyUsageFlags.PROPERTY_USAGE_DEFAULT
                         );
 
@@ -475,13 +475,13 @@ class Macros {
                         var getter:godot.variant.StringName = $v{"get_"+field.name};
                         godot.Types.GodotNativeInterface.classdb_register_extension_class_property(
                             library, 
-                            _cl, 
+                            clNamePtr, 
                             propInfo,
                             setter.native_ptr(),
                             getter.native_ptr()
                         );
                     });
-                    */
+                    
                 }
                 default:
             }

@@ -94,6 +94,50 @@ enum abstract GDExtensionVariantType(Int) from Int to Int {
             default: OBJECT;
         }
     }
+
+    inline public static function toString(_type:Int):String {
+        return switch (_type) {
+            case NIL: "Nil";
+            case BOOL: "bool";
+            case INT: "int";
+            case FLOAT: "float";
+            case STRING: "String";
+            case VECTOR2: "Vector2";
+            case VECTOR2I: "Vector2i";
+            case RECT2: "Rect2";
+            case RECT2I: "Rect2i";
+            case VECTOR3: "Vector3";
+            case VECTOR3I: "Vector3i";
+            case TRANSFORM2D: "Transform2D";
+            case VECTOR4: "Vector4";
+            case VECTOR4I: "Vector4i";
+            case PLANE: "Plane";
+            case QUATERNION: "Quaternion";
+            case AABB: "AABB";
+            case BASIS: "Basis";
+            case TRANSFORM3D: "Transform3D";
+            case PROJECTION: "Projection";
+            case COLOR: "Color";
+            case STRING_NAME: "StringName";
+            case NODE_PATH: "NodePath";
+            case RID: "RID";
+            case OBJECT: "Object";
+            case CALLABLE: "Callable";
+            case SIGNAL: "Signal";
+            case DICTIONARY: "Dictionary";
+            case ARRAY: "Array";
+            case PACKED_BYTE_ARRAY: "PackedByteArray";
+            case PACKED_INT32_ARRAY: "PackedInt32Array";
+            case PACKED_INT64_ARRAY: "PackedInt64Array";
+            case PACKED_FLOAT32_ARRAY: "PackedFloat32Array";
+            case PACKED_FLOAT64_ARRAY: "PackedFloat64Array";
+            case PACKED_STRING_ARRAY: "PackedStringArray";
+            case PACKED_VECTOR2_ARRAY: "PackedVector2Array";
+            case PACKED_VECTOR3_ARRAY: "PackedVector3Array";
+            case PACKED_COLOR_ARRAY: "PackedColorArray";
+            default: "Object";
+        }
+    }
 }
 
 enum abstract GDExtensionVariantOperator(Int) from Int to Int {
@@ -340,10 +384,10 @@ extern class GodotNativeInterface {
     public static function classdb_register_extension_class_property(_library:VoidPtr, _classname:GDExtensionStringNamePtr, _property:GDExtensionPropertyInfoPtr, _setter:GDExtensionStringNamePtr, _getter:GDExtensionStringNamePtr):Void;
 
     @:native("godot::internal::gdn_interface->classdb_register_extension_class_property_group")
-    public static function classdb_register_extension_class_property_group(_library:VoidPtr, _classname:GDExtensionStringNamePtr, _groupName:GDExtensionStringNamePtr, _prefix:GDExtensionStringNamePtr):Void;
+    public static function classdb_register_extension_class_property_group(_library:VoidPtr, _classname:GDExtensionStringNamePtr, _groupName:GDExtensionStringPtr, _prefix:GDExtensionStringPtr):Void;
 
     @:native("godot::internal::gdn_interface->classdb_register_extension_class_property_subgroup")
-    public static function classdb_register_extension_class_property_subgroup(_library:VoidPtr, _classname:GDExtensionStringNamePtr, _subGroupName:GDExtensionStringNamePtr, _prefix:GDExtensionStringNamePtr):Void;
+    public static function classdb_register_extension_class_property_subgroup(_library:VoidPtr, _classname:GDExtensionStringNamePtr, _subGroupName:GDExtensionStringPtr, _prefix:GDExtensionStringPtr):Void;
     
     @:native("(void*)godot::internal::gdn_interface->classdb_get_method_bind")
     public static function classdb_get_method_bind(_obj:GDExtensionStringNamePtr, _method:GDExtensionStringNamePtr, _hash:GDExtensionInt):VoidPtr;

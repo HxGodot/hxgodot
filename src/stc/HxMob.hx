@@ -38,7 +38,7 @@ class HxMob extends CharacterBody3D {
 		this.rotate_y(Math.random() * Math.PI / 2 - Math.PI / 4);
 		final randomSpeed = Math.random() * (maxSpeed - minSpeed) + minSpeed;
 		velocity = this.get_transform().basis[2] * -randomSpeed;
-		//this.get_node("AnimationPlayer").as(AnimationPlayer).set_speed_scale(randomSpeed / minSpeed);
+		this.get_node("AnimationPlayer").as(AnimationPlayer).set_speed_scale(randomSpeed / minSpeed);
 	}
 
 	@:export
