@@ -67,7 +67,7 @@ class TypeMacros {
                     res = [];
             }
             else 
-                res = ["godot", "variant"];    
+                res = ["godot", "variant"];
         }        
         return res;
     }

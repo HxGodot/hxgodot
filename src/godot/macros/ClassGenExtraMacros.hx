@@ -57,10 +57,10 @@ class ClassGenExtraMacros {
             }
             case "Callable": {
             	var tmp = macro class {
-                    @:from inline public static function fromFunc(_v:Void->Void):Callable {
+                    @:from inline public static function fromFunc<T>(_v:T):Callable {
                         //TODO: Figure this out
                         //return StringName.fromGDString((_v:GDString));
-                        //trace(Type.typeof(_v));
+                        trace(Type.typeof(_v));
                         return null;
                     }
 

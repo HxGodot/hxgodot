@@ -3,8 +3,16 @@ package example;
 import godot.GlobalConstants;
 import godot.variant.Vector3;
 import godot.variant.GDString;
+import godot.variant.TypedSignal;
+import godot.variant.Signal;
 
 class HxExample extends godot.Node {
+
+    @:export
+    public var onHit:godot.variant.TypedSignal<()->Void>;
+
+    @:export
+    public var onTest:godot.variant.TypedSignal<(name:String, count:Int)->Void>;
 
     @:export
     @:hint(PropertyHint.PROPERTY_HINT_RANGE, "0,64,1")
@@ -85,13 +93,11 @@ class HxExample extends godot.Node {
     // ...
 
 
-    /*
-    //@:export
-    inline public var MYVALUE:Int = 100;
-    */
-
     public function new() {
         super();
+
+        onHit = Signal.fromObjectSignal(this, "onHit");
+        onTest = Signal.fromObjectSignal(this, "onHit");
     }
 
     //@:export // TODO: static function are not correctly bound at the moment

@@ -4,10 +4,14 @@ import godot.CharacterBody3D;
 import godot.variant.Signal;
 import godot.variant.Vector3;
 import godot.AnimationPlayer;
+import godot.Area3D;
 import godot.Node3D;
+import godot.variant.Callable;
+import godot.variant.TypedSignal;
+import godot.variant.Signal;
 
 class HxPlayer extends CharacterBody3D {
-	@:export public var speed = 14;
+	@:export public var speed:Int = 14;
 	@:export public var fallAcceleration = 75;
 	@:export public var jumpImpulse = 20;
 	@:export public var bounceImpulse = 16;
@@ -23,7 +27,13 @@ class HxPlayer extends CharacterBody3D {
 	var animPlayer:AnimationPlayer;
 	var pivot:Node3D;
 
-	//public var onHit = new CustomSignal<() -> Void>("onHit");
+	@:export
+	public var onHit:TypedSignal<()->Void>;
+
+	public function new() {
+		super();
+		onHit = Signal.fromObjectSignal(this, "onHit");
+	}
 
 	override function _ready() {
 		if (Engine.singleton().is_editor_hint()) // skip if in editor
@@ -38,6 +48,10 @@ class HxPlayer extends CharacterBody3D {
 
 		animPlayer = this.get_node("AnimationPlayer").as(AnimationPlayer);
 		pivot = this.get_node("Pivot").as(Node3D);
+
+		this.get_node("MobDetector").as(Area3D).body_entered.connect(
+			Callable.fromObjectMethod(this, "onMobDetected"), 0
+		);
 	}
 
 	override function _physics_process(_delta:Float):Void {
@@ -92,5 +106,13 @@ class HxPlayer extends CharacterBody3D {
 
 		this.set_velocity(velocity);
 		this.move_and_slide();
+	}
+
+	@:export
+	public function onMobDetected() {
+		if (this.is_on_floor()) {
+			onHit.emit();
+			queue_free();
+		}
 	}
 }

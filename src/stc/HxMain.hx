@@ -12,24 +12,15 @@ import godot.variant.Vector3;
 import godot.variant.GDString;
 
 
-class CustomCallable extends godot.variant.Callable.__Callable {
-    public function new() {
-        super();
-    }
-}
-
 class HxMain extends Node {
 
     var mobScene:PackedScene;
     var score:HxScore;
     var spawnLocation:PathFollow3D;
     var player:HxPlayer;
+    var mobTimer:Timer;
 
     var retry:ColorRect;
-
-    public function new() {
-        super();
-    }
     
     override function _ready() {
         if (Engine.singleton().is_editor_hint()) // skip if in editor
@@ -42,8 +33,11 @@ class HxMain extends Node {
         retry = get_node("UserInterface/Retry").as(ColorRect);
 
         
-        var mobTimer = get_node("MobTimer").as(Timer);
+        mobTimer = get_node("MobTimer").as(Timer);
         mobTimer.timeout.connect(Callable.fromObjectMethod(this, "onMobTimer"), 0);
+        player.onHit.connect(Callable.fromObjectMethod(this, "onPlayerHit"), 0);
+        
+        retry.hide();
 
         /*
         trace(this.get_name());
@@ -51,16 +45,6 @@ class HxMain extends Node {
         tmp.call(("test":godot.variant.Variant));
         trace(this.get_name());
         */
-
-
-        /*
-        player.onHit.connect(() -> {
-            mobTimer.stop();
-            retry.show();
-        });
-        */
-        
-        retry.hide();
     }
 
     @:export
@@ -68,14 +52,19 @@ class HxMain extends Node {
         spawnLocation.set_progress_ratio(Math.random());
 
         final mob = mobScene.instantiate(0).as(HxMob);
+        mob.translate(spawnLocation.get_position());
         add_child(mob, false, 0);
-        mob.initialize(spawnLocation.get_position(), player.get_position());
-        //mob.onSquashed.connect(score.onMobSquashed);
+        mob.initialize(player.get_position());
+        mob.onSquashed.connect(Callable.fromObjectMethod(score, "onMobSquashed")/*score.onMobSquashed*/, godot.Object.Object_ConnectFlags.CONNECT_ONE_SHOT);
+    }
+
+    @:export
+    function onPlayerHit() {
+        mobTimer.stop();
+        retry.show();
     }
 
     override function _process(_delta:Float) {
-        //var gcRan = HxGodot.runGc(_delta); // TODO: run this here for now
-
         if (Engine.singleton().is_editor_hint()) // skip if in editor
             return;
     }

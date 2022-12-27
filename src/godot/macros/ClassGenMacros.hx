@@ -222,15 +222,28 @@ class ClassGenMacros {
                 }
             }
 
-            var properties = [];
             // signals
+            // TODO: explicitly type signals and their arguments?
             var signals = [];
             if (c.signals != null) {
                 for (s in cast(c.signals, Array<Dynamic>)) {
                     var sname = s.name;
                     var gname = 'get_$sname';
+                    var sig = [];
+                    if (s.arguments != null) {
+                        for (a in cast(s.arguments, Array<Dynamic>)) {
+                            var t = TypeMacros.getTypePackage(a.type);
+                            sig.push(TNamed(a.name, TPath({name: TypeMacros.getTypeName(a.type), pack: t})));
+                        }
+                    }
+                    var ret = TPath({name: 'Void', pack: []});
+
+                    if (sig.length == 0)
+                        sig = [];
+                    
+                    var ct = TPath({name:'TypedSignal', pack: ['godot', 'variant'], params: [TPType(TFunction(sig, ret))]});
                     var cls = macro class {
-                        public var $sname(get, never):godot.variant.Signal;
+                        public var $sname(get, never):$ct;
                         
                         @:noCompletion
                         function $gname() {
@@ -241,8 +254,9 @@ class ClassGenMacros {
                 }                
             }
             
-            /*
             // properties
+            var properties = [];
+            /* TODO: setters and getters might be used with multiple properties but different arguments! -> Bind parameters?
             var propertyMap = new Map<String, Bool>();
             if (c.properties != null) {
                 for (m in cast(c.properties, Array<Dynamic>)) {

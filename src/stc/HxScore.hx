@@ -8,6 +8,6 @@ class HxScore extends Label {
 	@:export
 	public function onMobSquashed() {
 		score++;
-		this.set_text('Score $score');
+		this.set_text('Score: $score');
 	}
 }

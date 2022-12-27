@@ -98,7 +98,34 @@ class Macros {
                                 extensionFields.push(field);
                             case FProp(_g, _s, _type):
                                 extensionProperties.push(field);
-                            case FVar(_t, _e): { // make sure we only allow integer constants
+                            case FVar(_t, _e): { 
+
+                                // trace(field);
+                                // trace(_t + " " + _e);
+                                if (_t == null) { // no type supplied, check value expr
+                                    switch (_e.expr) {
+                                        case ENew(_ct, _params): {
+                                            if (_ct.name == "TypedSignal") {
+                                                field.kind = FVar(TPath(_ct), _e);
+                                                extensionProperties.push(field);
+                                            }
+                                        }
+                                        default:
+                                    }
+                                } else {
+                                    switch(_t) {
+                                        case TPath(_p): {
+                                            if (_p.name == "TypedSignal") 
+                                                extensionProperties.push(field);
+                                        }
+                                        default:
+                                    }
+                                }
+
+                                //trace(_t + " " + _e);
+                                //trace(field);
+
+                                // make sure we only allow integer constants
                                 /* TODO: we dont really need these, yet
                                 function fatalError() {
                                     Context.fatalError("Exported Constant is not an integer: " + field.name, Context.currentPos());
@@ -128,7 +155,6 @@ class Macros {
                                         default: fatalError();
                                     }
                                 }
-                                //trace(_t + " " + _e);
                                 */
                             }
                         }
@@ -188,7 +214,16 @@ class Macros {
     
     
 
-    static function buildFieldBindings(_fields:Array<haxe.macro.Field>, _className:String, _classMeta, _typePath, _extensionFields:Array<haxe.macro.Field>, _virtualFields:Array<Dynamic>, _cppClassName:String, _extensionProperties:Array<haxe.macro.Field>) {
+    static function buildFieldBindings(
+        _fields:Array<haxe.macro.Field>,
+        _className:String,
+        _classMeta,
+        _typePath,
+        _extensionFields:Array<haxe.macro.Field>,
+        _virtualFields:Array<Dynamic>,
+        _cppClassName:String, 
+        _extensionProperties:Array<haxe.macro.Field>) 
+    {
         var pos = Context.currentPos();
         var ctType = TPath(_typePath);
 
@@ -199,7 +234,7 @@ class Macros {
                         case 'Bool': godot.Types.GDExtensionVariantType.BOOL;
                         case 'Int', 'Int64': godot.Types.GDExtensionVariantType.INT;
                         case 'Float': godot.Types.GDExtensionVariantType.FLOAT;
-                        case 'GDString': godot.Types.GDExtensionVariantType.STRING;
+                        case 'String', 'GDString': godot.Types.GDExtensionVariantType.STRING;
                         case 'Vector3': godot.Types.GDExtensionVariantType.VECTOR3;
                         default: godot.Types.GDExtensionVariantType.NIL;
                     }
@@ -341,6 +376,97 @@ class Macros {
                         );
                     });
                     
+                }
+                case FVar(_t, _e): { // signals
+                    //trace(_t);
+                    //trace(_e);
+
+                    var hint = macro $v{godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE};
+                    var hint_string = macro $v{""};
+                    var usage = macro $v{7}; // TODO: we should prolly expose this
+
+                    var params = switch (_t) {
+                        case TPath(_t): _t.params;
+                        default: null;
+                    };
+
+                    var arguments = [];
+                    switch (params[0]) {
+                        case TPType(_ct): {
+                            switch (_ct) {
+                                case TFunction(_args, _ret): {
+                                    trace(_args);
+                                    for (a in _args) {
+                                        var arg = {
+                                            name: "",
+                                            type: null
+                                        }
+                                        switch (a) {
+                                            case TNamed(_name, _ct): {
+                                                arg.name = _name;
+                                                arg.type = _ct;
+                                            }
+                                            default: Context.error("Error with signal \"" + field.name + "\"! Signals only support named type-signatures atm!", Context.currentPos());
+                                        }
+                                        arguments.push(arg);
+                                    }
+                                }
+                                default: Context.error("Really, What are you doing?!", Context.currentPos());
+                            };
+                        }
+                        default: Context.error("What are you doing?", Context.currentPos());
+                    };
+
+                    var regSigs = [];
+                    for (i in 0...arguments.length) {
+                        var arg = arguments[i];
+                        var argType = _mapHxTypeToGodot(arg.type);
+                        var argTypeString = godot.Types.GDExtensionVariantType.toString(argType);
+
+                        // trace(arg);
+                        // trace(argTypeString);
+
+                        regSigs.push(macro {
+                            var aNamePtr:godot.Types.GDExtensionStringNamePtr = ($v{'${arg.name}'}:godot.variant.StringName).native_ptr();
+                            var tNamePtr:godot.Types.GDExtensionStringNamePtr = ($v{'${argTypeString}'}:godot.variant.StringName).native_ptr();
+                            var hname:godot.variant.GDString = ${hint_string};
+                            var propInfo:godot.Types.GDExtensionPropertyInfo = untyped __cpp__('{
+                                (GDExtensionVariantType){0}, // GDExtensionVariantType type;
+                                {1}, // GDExtensionStringNamePtr name;
+                                {2}, // GDExtensionStringNamePtr class_name;
+                                {3}, // uint32_t hint;
+                                {4}, // GDExtensionStringPtr hint_string;
+                                {5}  // uint32_t usage;
+                            }',
+                                $v{argType},
+                                aNamePtr,
+                                tNamePtr,
+                                ${hint},
+                                hname.native_ptr(),
+                                godot.GlobalConstants.PropertyUsageFlags.PROPERTY_USAGE_DEFAULT
+                            );
+
+                            untyped __cpp__('arguments_info[{0}] = {1}', $v{i}, propInfo);
+                        });
+                    }
+
+                    regPropOut.push( macro {
+                        var clNamePtr:godot.Types.GDExtensionStringNamePtr = __class_name.native_ptr();
+                        var sNamePtr:godot.Types.GDExtensionStringNamePtr = ($v{field.name}:godot.variant.StringName).native_ptr();
+
+                        untyped __cpp__('std::array<GDExtensionPropertyInfo, {0}> arguments_info;', $v{arguments.length});
+
+                        $b{regSigs};                        
+
+                        godot.Types.GodotNativeInterface.classdb_register_extension_class_signal(
+                            library, 
+                            clNamePtr, 
+                            sNamePtr, // p_signal_name
+                            untyped __cpp__('(GDExtensionPropertyInfo *)arguments_info.data()'), // p_argument_info
+                            $v{arguments.length} // p_argument_count
+                        );
+
+                    });
                 }
                 default:
             }
@@ -546,7 +672,7 @@ class Macros {
                     $b{bindPtrs};
                 }
             });
-        }        
+        }
 
         // build callbacks and implementations for the virtuals 
         //trace("////////////////////////////////////////////////////////////////////////////////");
@@ -650,7 +776,7 @@ class Macros {
                 const GDExtensionInt p_argument_count,
                 GDExtensionVariantPtr r_return,
                 GDExtensionCallError *r_error)
-            {
+            {   
                 int base = 99;
                 hx::SetTopOfStack(&base,true);
                 ${_cppClassName}_obj::_hx___bindCall(
@@ -661,7 +787,7 @@ class Macros {
                     (void *)r_return,
                     (void *)r_error
                 );
-                hx::SetTopOfStack((int*)0,true);
+                hx::SetTopOfStack((int*)0,true);                
             }
 
             static void __onBindCallPtr(

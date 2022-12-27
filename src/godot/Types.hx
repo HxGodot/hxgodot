@@ -391,6 +391,9 @@ extern class GodotNativeInterface {
 
     @:native("godot::internal::gdn_interface->classdb_register_extension_class_integer_constant")
     public static function classdb_register_extension_class_integer_constant(_library:VoidPtr, _classname:GDExtensionStringNamePtr, p_enum_name:GDExtensionStringNamePtr, p_constant_name:GDExtensionStringNamePtr, p_constant_value:GDExtensionInt, p_is_bitfield:Bool):Void;
+
+    @:native("godot::internal::gdn_interface->classdb_register_extension_class_signal")
+    public static function classdb_register_extension_class_signal(_library:VoidPtr, _classname:GDExtensionStringNamePtr, p_signal_name:GDExtensionStringNamePtr, p_argument_info:GDExtensionPropertyInfoPtr, p_argument_count:GDExtensionInt):Void;
     
     @:native("(void*)godot::internal::gdn_interface->classdb_get_method_bind")
     public static function classdb_get_method_bind(_obj:GDExtensionStringNamePtr, _method:GDExtensionStringNamePtr, _hash:GDExtensionInt):VoidPtr;
