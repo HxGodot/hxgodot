@@ -395,7 +395,6 @@ class Macros {
                         case TPType(_ct): {
                             switch (_ct) {
                                 case TFunction(_args, _ret): {
-                                    trace(_args);
                                     for (a in _args) {
                                         var arg = {
                                             name: "",

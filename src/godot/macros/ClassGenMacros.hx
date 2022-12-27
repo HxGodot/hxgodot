@@ -112,7 +112,7 @@ class ClassGenMacros {
             var enums = [];
             if (c.enums != null) {
                 for (e in cast(c.enums, Array<Dynamic>)) {
-                    var enumName = '${cname}_${e.name}';
+                    var enumName = '${cname}${e.name}';
                     var buf = new StringBuf();
                     buf.add('enum abstract $enumName(Int) from Int to Int {\n');
                     for (v in cast(e.values, Array<Dynamic>)){

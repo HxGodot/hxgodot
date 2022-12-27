@@ -2,6 +2,7 @@ package stc;
 
 import godot.ColorRect;
 import godot.Engine;
+import godot.Object;
 import godot.Node;
 import godot.PackedScene;
 import godot.PathFollow3D;
@@ -55,7 +56,7 @@ class HxMain extends Node {
         mob.translate(spawnLocation.get_position());
         add_child(mob, false, 0);
         mob.initialize(player.get_position());
-        mob.onSquashed.connect(Callable.fromObjectMethod(score, "onMobSquashed")/*score.onMobSquashed*/, godot.Object.Object_ConnectFlags.CONNECT_ONE_SHOT);
+        mob.onSquashed.connect(Callable.fromObjectMethod(score, "onMobSquashed")/*score.onMobSquashed*/, ObjectConnectFlags.CONNECT_ONE_SHOT);
     }
 
     @:export
