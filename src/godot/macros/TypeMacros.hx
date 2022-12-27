@@ -58,9 +58,9 @@ class TypeMacros {
 
     public static function getTypePackage(_type:String) {
         var res = [];
-        var type = GDNativeVariantType.fromString(_type);
+        var type = GDExtensionVariantType.fromString(_type);
         if (!TypeMacros.isTypeNative(_type)) {
-            if (type == GDNativeVariantType.OBJECT && _type != "Variant") {                
+            if (type == GDExtensionVariantType.OBJECT && _type != "Variant") {                
                 if (!StringTools.startsWith(_type, "cpp"))
                     res = ["godot"];
                 else
@@ -167,7 +167,7 @@ class TypeMacros {
         }
     }
 
-    public static function getOpName(_type:GDNativeVariantOperator):String {
+    public static function getOpName(_type:GDExtensionVariantOperator):String {
         return switch (_type) {
             case EQUAL: "EQUAL";
             case NOT_EQUAL: "NOT_EQUAL";
@@ -207,7 +207,7 @@ class TypeMacros {
         }
     }
 
-    public static function getOpHaxe(_type:GDNativeVariantOperator):String {
+    public static function getOpHaxe(_type:GDExtensionVariantOperator):String {
         return switch (_type) {
             case EQUAL: "==";
             case NOT_EQUAL: "!=";

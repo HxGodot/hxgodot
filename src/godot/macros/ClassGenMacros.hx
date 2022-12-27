@@ -18,7 +18,7 @@ class ClassGenMacros {
         var use64 = Context.defined("HXCPP_M64");
         var useDouble = false; // TODO: Support double Godot builds
         var sizeKey = '${useDouble ? "double" : "float"}_${use64 ? "64" : "32"}';
-        var api = haxe.Json.parse(sys.io.File.getContent("./godot-headers/extension_api.json"));
+        var api = haxe.Json.parse(sys.io.File.getContent("./src/godot_cpp/extension_api.json"));
 
         Sys.println('Generating binding classes for Godot ($sizeKey)...');
 
@@ -211,7 +211,7 @@ class ClassGenMacros {
                             access: access,
                             arguments: args,
                             macros: {
-                                field: (macro class {@:noCompletion public static var $mname:godot.Types.GDNativePtrBuiltInMethod;}).fields[0],
+                                field: (macro class {@:noCompletion public static var $mname:godot.Types.GDExtensionPtrBuiltInMethod;}).fields[0],
                                 fieldSetter: [
                                     'var name_${m.name}:godot.variant.StringName = "${m.name}"',
                                     '$mname = godot.Types.GodotNativeInterface.classdb_get_method_bind(type_${cname}.native_ptr(), name_${m.name}.native_ptr(), untyped __cpp__(\'{0}\', $mhash))'
@@ -433,7 +433,7 @@ class ClassGenMacros {
 
             var abstractName = TypeMacros.getTypeName(b.name);
             var name = '__$abstractName';
-            var type = godot.Types.GDNativeVariantType.fromString(b.name);
+            var type = godot.Types.GDExtensionVariantType.fromString(b.name);
             var typePath = {name:name, pack:['godot', 'variant']};
             var typePathComplex = TPath(typePath);
 
@@ -479,7 +479,7 @@ class ClassGenMacros {
                     access: [APublic, AStatic],
                     arguments: args,
                     macros: {
-                        field: (macro class {@:noCompletion static var $cname:godot.Types.GDNativePtrConstructor;}).fields[0],
+                        field: (macro class {@:noCompletion static var $cname:godot.Types.GDExtensionPtrConstructor;}).fields[0],
                         fieldSetter: [
                             '$cname = godot.Types.GodotNativeInterface.variant_get_ptr_constructor(${type}, ${c.index}))'
                         ]
@@ -497,7 +497,7 @@ class ClassGenMacros {
                     access: [APrivate, AStatic],
                     arguments: [{name:"_this", type:typePath}],
                     macros: {
-                        field: (macro class {@:noCompletion static var _destructor:godot.Types.GDNativePtrDestructor;}).fields[0],
+                        field: (macro class {@:noCompletion static var _destructor:godot.Types.GDExtensionPtrDestructor;}).fields[0],
                         fieldSetter: [
                             '_destructor = godot.Types.GodotNativeInterface.variant_get_ptr_destructor(${type}))' 
                         ]
@@ -532,7 +532,7 @@ class ClassGenMacros {
                         access: [],
                         arguments: [],
                         macros: {
-                            field: (macro class {@:noCompletion static var $mname:godot.Types.GDNativePtrGetter;}).fields[0],
+                            field: (macro class {@:noCompletion static var $mname:godot.Types.GDExtensionPtrGetter;}).fields[0],
                             fieldSetter: [
                                 'var name_${m.name}:godot.variant.StringName = "${m.name}"',
                                 '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_getter(${type}, name_${m.name}.native_ptr()))'
@@ -552,7 +552,7 @@ class ClassGenMacros {
                             type: {name:mType , pack:mPack}
                         }],
                         macros: {
-                            field: (macro class {@:noCompletion static var $mname:godot.Types.GDNativePtrSetter;}).fields[0],
+                            field: (macro class {@:noCompletion static var $mname:godot.Types.GDExtensionPtrSetter;}).fields[0],
                             fieldSetter: [
                                 'var name_${m.name}:godot.variant.StringName = "${m.name}"',
                                 '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_setter(${type}, name_${m.name}.native_ptr()))'
@@ -633,7 +633,7 @@ class ClassGenMacros {
                     arguments: args,
                     hasVarArg: hasVarArg,
                     macros: {
-                        field: hasVarArg ? null : (macro class {@:noCompletion static var $mname:godot.Types.GDNativePtrBuiltInMethod;}).fields[0],
+                        field: hasVarArg ? null : (macro class {@:noCompletion static var $mname:godot.Types.GDExtensionPtrBuiltInMethod;}).fields[0],
                         fieldSetter: hasVarArg ? null : [
                             'var name_${m.name}:godot.variant.StringName = "${m.name}"',
                             '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_builtin_method(${type}, name_${m.name}.native_ptr(), untyped __cpp__(\'{0}\', $mhash)))' 
@@ -657,7 +657,7 @@ class ClassGenMacros {
                     var retType = TypeMacros.getTypeName(o.return_type);
                     var retPack = TypeMacros.getTypePackage(retType);
 
-                    var opType = godot.Types.GDNativeVariantOperator.fromString(o.name);
+                    var opType = godot.Types.GDExtensionVariantOperator.fromString(o.name);
                     var opName = TypeMacros.getOpName(opType);
 
                     if (opName == null)
@@ -675,7 +675,7 @@ class ClassGenMacros {
                     // prep right hand
                     var rType = 0x0;
                     if (o.right_type != null) {
-                        rType = godot.Types.GDNativeVariantType.fromString(o.right_type);
+                        rType = godot.Types.GDExtensionVariantType.fromString(o.right_type);
                         var argType = TypeMacros.getTypeName(o.right_type);
                         var argPack = TypeMacros.getTypePackage(argType);
                         args.push({
@@ -693,7 +693,7 @@ class ClassGenMacros {
                         access: [AStatic, APublic],
                         arguments: args,
                         macros: {
-                            field: (macro class {@:noCompletion static var $oname:godot.Types.GDNativePtrOperatorEvaluator;}).fields[0],
+                            field: (macro class {@:noCompletion static var $oname:godot.Types.GDExtensionPtrOperatorEvaluator;}).fields[0],
                             fieldSetter: [
                                 '$oname = godot.Types.GodotNativeInterface.variant_get_ptr_operator_evaluator(${opType}, ${type}, ${rType}))'
                             ],
@@ -720,7 +720,7 @@ class ClassGenMacros {
                         access: [APublic],
                         arguments: [{name: "_index", type: {name:"Int" , pack:[]}}],
                         macros: {
-                            field: (macro class {@:noCompletion static var $iname:godot.Types.GDNativePtrIndexedGetter;}).fields[0],
+                            field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrIndexedGetter;}).fields[0],
                             fieldSetter: [
                                 '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_getter(${type}))'
                             ]
@@ -736,7 +736,7 @@ class ClassGenMacros {
                         access: [APublic],
                         arguments: [{name: "_index", type: {name:"Int" , pack:[]}}, {name: "_value", type: ret}],
                         macros: {
-                            field: (macro class {@:noCompletion static var $iname:godot.Types.GDNativePtrIndexedSetter;}).fields[0],
+                            field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrIndexedSetter;}).fields[0],
                             fieldSetter: [
                                 '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_setter(${type}))'
                             ]
@@ -799,13 +799,18 @@ class ClassGenMacros {
                 private function new() {}
 
                 @:noCompletion
-                inline public function native_ptr():godot.Types.GDNativeTypePtr {
+                inline public function native_ptr():godot.Types.GDExtensionTypePtr {
                     return untyped __cpp__('{0}->_native_ptr()', this);
                 }
 
                 @:noCompletion
-                inline public function set_native_ptr(_ptr:godot.Types.GDNativeTypePtr):Void {
-                    untyped __cpp__('memcpy(&({0}->opaque[0]), {1}, {2})', this, _ptr, $v{sizeValue});
+                inline public function set_native_ptr(_ptr:godot.Types.GDExtensionTypePtr):Void {
+                    if ($v{has_destructor} == true) // we need to release first if we got a destructor
+                        untyped __cpp__('((GDExtensionPtrDestructor){0})({1})', _destructor, this.native_ptr());
+
+                    // now use copy constructor, otherwise we leak like shit
+                    untyped __cpp__("std::array<GDExtensionConstTypePtr, 1> call_args = { (GDExtensionTypePtr){0} }", _ptr);
+                    untyped __cpp__('((GDExtensionPtrConstructor){0})({1}, (GDExtensionConstTypePtr*)call_args.data());', _constructor_1, this.native_ptr());
                 }
             };
             var init = macro class {
@@ -830,7 +835,7 @@ class ClassGenMacros {
             var tmp = '
                 static constexpr size_t $sizeName = ${sizeValue};
                 uint8_t opaque[$sizeName] = {};
-                _FORCE_INLINE_ ::GDNativeTypePtr _native_ptr() const { return const_cast<uint8_t (*)[$sizeName]>(&opaque); }
+                _FORCE_INLINE_ ::GDExtensionTypePtr _native_ptr() const { return const_cast<uint8_t (*)[$sizeName]>(&opaque); }
             ';
             cls.meta = [{
                 name: ":headerClassCode",
@@ -838,7 +843,7 @@ class ClassGenMacros {
                 pos: Context.currentPos()
             }, {
                 name: ":headerCode",
-                params: [macro "#include <godot/gdnative_interface.h>\n#include <godot_cpp/core/defs.hpp>\n#include <array>"],
+                params: [macro "#include <godot_cpp/gdextension_interface.h>\n#include <godot_cpp/core/defs.hpp>\n#include <array>"],
                 pos: Context.currentPos()
             }];
 
@@ -966,7 +971,7 @@ class ClassGenMacros {
             buf.add('@:structAccess\n');
             buf.add('@:unreflective\n');            
             buf.add('@:include("godot_cpp/godot.hpp")\n');
-            buf.add('@:include("godot/gdnative_interface.h")\n');
+            buf.add('@:include("godot/gdextension_interface.h")\n');
             buf.add('@:include("godot/native_structs.hpp")\n');
             buf.add('@:native("godot::structs::$sName")\n');
             buf.add('extern class $sName {}\n\n');
@@ -989,7 +994,7 @@ class ClassGenMacros {
 #ifndef GODOT_STRUCTS_HPP
 #define GODOT_STRUCTS_HPP
 #include <godot_cpp/godot.hpp>
-#include <godot/gdnative_interface.h>
+#include <godot_cpp/gdextension_interface.h>
 namespace godot {
 namespace structs {
 ${structHeaderContent.toString()}
@@ -1004,18 +1009,4 @@ ${structHeaderContent.toString()}
         sys.io.File.saveContent(path+"/native_structs.hpp", structHeader.toString());
         
     }
-/*
-@:structAccess
-@:unreflective
-@:include("godot_cpp/godot.hpp")
-@:include("godot/gdnative_interface.h")
-@:native("::GDNativePropertyInfo")
-extern class GDNativePropertyInfo {
-    public function new();
-    var type:GDNativeVariantType;
-    var name:cpp.ConstCharStar;
-    var class_name:cpp.ConstCharStar;
-    var hint_string:cpp.ConstCharStar;
-}
-*/
 }

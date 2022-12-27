@@ -15,12 +15,13 @@ class Wrapped {
     
     public var __root:VoidPtr = null;
     public var __owner:VoidPtr = null; // pointer to the godot-side parent class we need to keep around
-    inline public function native_ptr():GDNativeObjectPtr {
+    inline public function native_ptr():GDExtensionObjectPtr {
         return __owner;
     }
 
     public function as<T:Wrapped>(_cls:Class<T>):T {
         var ret:T = null;
+        
         var name:godot.variant.StringName = Reflect.field(_cls, "__class_name");
 
         if (name.hash() == this.getClassName().hash()) // early out if the classnames match!

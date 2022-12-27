@@ -6,7 +6,7 @@ import godot.Types;
 using cpp.NativeArray;
 #end
 
-typedef __Vector3 = Array<GDNativeFloat>;
+typedef __Vector3 = Array<GDExtensionFloat>;
 
 private class __Vector3Defaults {
     public static final X:Vector3 = [1,0,0];
@@ -29,12 +29,12 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
         return __Vector3Defaults.Z;
     }
 
-    inline public function new(?_x:GDNativeFloat=0, ?_y:GDNativeFloat=0, ?_z:GDNativeFloat=0):Vector3 this = _alloc(_x, _y, _z);
+    inline public function new(?_x:GDExtensionFloat=0, ?_y:GDExtensionFloat=0, ?_z:GDExtensionFloat=0):Vector3 this = _alloc(_x, _y, _z);
 
-    inline private static function _alloc(_x:GDNativeFloat, _y:GDNativeFloat, _z:GDNativeFloat):__Vector3
+    inline private static function _alloc(_x:GDExtensionFloat, _y:GDExtensionFloat, _z:GDExtensionFloat):__Vector3
         return [_x, _y, _z];
 
-    inline public function native_ptr():GDNativeTypePtr {
+    inline public function native_ptr():GDExtensionTypePtr {
         #if !macro
         return cast cpp.NativeArray.getBase(this).getBase();
         #else
@@ -42,23 +42,23 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
         #end
     }
 
-    public var x(get, set):GDNativeFloat;
+    public var x(get, set):GDExtensionFloat;
     inline function get_x() return this[0];
-    inline function set_x(_v:GDNativeFloat) {this[0] = _v; return _v;}
+    inline function set_x(_v:GDExtensionFloat) {this[0] = _v; return _v;}
 
-    public var y(get, set):GDNativeFloat;
+    public var y(get, set):GDExtensionFloat;
     inline function get_y() return this[1];
-    inline function set_y(_v:GDNativeFloat) {this[1] = _v; return _v;}
+    inline function set_y(_v:GDExtensionFloat) {this[1] = _v; return _v;}
 
-    public var z(get, set):GDNativeFloat;
+    public var z(get, set):GDExtensionFloat;
     inline function get_z() return this[2];
-    inline function set_z(_v:GDNativeFloat) {this[2] = _v; return _v;}
+    inline function set_z(_v:GDExtensionFloat) {this[2] = _v; return _v;}
 
     @:arrayAccess
     inline public function get(_i:Int) return this[_i];
 
     @:arrayAccess
-    inline public function setAt(_i:Int, _v:GDNativeFloat):Void
+    inline public function setAt(_i:Int, _v:GDExtensionFloat):Void
         this[_i] = _v;
 
     inline public function copy():Vector3
@@ -70,11 +70,11 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
         #end
     }
 
-    inline public function set(_x:GDNativeFloat, _y:GDNativeFloat, _z:GDNativeFloat):Void {
+    inline public function set(_x:GDExtensionFloat, _y:GDExtensionFloat, _z:GDExtensionFloat):Void {
         this[0] = _x; this[1] = _y; this[2] = _z;
     }
 
-    inline public function normalize():GDNativeFloat {
+    inline public function normalize():GDExtensionFloat {
         var len = length_squared();
         if (len == 0.0)
             this[0] = this[1] = this[2] = 0.0;
@@ -93,7 +93,7 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
         return res;
     }
 
-    inline public function dot(rhs:Vector3):GDNativeFloat
+    inline public function dot(rhs:Vector3):GDExtensionFloat
         return this[0] * rhs[0] + this[1] * rhs[1] + this[2] * rhs[2];
 
     inline public function cross(rhs:Vector3):Vector3 {
@@ -104,10 +104,10 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
         return res;
     }
 
-    inline public function length():GDNativeFloat 
+    inline public function length():GDExtensionFloat 
         return Math.sqrt(dot(this));
 
-    inline public function length_squared():GDNativeFloat 
+    inline public function length_squared():GDExtensionFloat 
         return dot(this);
 
     @:op(A == B)
@@ -153,7 +153,7 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
     }
 
     @:op(A * B)
-    inline public static function multScalar(lhs:Vector3, scalar:GDNativeFloat):Vector3 {
+    inline public static function multScalar(lhs:Vector3, scalar:GDExtensionFloat):Vector3 {
         var res = new Vector3(0,0,0);
         res[0] =  lhs[0] * scalar;
         res[1] =  lhs[1] * scalar;
@@ -162,7 +162,7 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
     }
 
     @:op(A *= B)
-    inline public static function multScalarIn(lhs:Vector3, scalar:GDNativeFloat):Vector3 {
+    inline public static function multScalarIn(lhs:Vector3, scalar:GDExtensionFloat):Vector3 {
         lhs[0] *= scalar;
         lhs[1] *= scalar;
         lhs[2] *= scalar;
@@ -170,7 +170,7 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
     }
 
     @:op(A / B)
-    inline public static function divideScalar(lhs:Vector3, scalar:GDNativeFloat):Vector3 {
+    inline public static function divideScalar(lhs:Vector3, scalar:GDExtensionFloat):Vector3 {
         var res = new Vector3(0,0,0);
         res[0] =  lhs[0] / scalar;
         res[1] =  lhs[1] / scalar;
@@ -179,7 +179,7 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
     }
 
     @:op(A /= B)
-    inline public static function divideScalarIn(lhs:Vector3, scalar:GDNativeFloat):Vector3 {
+    inline public static function divideScalarIn(lhs:Vector3, scalar:GDExtensionFloat):Vector3 {
         lhs[0] /= scalar;
         lhs[1] /= scalar;
         lhs[2] /= scalar;

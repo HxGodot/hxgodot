@@ -17,6 +17,7 @@ class HxMob extends CharacterBody3D {
 	override function _ready() {
 		if (Engine.singleton().is_editor_hint()) // skip if in editor
             return;
+        
 		this.get_node("VisibilityNotifier").as(VisibleOnScreenNotifier3D).screen_exited.connect(
 			//Callable.fromObjectMethod(this, "queue_free"), 0
 			Callable.fromObjectMethod(this, "squash"), 0
@@ -43,7 +44,6 @@ class HxMob extends CharacterBody3D {
 	@:export
 	public function squash() {
 		//onSquashed.emitSignal();
-		trace("leaving the screen");
 		queue_free();
 	}
 	

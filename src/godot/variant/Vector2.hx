@@ -15,7 +15,7 @@ abstract Vector2(__Vector2) from __Vector2 to __Vector2 {
     inline private static function _alloc(_x:Float, _y:Float):__Vector2
         return [_x, _y];
 
-    inline public function native_ptr():GDNativeTypePtr {
+    inline public function native_ptr():GDExtensionTypePtr {
         #if !macro
         return cast cpp.NativeArray.getBase(this).getBase();
         #else

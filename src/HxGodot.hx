@@ -72,6 +72,7 @@ class HxGodot {
         // use https://github.com/jasononeil/compiletime to embed all found extensionclasses and use rtti to register them
         // TODO: the compile-time lib should prolly be replaced with something lightweight in the long run
         var builtins = CompileTime.getAllClasses(godot.variant.IBuiltIn);
+        trace(builtins);
         for (t in builtins) {
             if (Reflect.hasField(t, "__init_builtin_constructors")) // built-in class constructors and shit
                 Reflect.field(t, "__init_builtin_constructors")();
@@ -80,8 +81,8 @@ class HxGodot {
             if (Reflect.hasField(t, "__init_builtin_bindings")) // built-in class bindings
                 Reflect.field(t, "__init_builtin_bindings")();
         }
-        trace(builtins);
         var tmp = CompileTime.getAllClasses(Wrapped);
+        trace(tmp);
         for (t in tmp) {
             if (Reflect.hasField(t, "__init_engine_bindings")) // engine class bindings
                 Reflect.field(t, "__init_engine_bindings")();
@@ -92,7 +93,6 @@ class HxGodot {
             if (Reflect.hasField(t, "__registerClass")) // extension class bindings
                 Reflect.field(t, "__registerClass")();
         }
-        trace(tmp);
     }
 
     public static function shutdown() {
