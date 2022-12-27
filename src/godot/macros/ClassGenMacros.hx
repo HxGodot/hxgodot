@@ -50,7 +50,7 @@ class ClassGenMacros {
             inheritanceLists.set(c.name, res);
         }
 
-        trace(inheritanceLists);
+        //trace(inheritanceLists);
         */
 
         // track singletons
@@ -955,7 +955,7 @@ class ClassGenMacros {
                 members.push(tmp);
             }
 
-            trace(members);
+            //trace(members);
 
             
             for (m in members) {

@@ -6,12 +6,16 @@ import godot.variant.GDString;
 
 class HxExample extends godot.Node {
 
+    @:export
+    @:hint(PropertyHint.PROPERTY_HINT_RANGE, "0,64,1")
+    public var testProperty(default, default):Int = 42;
+
     //
     @:isVar
     @:export
     @:hint(PropertyHint.PROPERTY_HINT_RANGE, "0,64,0.01")
     @:group("My Haxe Properties", "hx_")
-    public var hx_ImportantFloat(get, set):Float = 22;
+    public var hx_ImportantFloat(default, set):Float = 22;
 
     @:export
     function set_hx_ImportantFloat(_v:Float):Float {
@@ -60,16 +64,11 @@ class HxExample extends godot.Node {
         return _v;
     }
 
-    @:export
-    function get_hx_ImportantFloat():Float {
-        return hx_ImportantFloat;
-    }
-
     //
     @:isVar
     @:export
     @:hint(PropertyHint.PROPERTY_HINT_MULTILINE_TEXT, "")
-    public var hx_ImportantString(get, set):GDString = "Initial String Value";
+    public var hx_ImportantString(default, set):GDString = "Initial String Value";
 
     @:export
     function set_hx_ImportantString(_v:GDString):GDString {
@@ -79,28 +78,12 @@ class HxExample extends godot.Node {
         return _v;
     }
 
-    @:export
-    function get_hx_ImportantString():GDString {
-        return hx_ImportantString;
-    }
-
     //
     @:isVar
     @:export
     @:hint(PropertyHint.PROPERTY_HINT_NONE, "suffix:m")
     @:subGroup("Random Properties", "hx_random")
-    public var hx_random_MyVector3(get, set):Vector3 = new Vector3(1,2,3);
-
-    @:export
-    function set_hx_random_MyVector3(_v:Vector3):Vector3 {
-        hx_random_MyVector3 = _v;
-        return _v;
-    }
-
-    @:export
-    function get_hx_random_MyVector3():Vector3 {
-        return hx_random_MyVector3;
-    }
+    public var hx_random_MyVector3(default, default):Vector3 = new Vector3(1,2,3);
 
     // ...
 

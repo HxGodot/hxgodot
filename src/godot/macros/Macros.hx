@@ -85,6 +85,7 @@ class Macros {
         
         // register these extension fields
         var extensionFields = [];
+        //var extensionIntegerConstants = [];
         var extensionProperties = [];
         var virtualFields = new Map<String, haxe.macro.Field>();
 
@@ -97,7 +98,39 @@ class Macros {
                                 extensionFields.push(field);
                             case FProp(_g, _s, _type):
                                 extensionProperties.push(field);
-                            case FVar(_t): // TODO: ADD THESE
+                            case FVar(_t, _e): { // make sure we only allow integer constants
+                                /* TODO: we dont really need these, yet
+                                function fatalError() {
+                                    Context.fatalError("Exported Constant is not an integer: " + field.name, Context.currentPos());
+                                }
+                                if (_e == null) {
+                                    Context.fatalError("Exported Constant has no value: " + field.name, Context.currentPos());
+                                    continue;
+                                }
+                                if (_t == null) { // no type supplied, check value expr
+                                    switch (_e.expr) {
+                                        case EConst(_ct): {
+                                            switch (_ct) {
+                                                case CInt(_value): extensionIntegerConstants.push(field);
+                                                default: fatalError();
+                                            }
+                                        }
+                                        default: fatalError();
+                                    }
+                                } else {
+                                    switch(_t) {
+                                        case TPath(_p): {
+                                            if (_p.name == "Int") 
+                                                extensionIntegerConstants.push(field);
+                                            else 
+                                                fatalError();
+                                        }
+                                        default: fatalError();
+                                    }
+                                }
+                                //trace(_t + " " + _e);
+                                */
+                            }
                         }
                 }
             }
@@ -139,15 +172,17 @@ class Macros {
             if (engine_parent == null)
                 throw "Impossible";
 
-            trace("////////////////////////////////////////////////////////////////////////////////");
-            trace('// Class: ${className}');
+            //trace("////////////////////////////////////////////////////////////////////////////////");
+            //trace('// Class: ${className}');
 
             // we got an extension class, so make sure we got the whole extension bindings for the fields covered!
-            fields = fields.concat(buildFieldBindings(typePath.name, classMeta, typePath, extensionFields, engineVirtuals, classNameCpp, extensionProperties));
+            fields = buildFieldBindings(fields, typePath.name, classMeta, typePath, extensionFields, engineVirtuals, classNameCpp, extensionProperties);
 
             // properly bootstrap this class
             fields = fields.concat(PostInitMacros.buildPostInitExtension(typePath, parent_class_name, engine_parent.name, classNameCpp, isRefCounted));
         }
+
+
 
         return fields;
     }
@@ -155,7 +190,7 @@ class Macros {
     
     
 
-    static function buildFieldBindings(_className:String, _classMeta, _typePath, _extensionFields:Array<Dynamic>, _virtualFields:Array<Dynamic>, _cppClassName:String, _extensionProperties:Array<Dynamic>) {
+    static function buildFieldBindings(_fields:Array<haxe.macro.Field>, _className:String, _classMeta, _typePath, _extensionFields:Array<haxe.macro.Field>, _virtualFields:Array<Dynamic>, _cppClassName:String, _extensionProperties:Array<haxe.macro.Field>) {
         var pos = Context.currentPos();
         var ctType = TPath(_typePath);
 
@@ -179,6 +214,140 @@ class Macros {
         var bindCalls = [];
         var bindCallPtrs = [];
 
+        for (field in _extensionProperties) {
+            switch(field.kind) {
+                case FProp(_g, _s, _type, _expr): {
+                    //trace("////////////////////////////////////////////////////////////////////////////////");
+                    // trace('// FProp: ${field.name}');
+                    // trace(field);
+                    //trace(_g);
+                    //trace(_s);
+                    //trace(_type);
+                    
+                    var argType = _mapHxTypeToGodot(_type);
+                    var hint = macro $v{godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE};
+                    var hint_string = macro $v{""};
+                    var usage = macro $v{7}; // TODO: we should prolly expose this
+                    var group = null;
+                    var group_prefix = null;
+                    var sub_group = null;
+                    var sub_group_prefix = null;
+
+                    // extract metadata and apply it to the PropertyInfo
+                    for (m in cast(field.meta, Array<Dynamic>)) {
+                        switch(m.name) {
+                            case ':hint': {
+                                hint = macro ${m.params[0]};
+                                hint_string = macro ${m.params[1]};
+                            }
+                            case ':group': {
+                                group = macro ${m.params[0]};
+                                group_prefix = macro ${m.params[1]};
+                            }
+                            case ':subGroup': {
+                                sub_group = macro ${m.params[0]};
+                                sub_group_prefix = macro ${m.params[1]};
+                            }
+                        }
+                    }
+
+                    // check for default accessor identifier and generate setters / getters for godot to pick up,
+                    // otherwise assume we got a explicit field already -> Warning or error message?
+                    if (_g == "default" || _s == "default") {
+                        var pname = field.name;
+                        _fields.remove(field);                        
+                        
+                        if (_g == "default") { // getter
+                            var gname = 'get_${field.name}';
+                            var tmp = macro class {
+                                @:export
+                                function $gname():$_type {
+                                    return $i{pname};
+                                }
+                            };
+                            _extensionFields.push(tmp.fields[0]);
+                            _fields.push(tmp.fields[0]);
+                        }
+
+                        if (_s == "default") { // setter
+                            var sname = 'set_${field.name}';
+                            var tmp = macro class {
+                                @:export
+                                function $sname(_v:$_type):$_type {
+                                    return $i{pname} = _v;
+                                }
+                            };
+                            _extensionFields.push(tmp.fields[0]);
+                            _fields.push(tmp.fields[0]);
+                        }
+
+                        // override accessor and readd
+                        field.meta.push({name:":isVar", pos:Context.currentPos()});
+                        field.kind = FProp("get", "set", _type, _expr);
+                        _fields.push(field);
+                    }
+
+                    // TODO: this can be problematic, groups and sub_groups are defined in order of declaration?
+                    if (group != null) {
+                        regPropOut.push( macro {
+                            var group:godot.variant.GDString = ${group};
+                            var group_prefix:godot.variant.GDString = ${group_prefix};
+                            godot.Types.GodotNativeInterface.classdb_register_extension_class_property_group(
+                                library,
+                                __class_name.native_ptr(),
+                                group.native_ptr(),
+                                group_prefix.native_ptr()
+                            );    
+                        });
+                    } else if (sub_group != null) {
+                        regPropOut.push( macro {
+                            var sub_group:godot.variant.GDString = ${sub_group};
+                            var sub_group_prefix:godot.variant.GDString = ${sub_group_prefix};
+                            godot.Types.GodotNativeInterface.classdb_register_extension_class_property_subgroup(
+                                library,
+                                __class_name.native_ptr(),
+                                sub_group.native_ptr(),
+                                sub_group_prefix.native_ptr()
+                            );    
+                        });
+                    }
+
+                    regPropOut.push( macro {
+                        var clNamePtr:godot.Types.GDExtensionStringNamePtr = __class_name.native_ptr();
+                        var fname:godot.variant.StringName = $v{field.name};
+                        var hname:godot.variant.GDString = ${hint_string};
+                        var propInfo:godot.Types.GDExtensionPropertyInfo = untyped __cpp__('{
+                            (GDExtensionVariantType){0}, // GDExtensionVariantType type;
+                            {1}, // GDExtensionStringNamePtr name;
+                            {2}, // GDExtensionStringNamePtr class_name;
+                            {3}, // uint32_t hint;
+                            {4}, // GDExtensionStringPtr hint_string;
+                            {5}  // uint32_t usage;
+                        }',
+                            $v{argType},
+                            fname.native_ptr(),
+                            clNamePtr,
+                            ${hint},
+                            hname.native_ptr(),
+                            godot.GlobalConstants.PropertyUsageFlags.PROPERTY_USAGE_DEFAULT
+                        );
+
+                        var setter:godot.variant.StringName = $v{"set_"+field.name};
+                        var getter:godot.variant.StringName = $v{"get_"+field.name};
+                        godot.Types.GodotNativeInterface.classdb_register_extension_class_property(
+                            library, 
+                            clNamePtr, 
+                            propInfo,
+                            setter.native_ptr(),
+                            getter.native_ptr()
+                        );
+                    });
+                    
+                }
+                default:
+            }
+        }
+
         // build everything for the extension fields
         for (i in 0..._extensionFields.length) {
             var field = _extensionFields[i];
@@ -190,23 +359,18 @@ class Macros {
 
             switch (field.kind) {
                 case FFun(_f): {
-                    trace("////////////////////////////////////////////////////////////////////////////////");
-                    trace('// FFun: ${field.name}');
+                    // trace("////////////////////////////////////////////////////////////////////////////////");
+                    // trace('// FFun: ${field.name}');
                     
-                    //trace(_f);
-
+                    // trace(_f);
                     var argExprs = [];
                     var argVariantExprs = [];
                     var retAndArgsInfos = [];
 
                     // add functions for looking up arguments
                     for (j in -1..._f.args.length) {
-
-                        // -1 indicates the return type of the function
-                        if (j == -1) { 
-
-                            trace(_f);
-
+                        
+                        if (j == -1) { // -1 indicates the return type of the function, deal with it as special case
                             var argType = _mapHxTypeToGodot(_f.ret);
                             var argTypeString = godot.Types.GDExtensionVariantType.toString(argType);
 
@@ -270,12 +434,14 @@ class Macros {
 
                     // build fields hints 
                     var hintFlags = METHOD_FLAGS_DEFAULT;
-                    for (a in cast(field.access, Array<Dynamic>)) {
-                        switch(a) {
-                            case APublic: hintFlags |= METHOD_FLAG_NORMAL;
-                            case AStatic: hintFlags |= METHOD_FLAG_STATIC;
-                            case AFinal:  hintFlags |= METHOD_FLAG_CONST;
-                            default:
+                    if (field.access != null) {
+                        for (a in cast(field.access, Array<Dynamic>)) {
+                            switch(a) {
+                                case APublic: hintFlags |= METHOD_FLAG_NORMAL;
+                                case AStatic: hintFlags |= METHOD_FLAG_STATIC;
+                                case AFinal:  hintFlags |= METHOD_FLAG_CONST;
+                                default:
+                            }
                         }
                     }
                     var isStatic = hintFlags & METHOD_FLAG_STATIC != 0;
@@ -325,7 +491,7 @@ class Macros {
                         var fname:godot.variant.StringName = $v{field.name};
 
                         // TODO: Remove
-                        trace("registering " + $v{field.name});
+                        //trace("registering " + $v{field.name});
 
                         var method_info:godot.Types.GDExtensionClassMethodInfo = untyped __cpp__('{
                             {0}, // GDExtensionStringNamePtr name;
@@ -369,9 +535,6 @@ class Macros {
                     });
                 }
                 default:
-                // TODO: Add these
-                //case FProp(_g, _s, _type):
-                //case FVar(_t):
             }
             
             bindCalls.push(macro {
@@ -385,112 +548,12 @@ class Macros {
                     $b{bindPtrs};
                 }
             });
-        }
-
-        for (field in _extensionProperties) {
-            switch(field.kind) {
-                case FProp(_g, _s, _type): {
-                    trace("////////////////////////////////////////////////////////////////////////////////");
-                    trace('// FProp: ${field.name}');
-                    trace(field);
-                    trace(_g);
-                    trace(_s);
-                    trace(_type);
-
-                    
-                    var argType = _mapHxTypeToGodot(_type);
-
-                    // TODO: rewrite Haxe Properties in order to always have a getter/setter
-                    var hint = macro $v{godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE};
-                    var hint_string = macro $v{""};
-                    var usage = macro $v{7}; // TODO: we should prolly expose this
-                    var group = null;
-                    var group_prefix = null;
-                    var sub_group = null;
-                    var sub_group_prefix = null;
-
-                    for (m in cast(field.meta, Array<Dynamic>)) {
-                        switch(m.name) {
-                            case ':hint': {
-                                hint = macro ${m.params[0]};
-                                hint_string = macro ${m.params[1]};
-                            }
-                            case ':group': {
-                                group = macro ${m.params[0]};
-                                group_prefix = macro ${m.params[1]};
-                            }
-                            case ':subGroup': {
-                                sub_group = macro ${m.params[0]};
-                                sub_group_prefix = macro ${m.params[1]};
-                            }
-                        }
-                    }                    
-
-                    if (group != null) {
-                        regPropOut.push( macro {
-                            var group:godot.variant.GDString = ${group};
-                            var group_prefix:godot.variant.GDString = ${group_prefix};
-                            godot.Types.GodotNativeInterface.classdb_register_extension_class_property_group(
-                                library,
-                                __class_name.native_ptr(),
-                                group.native_ptr(),
-                                group_prefix.native_ptr()
-                            );    
-                        });
-                    } else if (sub_group != null) {
-                        regPropOut.push( macro {
-                            var sub_group:godot.variant.GDString = ${sub_group};
-                            var sub_group_prefix:godot.variant.GDString = ${sub_group_prefix};
-                            godot.Types.GodotNativeInterface.classdb_register_extension_class_property_subgroup(
-                                library,
-                                __class_name.native_ptr(),
-                                sub_group.native_ptr(),
-                                sub_group_prefix.native_ptr()
-                            );    
-                        });
-                    }
-
-                    var tmp:String = '"${field.name}"';
-                    regPropOut.push( macro {
-                        var clNamePtr:godot.Types.GDExtensionStringNamePtr = __class_name.native_ptr();
-                        var fname:godot.variant.StringName = $v{field.name};
-                        var hname:godot.variant.GDString = ${hint_string};
-                        var propInfo:godot.Types.GDExtensionPropertyInfo = untyped __cpp__('{
-                            (GDExtensionVariantType){0}, // GDExtensionVariantType type;
-                            {1}, // GDExtensionStringNamePtr name;
-                            {2}, // GDExtensionStringNamePtr class_name;
-                            {3}, // uint32_t hint;
-                            {4}, // GDExtensionStringPtr hint_string;
-                            {5}  // uint32_t usage;
-                        }',
-                            $v{argType},
-                            fname.native_ptr(),
-                            clNamePtr,
-                            ${hint},
-                            hname.native_ptr(),
-                            godot.GlobalConstants.PropertyUsageFlags.PROPERTY_USAGE_DEFAULT
-                        );
-
-                        var setter:godot.variant.StringName = $v{"set_"+field.name};
-                        var getter:godot.variant.StringName = $v{"get_"+field.name};
-                        godot.Types.GodotNativeInterface.classdb_register_extension_class_property(
-                            library, 
-                            clNamePtr, 
-                            propInfo,
-                            setter.native_ptr(),
-                            getter.native_ptr()
-                        );
-                    });
-                    
-                }
-                default:
-            }
-        }
+        }        
 
         // build callbacks and implementations for the virtuals 
-        trace("////////////////////////////////////////////////////////////////////////////////");
-        trace('// Virtuals');
-        trace("////////////////////////////////////////////////////////////////////////////////");
+        //trace("////////////////////////////////////////////////////////////////////////////////");
+        //trace('// Virtuals');
+        //trace("////////////////////////////////////////////////////////////////////////////////");
 
         var vCallbacks = '';
         var virtualFuncCallbacks = [];
@@ -507,7 +570,7 @@ class Macros {
         }
 
         for (f in _virtualFields) {
-            //trace(f);
+            ////trace(f);
 
             var vname = 'virtual_${_className}_${f.name}';
             virtualFuncCallbacks.push(macro {
@@ -739,7 +802,7 @@ class Macros {
                 //bind->ptrcall(p_instance, p_args, r_return);        
             }
         }
-        return fieldBindingsClass.fields.concat(virtualFuncImpls);
+        return _fields.concat(fieldBindingsClass.fields.concat(virtualFuncImpls));
     }
 #end
 }
