@@ -11,7 +11,6 @@ class HxExample extends godot.Node {
     public var testProperty(default, default):Int = 42;
 
     //
-    @:isVar
     @:export
     @:hint(PropertyHint.PROPERTY_HINT_RANGE, "0,64,0.01")
     @:group("My Haxe Properties", "hx_")
@@ -65,7 +64,6 @@ class HxExample extends godot.Node {
     }
 
     //
-    @:isVar
     @:export
     @:hint(PropertyHint.PROPERTY_HINT_MULTILINE_TEXT, "")
     public var hx_ImportantString(default, set):GDString = "Initial String Value";
@@ -79,7 +77,6 @@ class HxExample extends godot.Node {
     }
 
     //
-    @:isVar
     @:export
     @:hint(PropertyHint.PROPERTY_HINT_NONE, "suffix:m")
     @:subGroup("Random Properties", "hx_random")

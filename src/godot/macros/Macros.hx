@@ -182,8 +182,6 @@ class Macros {
             fields = fields.concat(PostInitMacros.buildPostInitExtension(typePath, parent_class_name, engine_parent.name, classNameCpp, isRefCounted));
         }
 
-
-
         return fields;
     }
 #if macro
