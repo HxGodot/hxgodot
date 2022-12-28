@@ -2,17 +2,23 @@ package godot.macros;
 
 import godot.Types;
 
+using StringTools;
+
 class TypeMacros {
 
     public static function getTypeName(_t:String) {
         return switch(_t) {
             case "Nil": "Void";
             case "bool": "Bool";
+            case "void": "cpp.Void";
             case "int", "int64": "cpp.Int64";
-            case "int32": "cpp.Int32";
-            case "uint", "uint64": "cpp.UInt64";
-            case "uint32": "cpp.UInt32";
-            case "uint16": "cpp.UInt16";
+            case "int32_t", "int32": "cpp.Int32";
+            case "uint_t", "uint", "uint64": "cpp.UInt64";
+            case "uint32_t", "uint32": "cpp.UInt32";
+            case "uint16_t", "uint16": "cpp.UInt16";
+            case "uint8_t", "uint8": "cpp.UInt8";
+            case "int8_t", "int8": "cpp.Int8";
+            case "int16_t", "int16": "cpp.Int16";
             case "real_t", "float", "double": "Float";
             case "float32": "cpp.Float32";
             // case "AABB":
@@ -48,8 +54,13 @@ class TypeMacros {
             case "Array": "GDArray";
             default: {
                 var ret = _t;
-                if (StringTools.endsWith(_t, "*")) {
-                    ret = 'cpp.Star<godot.${_t.substring(0, _t.length-1)}>';
+                _t = _t.replace("const", "").trim();
+
+                if (_t.endsWith("*")) {
+                    var tmp = getTypeName(_t.substring(0, _t.length-1).trim());
+                    var pack = getTypePackage(tmp).concat([tmp]);
+
+                    ret = 'cpp.Star<${pack.join(".")}>';
                 }
                 ret;
             }
@@ -80,9 +91,12 @@ class TypeMacros {
                 "uint_t", "uint", "uint64", "cpp.UInt64",
                 "uint32_t", "uint32", "cpp.UInt32",
                 "uint16_t", "uint16", "cpp.UInt16",
+                "uint8_t", "uint8", "cpp.UInt8",
+                "int8_t", "int8", "cpp.Int8",
+                "int16_t", "int16", "cpp.Int16",
                 "real_t", "float", "double", "float_t", "double_t", "Float",
                 "float32_t", "cpp.Float32",
-                "const void*", "godot.Types.VoidPtr": true;
+                "void", "const void*", "godot.Types.VoidPtr": true;
 
             default: false;
         }
@@ -96,7 +110,8 @@ class TypeMacros {
         return switch(_type) {
             case "Bool": false;
             case "Float": 0.0;
-            case "cpp.Int64", "cpp.Int32", "cpp.UInt64", "cpp.UInt32", "cpp.UInt16": 0;
+            case "cpp.Int64", "cpp.Int32", "cpp.Int16", "cpp.Int8", 
+                "cpp.UInt64", "cpp.UInt32", "cpp.UInt16", "cpp.UInt8": 0;
             default: false;
         }
     }
@@ -117,6 +132,7 @@ class TypeMacros {
                 // "Vector2i",
                 // "Vector3i",
                 // "Projection",
+                "const uint8_t *",
                 "Vector4", // TODO
                 "Vector4i": false;  // TODO
                 //"AABB",
@@ -239,7 +255,7 @@ class TypeMacros {
         }
     }
 
-    public static function snakeToCamelCase(_str:String):String {
+    public static function fixCase(_str:String):String {
         /*
         if (_str.charAt(0) == "_") // ignore virtuals!
             return _str;

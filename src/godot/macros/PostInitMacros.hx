@@ -73,7 +73,7 @@ class PostInitMacros {
                 __class_name = $v{className};
                 __parent_class_name = $v{_parent_class_name};
                 __class_tag = godot.Types.GodotNativeInterface.classdb_get_class_tag(__class_name.native_ptr());
-                Wrapped.classTags.set(__class_name, $classIdentifier);
+                godot.Wrapped.classTags.set(__class_name, $classIdentifier);
             }
 
             override function __postInit(?_finalize = true) {
@@ -170,7 +170,7 @@ class PostInitMacros {
             static function __init_constant_bindings() {
                 __class_name = $v{className};
                 __parent_class_name = $v{_parent_class_name};
-                Wrapped.classTags.set(__class_name, $classIdentifier);
+                godot.Wrapped.classTags.set(__class_name, $classIdentifier);
             }
 
             override function __postInit(?_finalize = true) {

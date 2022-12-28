@@ -13,6 +13,7 @@ using haxe.macro.ExprTools;
 using StringTools;
 
 class ClassGenMacros {
+    static var outputFolder = "./bindings";
 
     public static function api() {
         var use64 = Context.defined("HXCPP_M64");
@@ -20,7 +21,11 @@ class ClassGenMacros {
         var sizeKey = '${useDouble ? "double" : "float"}_${use64 ? "64" : "32"}';
         var api = haxe.Json.parse(sys.io.File.getContent("./src/godot_cpp/extension_api.json"));
 
-        Sys.println('Generating binding classes for Godot ($sizeKey)...');
+        Sys.println('Generating binding classes for ${api.header.version_full_name} ($sizeKey)...');
+
+        outputFolder = StringTools.replace(Context.getDefines().get("output"), "\"", "");
+
+        Sys.println('Targeting "$outputFolder"');
 
         _generateGlobalEnums(api);
         _generateNativeStructs(api, sizeKey);
@@ -130,9 +135,9 @@ class ClassGenMacros {
             if (c.methods != null) {
                 for (m in cast(c.methods, Array<Dynamic>)) {
 
-                    var caName = TypeMacros.snakeToCamelCase(m.name);
+                    //var caName = TypeMacros.fixCase(m.name);
 
-                    m.name = ArgumentMacros.guardAgainstKeywords(m.name);
+                    var caName = m.name = ArgumentMacros.guardAgainstKeywords(m.name);
 
                     var isAllowed = true;
                     var args = new Array<FunctionArgument>();
@@ -227,12 +232,15 @@ class ClassGenMacros {
             var signals = [];
             if (c.signals != null) {
                 for (s in cast(c.signals, Array<Dynamic>)) {
+                    var isValid = 0;
                     var sname = s.name;
                     var gname = 'get_$sname';
                     var sig = [];
                     if (s.arguments != null) {
                         for (a in cast(s.arguments, Array<Dynamic>)) {
                             var t = TypeMacros.getTypePackage(a.type);
+                            if (!TypeMacros.isTypeAllowed(a.type))
+                                isValid += 1;
                             sig.push(TNamed(a.name, TPath({name: TypeMacros.getTypeName(a.type), pack: t})));
                         }
                     }
@@ -250,7 +258,9 @@ class ClassGenMacros {
                             return godot.variant.Signal.fromObjectSignal(this, $v{sname});
                         }
                     };
-                    signals = signals.concat(cls.fields);
+
+                    if (isValid == 0)
+                        signals = signals.concat(cls.fields);
                 }                
             }
             
@@ -285,8 +295,8 @@ class ClassGenMacros {
                             field: null,
                             fieldSetter: null,
                             extra: {
-                                setter: TypeMacros.snakeToCamelCase(m.setter), 
-                                getter: TypeMacros.snakeToCamelCase(m.getter),
+                                setter: TypeMacros.fixCase(m.setter), 
+                                getter: TypeMacros.fixCase(m.getter),
                                 index: m.index
                             }
                         }
@@ -306,8 +316,8 @@ class ClassGenMacros {
                             field: null,
                             fieldSetter: null,
                             extra: {
-                                setter: TypeMacros.snakeToCamelCase(m.setter), 
-                                getter: TypeMacros.snakeToCamelCase(m.getter),
+                                setter: TypeMacros.fixCase(m.setter), 
+                                getter: TypeMacros.fixCase(m.getter),
                                 index: m.index
                             }
                         }
@@ -414,7 +424,7 @@ class ClassGenMacros {
             //var output = ptr.printTypeDefinition(abstrct) + "\n\n" + enums.join("") + "\n\n" + ptr.printTypeDefinition(cls);
             var output = ptr.printTypeDefinition(cls) + "\n\n" + enums.join("");
 
-            var path = "gen/" + cls.pack.join("/");
+            var path = outputFolder + "/" + cls.pack.join("/");
 
             if (sys.FileSystem.exists(path) == false)
                 sys.FileSystem.createDirectory(path);
@@ -587,7 +597,7 @@ class ClassGenMacros {
                 if (memberMap.exists(m.name))
                     continue;
 
-                var caName = TypeMacros.snakeToCamelCase(m.name);
+                var caName = TypeMacros.fixCase(m.name);
 
                 var isAllowed = true;
                 var args = new Array<FunctionArgument>();
@@ -882,7 +892,7 @@ class ClassGenMacros {
             var ptr = new haxe.macro.Printer();
             var output = ptr.printTypeDefinition(abstrct) + "\n" + ptr.printTypeDefinition(cls);
 
-            var path = "gen/" + abstrct.pack.join("/");
+            var path = outputFolder + "/" + abstrct.pack.join("/");
 
             if (sys.FileSystem.exists(path) == false)
                 sys.FileSystem.createDirectory(path);
@@ -911,7 +921,7 @@ class ClassGenMacros {
         for (e in enums)
             output += e;
 
-        var path = "gen/godot";
+        var path = outputFolder + "/godot";
 
         if (sys.FileSystem.exists(path) == false)
             sys.FileSystem.createDirectory(path);
@@ -934,7 +944,7 @@ class ClassGenMacros {
         // now deal with the struct
         var structs = cast(_api.native_structures, Array<Dynamic>);
 
-        var path = "gen/godot";
+        var path = outputFolder + "/godot";
         var structHeaderContent = new StringBuf();
 
         for (s in structs) {
@@ -995,7 +1005,7 @@ class ClassGenMacros {
         ${content.toString()}
     };\n\n');
             
-            var path = "gen/godot";
+            var path = outputFolder + "/godot";
 
             if (sys.FileSystem.exists(path) == false)
                 sys.FileSystem.createDirectory(path);

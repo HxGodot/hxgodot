@@ -150,7 +150,7 @@ class ArgumentMacros {
                     "typedef",
                     "final",
                     "inline",
-                    "char": '_hx_$_str';
+                    "char": 'hx_$_str';
             default: _str;
         }
     }

@@ -6,13 +6,12 @@ import godot.Types;
 import godot.variant.Variant;
 
 @:buildXml("<files id='haxe'>
-        <compilerflag value='-I../godot-headers'/>
-        <compilerflag value='-I../src'/>
-        <compilerflag value='-I../gen'/>
-        <file name='../src/hxcpp_ext/Dynamic2.cpp'/>
-        <file name='../src/godot_cpp/godot.cpp'/>
-        <file name='../src/utils/RootedObject.cpp'/>
-        <file name='../src/register_types.cpp'/>
+        <compilerflag value='-I${haxelib:hxgodot}/src'/>
+        <compilerflag value='-I../bindings'/>
+        <file name='${haxelib:hxgodot}/src/hxcpp_ext/Dynamic2.cpp'/>
+        <file name='${haxelib:hxgodot}/src/godot_cpp/godot.cpp'/>
+        <file name='${haxelib:hxgodot}/src/utils/RootedObject.cpp'/>
+        <file name='${haxelib:hxgodot}/src/register_types.cpp'/>
     </files>
     <linker id='dll' exe='g++' if='macos'>
         <flag value='-Wl,-undefined,dynamic_lookup'/>
@@ -72,7 +71,7 @@ class HxGodot {
         // use https://github.com/jasononeil/compiletime to embed all found extensionclasses and use rtti to register them
         // TODO: the compile-time lib should prolly be replaced with something lightweight in the long run
         var builtins = CompileTime.getAllClasses(godot.variant.IBuiltIn);
-        trace(builtins);
+        trace('Available builtins: ${builtins.length}');
         for (t in builtins) {
             if (Reflect.hasField(t, "__init_builtin_constructors")) // built-in class constructors and shit
                 Reflect.field(t, "__init_builtin_constructors")();
@@ -81,8 +80,8 @@ class HxGodot {
             if (Reflect.hasField(t, "__init_builtin_bindings")) // built-in class bindings
                 Reflect.field(t, "__init_builtin_bindings")();
         }
-        var tmp = CompileTime.getAllClasses(Wrapped);
-        trace(tmp);
+        var tmp = CompileTime.getAllClasses(godot.Wrapped);
+        trace('Available classes: ${tmp.length}');
         for (t in tmp) {
             if (Reflect.hasField(t, "__init_engine_bindings")) // engine class bindings
                 Reflect.field(t, "__init_engine_bindings")();

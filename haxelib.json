@@ -1,0 +1,15 @@
+{
+  "name": "hxgodot",
+  "url" : "https://github.com/dazKind/hxgodot-cpp",
+  "license": "MIT",
+  "tags": ["godot", "cpp"],
+  "description": "",
+  "version": "1.0.0-alpha",
+  "classPath": "src/",
+  "releasenote": "Initial Alpha release. Use with caution",
+  "contributors": ["dazKind"],
+  "dependencies": {
+    "compiletime": "",
+    "hxcpp": ""
+  }
+}
