@@ -1,3 +1,8 @@
+
+> !!! ATTENTION: This library is currently in a major rework as I prepare the alpha release. The following documentation might not help you right now. !!!
+
+— Michael (dazKind)
+
 # hxgodot-cpp
 
 Integrate Haxe and its hxcpp target runtime via the Godot 4.x GDExtension into Godot 4.x.
