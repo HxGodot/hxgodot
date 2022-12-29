@@ -81,8 +81,9 @@ class Macros {
                     ___binding_reference_callback,
                 };
             "], pos);
+        var bDef = 'constexpr GDExtensionInstanceBindingCallbacks ${classNameCpp}_obj::___binding_callbacks;';
+        classMeta.add(":cppFileCode", [macro $v{bDef}], pos);
 
-        
         // register these extension fields
         var extensionFields = [];
         //var extensionIntegerConstants = [];
@@ -805,6 +806,8 @@ class Macros {
                 );
                 hx::SetTopOfStack((int*)0,true);
             }
+
+            constexpr GDExtensionInstanceBindingCallbacks ${_cppClassName}_obj::___binding_callbacks;
         ';
         _classMeta.add(":cppFileCode", [macro $v{cppCode}], pos);
         
