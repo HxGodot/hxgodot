@@ -54,7 +54,7 @@ class RunMain
          successSetup = doAction('Do you want to populate your project folder ($projectDir) with a sample project?\n', doSetupProject);
 
       if (forceGeneration)
-         successGeneration = doAction('Do you want to generate the Godot 4 bindings in your project folder ($projectDir)?\nThis can be done manually:\n\n 1. Generate Godot4 Haxe bindings:\n     cd $libDir\n     haxe build-bindings.hxml -D output="$bindingDir"', doGenerateBindings);
+         successGeneration = doAction('Do you want to generate the Godot 4 bindings in your project folder ($projectDir)?\nThis can be done manually:\n\n 1. Generate Godot4 Haxe bindings:\n     cd $libDir\n     haxe build-bindings.hxml -D output="$bindingDir"\n', doGenerateBindings);
       
       if (successSetup) {
          if (successGeneration)
