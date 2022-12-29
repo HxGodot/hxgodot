@@ -5,8 +5,9 @@
 [node name="Node" type="Node"]
 
 [node name="HxExample" type="HxExample" parent="."]
-hx_ImportantFloat = 32.28
+hx_ImportantFloat = 40.69
 hx_ImportantString = "This is an super important string"
+hx_random_MyVector3 = Vector3(1.119, 2.088, 3.133)
 script = ExtResource("1_t53o3")
 
 [node name="HxOther" type="HxOther" parent="."]
