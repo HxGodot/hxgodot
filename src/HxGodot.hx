@@ -17,25 +17,6 @@ import godot.variant.Variant;
         <flag value='-Wl,-undefined,dynamic_lookup'/>
     </linker>")
 class HxGodot {
-    /*
-    static var gcThread = null;
-    private static function runGC():Void {
-        var signal = null;
-        var c = 0;
-        while (true) {
-            if (sys.thread.Thread.readMessage(false) != null) // kill signal
-                break;
-
-            c++;
-            if (c > 100) {
-                cpp.NativeGc.run(false);
-                c = 0;
-            }
-            Sys.sleep(0.01);
-        }
-    }
-    */
-
     static var gcCycle = 0.0;
     public static function runGc(_dt:Float) {
         var ran = false;
@@ -61,9 +42,7 @@ class HxGodot {
             } else {
                 GodotNativeInterface.print_warning(Std.string(v), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
             }
-        }
-
-        //gcThread = sys.thread.Thread.create(runGC);    
+        }  
 
         // setup constructors
         __Variant.__initBindings();
@@ -96,7 +75,6 @@ class HxGodot {
 
     public static function shutdown() {
         // tear down GC and cleanup active objects
-        //gcThread.sendMessage(true); // quit gcThread
         cpp.NativeGc.run(true);
     } 
 }

@@ -8,6 +8,7 @@ class RunMain
    static var bindingDir:String;
 
    static var forceGeneration = false;
+   static var confirmYes = false;
 
    public static function main()
    {  
@@ -21,6 +22,8 @@ class RunMain
          for (i in 0...args.length)
             if (args[i].indexOf("--generate_bindings")==0)
                forceGeneration = true;
+            else if (args[i].indexOf("-y")==0)
+               confirmYes = true;
       }
 
       if (!executeHxGodot())
@@ -44,6 +47,11 @@ class RunMain
          Sys.exit(-1);
       }
       */
+      if (confirmYes) {
+         setup();
+         Sys.println("Stopping.");
+         Sys.exit(-1);
+      }
 
       if (forceGeneration) {
          log('You want to generate the Godot bindings in your project folder ($projectDir)?');
