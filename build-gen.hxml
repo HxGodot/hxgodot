@@ -1,5 +1,0 @@
---macro godot.macros.ClassGenMacros.api()
--D dump=pretty
--D output=./gen
--cp src
--D HXCPP_M64
