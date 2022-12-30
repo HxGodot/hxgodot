@@ -13,11 +13,11 @@ import godot.variant.Variant;
         <file name='${haxelib:hxgodot}/src/utils/RootedObject.cpp'/>
         <file name='${haxelib:hxgodot}/src/register_types.cpp'/>
     </files>
-    <linker id="dll" exe="g++" if="linux">
-        <flag value="-Wl,-Bsymbolic"/>
+    <linker id='dll' exe='g++' if='linux'>
+        <flag value='-Wl,-Bsymbolic'/>
     </linker>
-    <linker id="dll" exe="g++" if="macos">
-        <flag value="-Wl,-Bsymbolic"/>
+    <linker id='dll' exe='g++' if='macos'>
+        <flag value='-Wl,-Bsymbolic'/>
     </linker>")
 class HxGodot {
     static var gcCycle = 0.0;
