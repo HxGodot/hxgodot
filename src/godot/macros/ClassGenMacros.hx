@@ -505,7 +505,7 @@ class ClassGenMacros {
                     macros: {
                         field: (macro class {@:noCompletion static var $cname:godot.Types.GDExtensionPtrConstructor;}).fields[0],
                         fieldSetter: [
-                            '$cname = godot.Types.GodotNativeInterface.variant_get_ptr_constructor(${type}, ${c.index}))'
+                            '$cname = godot.Types.GodotNativeInterface.variant_get_ptr_constructor(${type}, ${c.index})'
                         ]
                     }
                 });
@@ -523,7 +523,7 @@ class ClassGenMacros {
                     macros: {
                         field: (macro class {@:noCompletion static var _destructor:godot.Types.GDExtensionPtrDestructor;}).fields[0],
                         fieldSetter: [
-                            '_destructor = godot.Types.GodotNativeInterface.variant_get_ptr_destructor(${type}))' 
+                            '_destructor = godot.Types.GodotNativeInterface.variant_get_ptr_destructor(${type})' 
                         ]
                     }
                 });
@@ -559,7 +559,7 @@ class ClassGenMacros {
                             field: (macro class {@:noCompletion static var $mname:godot.Types.GDExtensionPtrGetter;}).fields[0],
                             fieldSetter: [
                                 'var name_${m.name}:godot.variant.StringName = "${m.name}"',
-                                '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_getter(${type}, name_${m.name}.native_ptr()))'
+                                '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_getter(${type}, name_${m.name}.native_ptr())'
                             ]
                         }
                     });
@@ -579,7 +579,7 @@ class ClassGenMacros {
                             field: (macro class {@:noCompletion static var $mname:godot.Types.GDExtensionPtrSetter;}).fields[0],
                             fieldSetter: [
                                 'var name_${m.name}:godot.variant.StringName = "${m.name}"',
-                                '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_setter(${type}, name_${m.name}.native_ptr()))'
+                                '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_setter(${type}, name_${m.name}.native_ptr())'
                             ]
                         }
                     });
@@ -660,7 +660,7 @@ class ClassGenMacros {
                         field: hasVarArg ? null : (macro class {@:noCompletion static var $mname:godot.Types.GDExtensionPtrBuiltInMethod;}).fields[0],
                         fieldSetter: hasVarArg ? null : [
                             'var name_${m.name}:godot.variant.StringName = "${m.name}"',
-                            '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_builtin_method(${type}, name_${m.name}.native_ptr(), untyped __cpp__(\'{0}\', $mhash)))' 
+                            '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_builtin_method(${type}, name_${m.name}.native_ptr(), untyped __cpp__(\'{0}\', $mhash))' 
                         ]
                     }
                 });
@@ -719,7 +719,7 @@ class ClassGenMacros {
                         macros: {
                             field: (macro class {@:noCompletion static var $oname:godot.Types.GDExtensionPtrOperatorEvaluator;}).fields[0],
                             fieldSetter: [
-                                '$oname = godot.Types.GodotNativeInterface.variant_get_ptr_operator_evaluator(${opType}, ${type}, ${rType}))'
+                                '$oname = godot.Types.GodotNativeInterface.variant_get_ptr_operator_evaluator(${opType}, ${type}, ${rType})'
                             ],
                             extra: TypeMacros.getOpHaxe(opType)
                         }
@@ -746,7 +746,7 @@ class ClassGenMacros {
                         macros: {
                             field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrIndexedGetter;}).fields[0],
                             fieldSetter: [
-                                '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_getter(${type}))'
+                                '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_getter(${type})'
                             ]
                         }
                     });
@@ -762,7 +762,7 @@ class ClassGenMacros {
                         macros: {
                             field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrIndexedSetter;}).fields[0],
                             fieldSetter: [
-                                '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_setter(${type}))'
+                                '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_setter(${type})'
                             ]
                         }
                     });
