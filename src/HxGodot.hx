@@ -12,10 +12,7 @@ import godot.variant.Variant;
         <file name='${haxelib:hxgodot}/src/godot_cpp/godot.cpp'/>
         <file name='${haxelib:hxgodot}/src/utils/RootedObject.cpp'/>
         <file name='${haxelib:hxgodot}/src/register_types.cpp'/>
-    </files>
-    <linker id='dll' exe='g++' if='macos'>
-        <flag value='-Wl,-undefined,dynamic_lookup'/>
-    </linker>")
+    </files>")
 class HxGodot {
     static var gcCycle = 0.0;
     public static function runGc(_dt:Float) {
