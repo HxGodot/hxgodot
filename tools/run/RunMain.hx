@@ -36,6 +36,10 @@ class RunMain
       libDir = Path.normalize(Sys.getCwd());
       bindingDir = Path.join([projectDir, 'bindings']);
 
+      var libInfo = haxe.Json.parse(File.getContent(Path.join([libDir, 'haxelib.json'])));
+
+      log('hxgodot (${libInfo.version})\n\n');
+
       if (args.length > 0) {
          for (i in 0...args.length)
             if (args[i].indexOf("init")==0) {
@@ -48,17 +52,23 @@ class RunMain
                confirmYes = true;
       }
 
+      if (!setupProject && !forceGeneration) {
+
+         log('Usage:\n haxelib run hxgodot init [-y]\n  1. Setup a sample project in the current working directory.\n  2. Generate Godot 4 bindings in the current working directory.\n\n haxelib run generate_bindings [-y]\n  1. Generate Godot 4 bindings in the current working directory.\n');
+         return;
+      }
+
       var successSetup = false;
       var successGeneration = false;
       if (setupProject)
-         successSetup = doAction('Do you want to populate your project folder ($projectDir) with a sample project?\n', doSetupProject);
+         successSetup = doAction('Do you want to populate the current folder ($projectDir) with a sample project?\n', doSetupProject);
 
       if (forceGeneration)
          successGeneration = doAction('Do you want to generate the Godot 4 bindings in your project folder ($projectDir)?\nThis can be done manually:\n\n 1. Generate Godot4 Haxe bindings:\n     cd $libDir\n     haxe build-bindings.hxml -D output="$bindingDir"\n', doGenerateBindings);
       
       if (successSetup) {
          if (successGeneration)
-            log('Your project has been setup successfully. You can compile it now via:\n\n     haxe build.hxml\n     (use -debug for a debug-build)\n\nAfterwards you can open it in Godot 4 - Have fun! :)');
+            log('Your project has been setup successfully. You can compile it now via:\n\n     haxe build.hxml\n     (use -debug for a debug-build)\n\nAfterwards you can open it in Godot 4 - Have fun! :)\n');
          else
             log('Your project folder has been setup but you lack the Godot 4 bindings.\nRun the following command to generate them:\n\n     haxelib run hxgodot generate_bindings\n');
       }
