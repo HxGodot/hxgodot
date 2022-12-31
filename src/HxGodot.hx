@@ -15,9 +15,6 @@ import godot.variant.Variant;
     </files>
     <linker id='dll' exe='g++' if='linux'>
         <flag value='-Wl,-Bsymbolic'/>
-    </linker>
-    <linker id='dll' exe='g++' if='macos'>
-        <flag value='-Wl,-Bsymbolic'/>
     </linker>")
 class HxGodot {
     static var gcCycle = 0.0;
