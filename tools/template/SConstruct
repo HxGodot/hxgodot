@@ -31,7 +31,7 @@ hxcppPath = subprocess.check_output('haxelib libpath hxcpp', shell=True).decode(
 libTargetString = '-debug' if env['target'] == 'debug' else ''
 
 # hxgodot static libname
-static_lib_name = f'libHxGodot{libTargetString}.lib'
+static_lib_name = f'libHxGodot{libTargetString}'
 shared_lib_name = f"hxgodot.{env['target']}.{env['arch']}"
 
 env.VariantDir('bin/obj', f'{hxgodotPath}src/', duplicate=0)
@@ -40,6 +40,7 @@ env.VariantDir('bin/obj', f'{hxgodotPath}src/', duplicate=0)
 os.system(f'haxe build.hxml {libTargetString}')
 
 if env['platform'] == "windows":
+    static_lib_name += '.lib'
     shared_lib_name += '.dll'
     env.Append(ENV = os.environ)
 
@@ -62,9 +63,16 @@ if env['platform'] == "windows":
         env.Append(CCFLAGS = ['-O2'])
 
 elif env['platform'] == "linux":
+    static_lib_name += '.a'
     shared_lib_name += '.dso'
     env.Append(ENV = os.environ)
-    # TODO:
+
+    env.Append(CPPDEFINES=["_CRT_SECURE_NO_DEPRECATE"])
+    env.Append(CCFLAGS = ['-m64', '-fpic', '-fPIC', '-frtti', '-fvisibility=hidden', '-std=c++11', '-Wno-invalid-offsetof', '-Wno-overflow', '-x', 'c++'])
+    if env['target'] == 'debug':
+        env.Append(CCFLAGS = ['-g'])
+    else:
+        env.Append(CCFLAGS = ['-O2'])
 
 elif env['platform'] == "macos":
     shared_lib_name += '.dylib'
