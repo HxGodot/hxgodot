@@ -97,7 +97,7 @@ class HxExample extends godot.Node {
         super();
 
         onHit = Signal.fromObjectSignal(this, "onHit");
-        onTest = Signal.fromObjectSignal(this, "onHit");
+        onTest = Signal.fromObjectSignal(this, "onTest");
     }
 
     //@:export // TODO: static function are not correctly bound at the moment
