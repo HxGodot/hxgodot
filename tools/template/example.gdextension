@@ -4,14 +4,14 @@ entry_symbol = "hxgodot_library_init"
 
 [libraries]
 
-macos.debug = "bin/HxGodot-debug.dylib"
-macos.release = "bin/HxGodot.dylib"
+macos.debug = "bin/libhxgodot.debug.x86_64.dylib"
+macos.release = "bin/libhxgodot.release.x86_64.dylib"
 
-windows.debug.x86_64 = "bin/HxGodot-debug.dll"
-windows.release.x86_64 = "bin/HxGodot.dll"
+windows.debug.x86_64 = "bin/hxgodot.debug.x86_64.dll"
+windows.release.x86_64 = "bin/hxgodot.release.x86_64.dll"
 
-linux.debug.x86_64 = "bin/HxGodot-debug.dso"
-linux.release.x86_64 = "bin/HxGodot.dso"
+linux.debug.x86_64 = "bin/libhxgodot.debug.x86_64.dso"
+linux.release.x86_64 = "bin/libhxgodot.release.x86_64.dso"
 
 linux.debug.arm64 = ""
 linux.release.arm64 = ""

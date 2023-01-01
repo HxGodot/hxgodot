@@ -31,7 +31,7 @@ hxcppPath = subprocess.check_output('haxelib libpath hxcpp', shell=True).decode(
 libTargetString = '-debug' if env['target'] == 'debug' else ''
 
 # hxgodot static libname
-static_lib_name = f'libHxGodot{libTargetString}'
+static_lib_name = f'libhxgodot{libTargetString}'
 shared_lib_name = f"hxgodot.{env['target']}.{env['arch']}"
 
 env.VariantDir('bin/obj', f'{hxgodotPath}src/', duplicate=0)
@@ -77,7 +77,13 @@ elif env['platform'] == "linux":
 elif env['platform'] == "macos":
     shared_lib_name += '.dylib'
     env.Append(ENV = os.environ)
-    # TODO:
+
+    env.Append(CPPDEFINES=["_CRT_SECURE_NO_DEPRECATE"])
+    env.Append(CCFLAGS = ['-c', '-isysroot', '-m64', '-frtti', '-fvisibility=hidden', '-std=c++11', '-Wno-invalid-offsetof', '-Wno-overflow', '-x', 'c++'])
+    if env['target'] == 'debug':
+        env.Append(CCFLAGS = ['-g'])
+    else:
+        env.Append(CCFLAGS = ['-O2'])
 
 
 # make sure our binding library is properly includes
