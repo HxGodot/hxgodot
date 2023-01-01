@@ -74,7 +74,7 @@ elif env['platform'] == "macos":
     env.Append(ENV = os.environ)
 
     env.Append(CPPDEFINES=["_CRT_SECURE_NO_DEPRECATE"])
-    env.Append(CCFLAGS = ['-c', '-isysroot', '-m64', '-frtti', '-fvisibility=hidden', '-std=c++11', '-Wno-invalid-offsetof', '-Wno-overflow', '-x', 'c++'])
+    env.Append(CCFLAGS = ['-m64', '-frtti', '-fvisibility=hidden', '-std=c++11', '-Wno-invalid-offsetof', '-Wno-overflow', '-x', 'c++'])
     if env['target'] == 'debug':
         env.Append(CCFLAGS = ['-g'])
     else:
