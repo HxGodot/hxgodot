@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  register_types.h                                                     */
+/*  register_types.cpp                                                   */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,13 +28,42 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef EXAMPLE_REGISTER_TYPES_H
-#define EXAMPLE_REGISTER_TYPES_H
-
+#include "hxgodot_extension.h"
+#include <godot_cpp/gdextension_interface.h>
+#include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
+
 using namespace godot;
 
-void initialize_hxgodot_module(ModuleInitializationLevel p_level);
-void uninitialize_hxgodot_module(ModuleInitializationLevel p_level);
+extern "C" void hxgodot_boot();
+extern "C" void hxgodot_init();
+extern "C" void hxgodot_shutdown();
 
-#endif // ! EXAMPLE_REGISTER_TYPES_H
+void initialize_hxgodot_module(ModuleInitializationLevel p_level) {
+    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+        return;
+    }
+    hxgodot_init();
+}
+
+void uninitialize_hxgodot_module(ModuleInitializationLevel p_level) {
+    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+        return;
+    }
+    hxgodot_shutdown();
+}
+
+extern "C" {
+// Initialization.
+GDExtensionBool GDN_EXPORT hxgodot_library_init(const GDExtensionInterface *p_interface, const GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization) {
+    godot::GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_initialization);
+    
+    hxgodot_boot();
+
+    init_obj.register_initializer(initialize_hxgodot_module);
+    init_obj.register_terminator(uninitialize_hxgodot_module);
+    init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
+
+    return init_obj.init();
+}
+}

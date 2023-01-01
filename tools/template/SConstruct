@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+import os, sys, subprocess
+
+from SCons.Tool import msvc, mingw
+from SCons.Variables import *
+
+default_platform = "windows"
+platforms = ("windows", "linux", "macos")
+architecture_array = ["x86_64"]
+
+opts = Variables([], ARGUMENTS)
+env = Environment(tools=["default"], PLATFORM="")
+
+opts.Add(EnumVariable('target', "Compilation target", 'debug', ['debug', 'release']))
+opts.Add(
+    EnumVariable(
+        "platform",
+        "Target platform",
+        default_platform,
+        allowed_values=platforms,
+        ignorecase=2,
+    )
+)
+opts.Add(EnumVariable("arch", "CPU architecture", architecture_array[0], architecture_array))
+opts.Update(env)
+
+# hxgodot haxelib folder
+hxgodotPath = subprocess.check_output('haxelib libpath hxgodot', shell=True).decode('utf-8').strip()
+
+libTargetString = '-debug' if env['target'] == 'debug' else ''
+
+# hxgodot libnames
+static_lib_name = f'libHxGodot{libTargetString}'
+shared_lib_name = f"hxgodot.{env['target']}.{env['arch']}"
+
+# platform specifics
+if env['platform'] == "windows":
+    static_lib_name += '.lib'
+    shared_lib_name = 'lib' + shared_lib_name + '.dll'
+    env.Append(ENV = os.environ)
+
+    if env["arch"] == "x86_64":
+        env["TARGET_ARCH"] = "amd64"
+    env["is_msvc"] = True
+
+    msvc.generate(env)
+    env.Tool("mslib")
+    env.Tool("mslink")
+
+    env.Append(LIBS=['user32.lib'])
+    env.Append(CPPDEFINES=["WIN32", "_WIN32", "_WINDOWS", "_CRT_SECURE_NO_WARNINGS"])
+
+    env.Append(CCFLAGS = ['-EHs', '-FS', '-GR', '-GS-', '-MT', '-nologo', '-Oy-', '-wd4996', '/fp:precise', '/WX-'])
+    if env['target'] == 'debug':
+        env.Append(CCFLAGS = ['-Od'])
+    else:
+        env.Append(CCFLAGS = ['-O2'])
+
+elif env['platform'] == "linux":
+    static_lib_name += '.a'
+    shared_lib_name += '.dso'
+    env.Append(ENV = os.environ)
+
+    env.Append(CPPDEFINES=["_CRT_SECURE_NO_DEPRECATE"])
+    env.Append(CCFLAGS = ['-m64', '-fpic', '-fPIC', '-frtti', '-fvisibility=hidden', '-std=c++11', '-Wno-invalid-offsetof', '-Wno-overflow', '-x', 'c++'])
+    if env['target'] == 'debug':
+        env.Append(CCFLAGS = ['-g'])
+    else:
+        env.Append(CCFLAGS = ['-O2'])
+
+elif env['platform'] == "macos":
+    static_lib_name += '.a'
+    shared_lib_name += '.dylib'
+    env.Append(ENV = os.environ)
+
+    env.Append(CPPDEFINES=["_CRT_SECURE_NO_DEPRECATE"])
+    env.Append(CCFLAGS = ['-m64', '-frtti', '-fvisibility=hidden', '-std=c++11', '-Wno-invalid-offsetof', '-Wno-overflow', '-x', 'c++'])
+    if env['target'] == 'debug':
+        env.Append(CCFLAGS = ['-g'])
+    else:
+        env.Append(CCFLAGS = ['-O2'])
+
+# build shared objs here
+env.VariantDir('bin/obj', f'{hxgodotPath}src/', duplicate=0)
+
+# run haxe compile
+hxlib = env.Command('bin/'+static_lib_name, [], f'haxe build.hxml {libTargetString}')
+env.AlwaysBuild(hxlib)
+
+# build our lib
+env.Append(CPPPATH=[
+        'bin/include'
+    ])
+env.Append(LIBPATH=['bin/'])
+env.Append(LIBS=[static_lib_name])
+
+env.Append(CPPPATH=[f'bin/obj/'])
+sources = Glob(f'bin/obj/*.cpp')
+
+library = env.SharedLibrary(target='bin/' + shared_lib_name , source=sources)
+
+# make the shared lib depend on hxcpp builds
+env.Depends(library, hxlib)
+
+# 
+Default(library)
+
+# Generates help for the -h scons option.
+Help(opts.GenerateHelpText(env))
