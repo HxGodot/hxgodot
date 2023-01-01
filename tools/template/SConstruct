@@ -26,29 +26,23 @@ opts.Update(env)
 
 # hxgodot haxelib folder
 hxgodotPath = subprocess.check_output('haxelib libpath hxgodot', shell=True).decode('utf-8').strip()
-hxcppPath = subprocess.check_output('haxelib libpath hxcpp', shell=True).decode('utf-8').strip()
 
 libTargetString = '-debug' if env['target'] == 'debug' else ''
 
-# hxgodot static libname
-static_lib_name = f'libhxgodot{libTargetString}'
+# hxgodot libnames
+static_lib_name = f'libHxGodot{libTargetString}'
 shared_lib_name = f"hxgodot.{env['target']}.{env['arch']}"
 
-env.VariantDir('bin/obj', f'{hxgodotPath}src/', duplicate=0)
-
-# run haxe compile
-os.system(f'haxe build.hxml {libTargetString}')
-
+# platform specifics
 if env['platform'] == "windows":
     static_lib_name += '.lib'
-    shared_lib_name += '.dll'
+    shared_lib_name = 'lib' + shared_lib_name + '.dll'
     env.Append(ENV = os.environ)
 
     if env["arch"] == "x86_64":
         env["TARGET_ARCH"] = "amd64"
     env["is_msvc"] = True
 
-    # MSVC, linker, and archiver.
     msvc.generate(env)
     env.Tool("mslib")
     env.Tool("mslink")
@@ -75,6 +69,7 @@ elif env['platform'] == "linux":
         env.Append(CCFLAGS = ['-O2'])
 
 elif env['platform'] == "macos":
+    static_lib_name += '.a'
     shared_lib_name += '.dylib'
     env.Append(ENV = os.environ)
 
@@ -85,8 +80,14 @@ elif env['platform'] == "macos":
     else:
         env.Append(CCFLAGS = ['-O2'])
 
+# build shared objs here
+env.VariantDir('bin/obj', f'{hxgodotPath}src/', duplicate=0)
 
-# make sure our binding library is properly includes
+# run haxe compile
+hxlib = env.Command('bin/'+static_lib_name, [], f'haxe build.hxml {libTargetString}')
+env.AlwaysBuild(hxlib)
+
+# build our lib
 env.Append(CPPPATH=[
         'bin/include'
     ])
@@ -97,8 +98,12 @@ env.Append(CPPPATH=[f'bin/obj/'])
 sources = Glob(f'bin/obj/*.cpp')
 
 library = env.SharedLibrary(target='bin/' + shared_lib_name , source=sources)
-Default(library)
 
+# make the shared lib depend on hxcpp builds
+env.Depends(library, hxlib)
+
+# 
+Default(library)
 
 # Generates help for the -h scons option.
 Help(opts.GenerateHelpText(env))

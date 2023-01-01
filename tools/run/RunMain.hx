@@ -68,7 +68,7 @@ class RunMain
       
       if (successSetup) {
          if (successGeneration)
-            log('Your project has been setup successfully. You can compile it now via:\n\n     haxe build.hxml\n     (use -debug for a debug-build)\n\nAfterwards you can open it in Godot 4 - Have fun! :)\n');
+            log('Your project has been setup successfully. You can compile it now via:\n\n     scons platform=<windows|linux|macos> target=<debug|release>\n\nAfterwards you can open it in Godot 4 - Have fun! :)\n');
          else
             log('Your project folder has been setup but you lack the Godot 4 bindings.\nRun the following command to generate them:\n\n     haxelib run hxgodot generate_bindings\n');
       }

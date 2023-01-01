@@ -7,8 +7,8 @@ entry_symbol = "hxgodot_library_init"
 macos.debug = "bin/libhxgodot.debug.x86_64.dylib"
 macos.release = "bin/libhxgodot.release.x86_64.dylib"
 
-windows.debug.x86_64 = "bin/hxgodot.debug.x86_64.dll"
-windows.release.x86_64 = "bin/hxgodot.release.x86_64.dll"
+windows.debug.x86_64 = "bin/libhxgodot.debug.x86_64.dll"
+windows.release.x86_64 = "bin/libhxgodot.release.x86_64.dll"
 
 linux.debug.x86_64 = "bin/libhxgodot.debug.x86_64.dso"
 linux.release.x86_64 = "bin/libhxgodot.release.x86_64.dso"
