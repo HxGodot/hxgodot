@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  register_types.cpp                                                   */
+/*  register_types.h                                                     */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,60 +28,13 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include <hxcpp.h>
+#ifndef HXGODOT_EXTENSION_H
+#define HXGODOT_EXTENSION_H
 
-#include "register_types.h"
-
-#include <godot_cpp/gdextension_interface.h>
-
-#include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
-#include <HxGodot.h>
-
-extern "C" void __hxcpp_main();
-
 using namespace godot;
 
-void initialize_hxgodot_module(ModuleInitializationLevel p_level) {
-    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-        return;
-    }
+void initialize_hxgodot_module(ModuleInitializationLevel p_level);
+void uninitialize_hxgodot_module(ModuleInitializationLevel p_level);
 
-    int i = 99;
-    hx::SetTopOfStack(&i,true);
-    // fire up our module
-    __hxcpp_main();
-    hx::SetTopOfStack(0,true);
-}
-
-void uninitialize_hxgodot_module(ModuleInitializationLevel p_level) {
-    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-        return;
-    }
-
-    int i = 99;
-    hx::SetTopOfStack(&i,true);
-    HxGodot_obj::shutdown();
-    hx::SetTopOfStack(0,true);
-}
-
-extern "C" {
-
-// Initialization.
-GDExtensionBool GDN_EXPORT hxgodot_library_init(const GDExtensionInterface *p_interface, const GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization) {
-    godot::GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_initialization);
-
-    // load the hxcpp runtime
-    int i = 99;
-    hx::SetTopOfStack(&i,true);
-    ::hx::Boot();
-    __boot_all();
-    hx::SetTopOfStack(0,true);
-
-    init_obj.register_initializer(initialize_hxgodot_module);
-    init_obj.register_terminator(uninitialize_hxgodot_module);
-    init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
-
-    return init_obj.init();
-}
-}
+#endif // ! HXGODOT_EXTENSION_H

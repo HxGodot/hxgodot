@@ -11,16 +11,14 @@ import godot.variant.Variant;
         <file name='${haxelib:hxgodot}/src/hxcpp_ext/Dynamic2.cpp'/>
         <file name='${haxelib:hxgodot}/src/godot_cpp/godot.cpp'/>
         <file name='${haxelib:hxgodot}/src/utils/RootedObject.cpp'/>
-        <file name='${haxelib:hxgodot}/src/register_types.cpp'/>
-    </files>
-    <linker id='dll' exe='g++' if='linux'>
-        <flag value='-Wl,-Bsymbolic'/>
-    </linker>")
+        <file name='${haxelib:hxgodot}/src/hxcpp_ext/hxgodot_api.cpp'/>
+    </files>")
 class HxGodot {
     static var gcCycle = 0.0;
     public static function runGc(_dt:Float) {
         var ran = false;
         if (gcCycle > 1) {
+            
             cpp.NativeGc.run(true);
             gcCycle = 0;
             ran = true;
