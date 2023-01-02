@@ -18,17 +18,19 @@ This is an early (pre-alpha) Haxe-hxcpp project that builds a dynamic library th
 The goal is to evolve this project into a full library that allows writing extensions and new nodes in Haxe and eventually allow for cppia-scripting.
 
 ## Getting started
+Prerequisites: 
+- https://scons.org/ 
+- Haxe 4.2+
+- Godot 4 beta10+ (best build from master)
 
-1. Check out and build the Godot master(debug+tools) to have a working Godot 4.x Editor.
-2. Then clone this repository and init the godot-headers submodule: `git submodule update --init --recursive`
-3. Build the library: `make debug`. This will build a dll into `test/demo/bin`
-4. Open your Godot4 editor and load the project that's located in `test/demo`. 
-5. The project will load a demo project and in the scene inspector you will find a node called `HxExample2` that instantiates the included Haxe-class `src/HxExample2.hx` and runs an attach script called `test.gd` 
-
-![image](https://user-images.githubusercontent.com/5015415/186016512-4b8a47c6-cb23-4707-a93a-e15fdb1e7e47.png)
+```
+haxelib git hxgodot https://github.com/dazKind/hxgodot-cpp.git
+mkdir <sample_project>
+cd <sample_project>
+haxelib run hxgodot init
+```
 
 ## Debugging
-
 - Windows: Startup your VisualStudio and setup it up to launch your compile Godot 4.x executable with the test-project defined on the cmdline. 
 `<path to godot binary> -e --path <included test project folder>`
 You should be able to step through the code on both sides(godot & hxgodot) and see what's going on.
@@ -37,7 +39,6 @@ You should be able to step through the code on both sides(godot & hxgodot) and s
 See the https://github.com/dazKind/hxgodot-cpp/issues
 
 ## Contribute
-
 You know cpp, Haxe and would love to have a lasting impact when it comes to opensource gamedevelopment? 
 
 Then join the effort here!
