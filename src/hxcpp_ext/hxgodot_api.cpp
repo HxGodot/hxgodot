@@ -7,27 +7,27 @@ void __hxcpp_main();
 
 void hxgodot_boot()
 {
-    int i = 99;
-    hx::SetTopOfStack(&i,false);
+    int i = 0;
+    hx::SetTopOfStack(&i,true);
     ::hx::Boot();
     __boot_all();
-    //hx::SetTopOfStack(0,true);
+    hx::SetTopOfStack(0,true);
 }
 
 void hxgodot_init()
 {
-    int i = 99;
-    //hx::SetTopOfStack(&i,true);
+    int i = 0;
+    hx::SetTopOfStack(&i,true);
     // fire up our module
     __hxcpp_main();
-    //hx::SetTopOfStack(0,true);
+    hx::SetTopOfStack(0,true);
 }
 
 void hxgodot_shutdown()
 {
-    int i = 99;
-    //hx::SetTopOfStack(&i,true);
+    int i = 0;
+    hx::SetTopOfStack(&i,true);
     HxGodot_obj::shutdown();
-    //hx::SetTopOfStack(0,true);
+    hx::SetTopOfStack(0,true);
 }
 }
