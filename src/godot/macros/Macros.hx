@@ -57,22 +57,22 @@ class Macros {
         classMeta.add(":headerClassCode", [macro "
                 static void *___binding_create_callback(void *p_token, void *p_instance) {
                     int base = 99;
-                    hx::SetTopOfStack(&base,true);
+                    //hx::SetTopOfStack(&base,true);
                     void *res = _hx____binding_create_callback(p_token, p_instance);
-                    hx::SetTopOfStack((int*)0,true);
+                    //hx::SetTopOfStack((int*)0,true);
                     return res;
                 }
                 static void ___binding_free_callback(void *p_token, void *p_instance, void *p_binding) {
                     int base = 99;
-                    hx::SetTopOfStack(&base,true);
+                    //hx::SetTopOfStack(&base,true);
                     _hx____binding_free_callback(p_token, p_instance, p_binding);
-                    hx::SetTopOfStack((int*)0,true);
+                    //hx::SetTopOfStack((int*)0,true);
                 }
                 static GDExtensionBool ___binding_reference_callback(void *p_token, void *p_instance, GDExtensionBool p_reference) { 
                     int base = 99;
-                    hx::SetTopOfStack(&base,true);
+                    //hx::SetTopOfStack(&base,true);
                     GDExtensionBool res = _hx____binding_reference_callback(p_token, p_instance, p_reference);
-                    hx::SetTopOfStack((int*)0,true);
+                    //hx::SetTopOfStack((int*)0,true);
                     return res;
                 }
                 static constexpr GDExtensionInstanceBindingCallbacks ___binding_callbacks = {
@@ -708,11 +708,11 @@ class Macros {
             vCallbacks += '
                 static void ${vname}__onVirtualCall(GDExtensionClassInstancePtr p_instance, const GDExtensionTypePtr *p_args, GDExtensionTypePtr r_ret) {
                     int base = 99;
-                    hx::SetTopOfStack(&base,true);
+                    //hx::SetTopOfStack(&base,true);
                     GDExtensionClassCallVirtual res = nullptr;
                     ${_cppClassName} instance = (${_cppClassName}((${_cppClassName}_obj*)(((cpp::utils::RootedObject*)p_instance)->getObject())));
                     instance->${vname}((void *)p_args, (void *)r_ret); // forward to macrofy the arguments
-                    hx::SetTopOfStack((int*)0,true);
+                    //hx::SetTopOfStack((int*)0,true);
                 }
             ';
 
@@ -748,24 +748,24 @@ class Macros {
         var cppCode = vCallbacks + '
             static GDExtensionObjectPtr __onCreate(void *p_userdata) {
                 int base = 99;
-                hx::SetTopOfStack(&base,true);
+                //hx::SetTopOfStack(&base,true);
                 GDExtensionObjectPtr res = ${_cppClassName}_obj::_hx___create((void *)p_userdata);
-                hx::SetTopOfStack((int*)0,true);
+                //hx::SetTopOfStack((int*)0,true);
                 return res;
             }
 
             static void __onFree(void *p_userdata, GDExtensionClassInstancePtr p_instance) {
                 int base = 99;
-                hx::SetTopOfStack(&base,true);
+                //hx::SetTopOfStack(&base,true);
                 ${_cppClassName}_obj::_hx___free((void *)p_userdata, p_instance);
-                hx::SetTopOfStack((int*)0,true);
+                //hx::SetTopOfStack((int*)0,true);
             }
 
             static GDExtensionClassCallVirtual __onGetVirtualFunc(void *p_userdata, const GDExtensionStringNamePtr p_name) {
                 int base = 99;
-                hx::SetTopOfStack(&base,true);
+                //hx::SetTopOfStack(&base,true);
                 GDExtensionClassCallVirtual res = (GDExtensionClassCallVirtual)${_cppClassName}_obj::_hx___getVirtualFunc(p_userdata, p_name);
-                hx::SetTopOfStack((int*)0,true);
+                //hx::SetTopOfStack((int*)0,true);
                 return res;
             }
 
@@ -778,7 +778,7 @@ class Macros {
                 GDExtensionCallError *r_error)
             {   
                 int base = 99;
-                hx::SetTopOfStack(&base,true);
+                //hx::SetTopOfStack(&base,true);
                 ${_cppClassName}_obj::_hx___bindCall(
                     (void *)method_userdata,
                     (void *)p_instance,
@@ -787,7 +787,7 @@ class Macros {
                     (void *)r_return,
                     (void *)r_error
                 );
-                hx::SetTopOfStack((int*)0,true);                
+                //hx::SetTopOfStack((int*)0,true);                
             }
 
             static void __onBindCallPtr(
@@ -797,14 +797,14 @@ class Macros {
                 GDExtensionTypePtr r_ret)
             {
                 int base = 99;
-                hx::SetTopOfStack(&base,true);
+                //hx::SetTopOfStack(&base,true);
                 ${_cppClassName}_obj::_hx___bindCallPtr(
                     (void *)method_userdata,
                     (void *)p_instance,
                     (void *)p_args,
                     (void *)r_ret
                 );
-                hx::SetTopOfStack((int*)0,true);
+                //hx::SetTopOfStack((int*)0,true);
             }
 
             constexpr GDExtensionInstanceBindingCallbacks ${_cppClassName}_obj::___binding_callbacks;
