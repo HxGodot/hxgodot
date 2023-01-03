@@ -180,7 +180,8 @@ class ClassGenMacros {
                         if (TypeMacros.isEnumOrBitfield(m.return_value.type)) {
                             retType = "cpp.Int32";
                         } else {
-                            var actualType = m.return_value.meta != null ? m.return_value.meta : m.return_value.type;
+                            //var actualType = m.return_value.meta != null ? m.return_value.meta : m.return_value.type;
+                            var actualType = m.return_value.type;
                             retType = TypeMacros.getTypeName(actualType);
                         }
                     }
