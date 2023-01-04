@@ -159,7 +159,7 @@ class ClassGenMacros {
                                 }); 
                             } else {
                                 //var argType = TypeMacros.getTypeName(a.meta != null ? a.meta : a.type);
-                                var argType = a.type;
+                                var argType = TypeMacros.getTypeName(a.type);
                                 var argPack = TypeMacros.getTypePackage(argType);
                                 args.push({
                                     name: ArgumentMacros.guardAgainstKeywords(a.name),
