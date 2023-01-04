@@ -52,7 +52,7 @@ class PostInitMacros {
                     if (untyped __cpp__('((cpp::utils::RootedObject*){0})->getObjectPtr() == nullptr', _binding))
                         return true;
 
-                    var refCount:cpp.Int32 = 0;
+                    var refCount:cpp.Int64 = 0;
                     var ret = cpp.Native.addressOf(refCount);
                     var root:godot.Types.VoidPtr = untyped __cpp__('(void*)((cpp::utils::RootedObject*){0})', _binding);
                     var instance:godot.Types.VoidPtr = untyped __cpp__('(void*)((::godot::Wrapped_obj*)(((cpp::utils::RootedObject*){0})->getObject()))', root);
@@ -124,7 +124,7 @@ class PostInitMacros {
                 if ($v{_isRefCounted==true}) {
                     // last time _v is valid!
 
-                    var refCount:cpp.Int32 = 0;
+                    var refCount:cpp.Int64 = 0;
                     var ret = cpp.Native.addressOf(refCount);
                     untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, _v.native_ptr(), ret);
 
