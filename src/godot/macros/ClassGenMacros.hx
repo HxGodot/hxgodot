@@ -158,7 +158,8 @@ class ClassGenMacros {
                                     type: {name:argType , pack:argPack}
                                 }); 
                             } else {
-                                var argType = TypeMacros.getTypeName(a.meta != null ? a.meta : a.type);
+                                //var argType = TypeMacros.getTypeName(a.meta != null ? a.meta : a.type);
+                                var argType = a.type;
                                 var argPack = TypeMacros.getTypePackage(argType);
                                 args.push({
                                     name: ArgumentMacros.guardAgainstKeywords(a.name),
@@ -178,7 +179,7 @@ class ClassGenMacros {
                     var retType = "Void";
                     if (m.return_value != null) {
                         if (TypeMacros.isEnumOrBitfield(m.return_value.type)) {
-                            retType = "cpp.Int32";
+                            retType = "cpp.Int64";
                         } else {
                             //var actualType = m.return_value.meta != null ? m.return_value.meta : m.return_value.type;
                             var actualType = m.return_value.type;
