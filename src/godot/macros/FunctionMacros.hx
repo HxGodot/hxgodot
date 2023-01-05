@@ -707,8 +707,9 @@ class FunctionMacros {
                 switch (_bind.type) {
                     case FunctionBindType.VIRTUAL_METHOD: {}
 			  case FunctionBindType.STATIC_METHOD: {
+				exprs = exprs.concat(vArgs.argBody);
 			      exprs.push(macro {
-                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, this, nullptr, nullptr)', $i{mname});
+                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, (GDExtensionConstTypePtr*)call_args.data(), nullptr)', $i{mname});
                         });
  			  }
                     default: {
@@ -723,7 +724,7 @@ class FunctionMacros {
                     case FunctionBindType.VIRTUAL_METHOD: {}
 			  case FunctionBindType.STATIC_METHOD: {
 			      exprs.push(macro {
-                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, this, nullptr, nullptr)', $i{mname});
+                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, nullptr, nullptr)', $i{mname});
                         });
  			  }
                     default: {
@@ -743,6 +744,12 @@ class FunctionMacros {
             if (_bind.arguments.length > 0) {
                 switch (_bind.type) {
                     case FunctionBindType.VIRTUAL_METHOD: {}
+			  case FunctionBindType.STATIC_METHOD: {
+				exprs = exprs.concat(vArgs.argBody);
+			      exprs.push(macro {
+                           untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, (GDExtensionConstTypePtr*)call_args.data(), {1})', $i{mname}, ret);
+                        });
+			  }
                     default: {
                         exprs = exprs.concat(vArgs.argBody);
                         exprs.push(macro {
@@ -753,6 +760,11 @@ class FunctionMacros {
             } else {
                 switch (_bind.type) {
                     case FunctionBindType.VIRTUAL_METHOD: {}
+			  case FunctionBindType.STATIC_METHOD: {
+			      exprs.push(macro {
+                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, nullptr, {1})', $i{mname}, ret);
+                        });
+			  }
                     default: {
                         exprs.push(macro {
                             untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', $i{mname}, this.native_ptr(), ret);
