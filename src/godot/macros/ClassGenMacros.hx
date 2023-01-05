@@ -344,7 +344,7 @@ class ClassGenMacros {
                 }
 
                 switch (bind.type) {
-                    case FunctionBindType.VIRTUAL_METHOD, FunctionBindType.METHOD:
+                    case FunctionBindType.VIRTUAL_METHOD, FunctionBindType.METHOD, FunctionBindType.STATIC_METHOD:
                         FunctionMacros.buildMethod(bind, fields);
 
                     /* TODO: That shit is incomplete for engine-classes. They have an invariation we dont bother modelling here!
