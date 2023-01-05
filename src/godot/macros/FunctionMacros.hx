@@ -706,6 +706,11 @@ class FunctionMacros {
             if (_bind.arguments.length > 0) {
                 switch (_bind.type) {
                     case FunctionBindType.VIRTUAL_METHOD: {}
+			  case FunctionBindType.STATIC_METHOD: {
+			      exprs.push(macro {
+                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, this, nullptr, nullptr)', $i{mname});
+                        });
+ 			  }
                     default: {
                         exprs = exprs.concat(vArgs.argBody);
                         exprs.push(macro {
@@ -716,6 +721,11 @@ class FunctionMacros {
             } else {
                 switch (_bind.type) {
                     case FunctionBindType.VIRTUAL_METHOD: {}
+			  case FunctionBindType.STATIC_METHOD: {
+			      exprs.push(macro {
+                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, this, nullptr, nullptr)', $i{mname});
+                        });
+ 			  }
                     default: {
                         exprs.push(macro {
                             untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, nullptr)', $i{mname}, this.native_ptr());
