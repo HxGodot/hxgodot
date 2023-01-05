@@ -36,12 +36,14 @@ class RunMain
       libDir = Path.normalize(Sys.getCwd());
       bindingDir = Path.join([projectDir, 'bindings']);
 
+      #if debug
       // lets you do `hxgodot header <text>` to test the formatter function
       if (args[0] == "header") {
          args.shift(); // to remove the 'header' arg
          log(formatHeader(args.join(' ')));
          return;
       }
+      #end
 
       var libInfo = haxe.Json.parse(File.getContent(Path.join([libDir, 'haxelib.json'])));
 

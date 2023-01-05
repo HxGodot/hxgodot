@@ -2,4 +2,3 @@
 --class-path tools/run/
 -main RunMain
 -D neko_v1
--debug
