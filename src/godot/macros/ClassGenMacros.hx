@@ -766,7 +766,7 @@ class ClassGenMacros {
                             ]
                         }
                     });
-                }                        
+                }
             }
 
             // now worry about the nasty details of expression and type-building
