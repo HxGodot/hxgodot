@@ -236,6 +236,7 @@ class Macros {
                         case 'Int', 'Int64': godot.Types.GDExtensionVariantType.INT;
                         case 'Float': godot.Types.GDExtensionVariantType.FLOAT;
                         case 'String', 'GDString': godot.Types.GDExtensionVariantType.STRING;
+                        case 'Vector2': godot.Types.GDExtensionVariantType.VECTOR2;
                         case 'Vector3': godot.Types.GDExtensionVariantType.VECTOR3;
                         default: godot.Types.GDExtensionVariantType.NIL;
                     }
