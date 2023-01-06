@@ -15,6 +15,7 @@ using StringTools;
 class ClassGenMacros {
     static var outputFolder = "./bindings";
     static var propertyType:Map<String, String> = new Map<String, String>();
+    static var logBuf = new StringBuf();
 
     public static function api() {
         var use64 = Context.defined("HXCPP_M64");
@@ -22,7 +23,8 @@ class ClassGenMacros {
         var sizeKey = '${useDouble ? "double" : "float"}_${use64 ? "64" : "32"}';
         var api = haxe.Json.parse(sys.io.File.getContent("./src/godot_cpp/extension_api.json"));
 
-        Sys.println('Generating binding classes for ${api.header.version_full_name} ($sizeKey)...');
+        var action = 'Generating binding classes for ${api.header.version_full_name} ($sizeKey)...';
+        Sys.println(action);
 
         outputFolder = StringTools.replace(Context.getDefines().get("output"), "\"", "");
 
@@ -32,6 +34,11 @@ class ClassGenMacros {
         _generateNativeStructs(api, sizeKey);
         _generateBuiltins(api, sizeKey);
         _generateClasses(api);
+        _generateLog(action);
+    }
+
+    static function log(_str:String) {
+        logBuf.add('$_str\n');
     }
 
     static function _generateClasses(_api:Dynamic) {
@@ -308,11 +315,11 @@ class ClassGenMacros {
 
                     var mismatchedTypes = false;
                     if (propertyType.exists(cname+':'+m.getter) && mType != propertyType.get(cname+':'+m.getter)) {
-                        trace("Getter ignored: type mismatch for "+cname+':'+m.getter+" wanted="+mType+" have="+propertyType.get(cname+':'+m.getter));
+                        log("Getter ignored: type mismatch for "+cname+':'+m.getter+" wanted="+mType+" have="+propertyType.get(cname+':'+m.getter));
                         mismatchedTypes = true;
                     }
                     if (propertyType.exists(cname+':'+m.setter) && mType != propertyType.get(cname+':'+m.setter)) {
-                        trace("Setter ignored: type mismatch for "+cname+':'+m.setter+" wanted="+mType+" have="+propertyType.get(cname+':'+m.setter));
+                        log("Setter ignored: type mismatch for "+cname+':'+m.setter+" wanted="+mType+" have="+propertyType.get(cname+':'+m.setter));
                         mismatchedTypes = true;
                     }
 
@@ -1128,5 +1135,11 @@ ${structHeaderContent.toString()}
 
         sys.io.File.saveContent(path+"/native_structs.hpp", structHeader.toString());
         
+    }
+
+    static function _generateLog(_action:String) {
+         var log = outputFolder+"/log.txt";
+         sys.io.File.saveContent(log, _action + "\n" + logBuf.toString());
+         Sys.println('Log has been written to "$log"');
     }
 }
