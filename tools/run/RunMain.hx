@@ -36,9 +36,18 @@ class RunMain
       libDir = Path.normalize(Sys.getCwd());
       bindingDir = Path.join([projectDir, 'bindings']);
 
+      #if debug
+      // lets you do `hxgodot header <text>` to test the formatter function
+      if (args[0] == "header") {
+         args.shift(); // to remove the 'header' arg
+         log(formatHeader(args.join(' ')));
+         return;
+      }
+      #end
+
       var libInfo = haxe.Json.parse(File.getContent(Path.join([libDir, 'haxelib.json'])));
 
-      log('hxgodot (${libInfo.version})\n\n');
+      log(formatHeader('hxgodot (${libInfo.version})'));
 
       if (args.length > 0) {
          for (i in 0...args.length)
@@ -164,5 +173,17 @@ class RunMain
       if (!FileSystem.exists(dir))
          FileSystem.createDirectory(dir);
       File.copy(_path, abs);
+   }
+
+   /** adds the given string to the header to print */
+   static function formatHeader(insert:String):String {
+      var header = " __ __     _____       _     _
+|  |  |_ _|   __|___ _| |___| |_
+|     |_|_|  |  | . | . | . |  _|
+|__|__|_|_|_____|___|___|___| |\n";
+      // adds the insert to the following line if its too long
+      if (insert.length > 27) return '$header                            |__|\n${StringTools.trim(insert)}\n';
+      // makes sure there are 28 characters before the ascii art continues
+      return '$header${StringTools.rpad(insert, " ", 28)}|__|\n\n';
    }
 }
