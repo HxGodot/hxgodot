@@ -14,6 +14,7 @@ using StringTools;
 
 class ClassGenMacros {
     static var outputFolder = "./bindings";
+    static var propertyType:Map<String, String> = new Map<String, String>();
 
     public static function api() {
         var use64 = Context.defined("HXCPP_M64");
@@ -128,6 +129,20 @@ class ClassGenMacros {
                 }
             }
 
+            function getPropertyType(method:String) {
+                if (c.properties!=null) {
+                    for (m in cast(c.properties, Array<Dynamic>)) {
+                        if (!TypeMacros.isTypeAllowed(m.type))
+                            continue;
+
+                        if ((m.getter!=null && m.getter==method) || (m.setter!=null && m.setter==method)) {
+                            return TypeMacros.getTypeName(m.type);
+                        }
+                    }
+                }
+                return null;
+            }
+
             //
             var binds = new Array<FunctionBind>();
 
@@ -186,8 +201,18 @@ class ClassGenMacros {
                             retType = TypeMacros.getTypeName(actualType);
                         }
                     }
+
+                    var retFunction = null;
+                    if (retType=="Void" && caName.substr(0,4)=="set_") {
+                        var propType = getPropertyType(caName);
+                        if (propType!=null) {
+                            retType = propType;
+                            retFunction = "return null";
+                        }
+                    }
                     var retPack = TypeMacros.getTypePackage(retType);
 
+                    propertyType.set(c.name+':'+caName, retType);
 
                     // what access levels?
                     var access = [APublic];
@@ -268,7 +293,7 @@ class ClassGenMacros {
             
             // properties
             var properties = [];
-            /* TODO: setters and getters might be used with multiple properties but different arguments! -> Bind parameters?
+            // TODO: setters and getters might be used with multiple properties but different arguments! -> Bind parameters?
             var propertyMap = new Map<String, Bool>();
             if (c.properties != null) {
                 for (m in cast(c.properties, Array<Dynamic>)) {
@@ -278,11 +303,33 @@ class ClassGenMacros {
                     var mType = TypeMacros.getTypeName(m.type);
                     var mPack = TypeMacros.getTypePackage(mType);
 
+                    var privateGetter = m.getter==null || m.getter.substr(0,1)=='_';
+                    var privateSetter = m.setter==null || m.setter.substr(0,1)=='_';
+
+                    var mismatchedTypes = false;
+                    if (propertyType.exists(cname+':'+m.getter) && mType != propertyType.get(cname+':'+m.getter)) {
+                        trace("Getter ignored: type mismatch for "+cname+':'+m.getter+" wanted="+mType+" have="+propertyType.get(cname+':'+m.getter));
+                        mismatchedTypes = true;
+                    }
+                    if (propertyType.exists(cname+':'+m.setter) && mType != propertyType.get(cname+':'+m.setter)) {
+                        trace("Setter ignored: type mismatch for "+cname+':'+m.setter+" wanted="+mType+" have="+propertyType.get(cname+':'+m.setter));
+                        mismatchedTypes = true;
+                    }
+
+                    var excludeProperties = [
+                        "BaseMaterial3D:grow",
+                        "Node:name",
+                    ];
+                    var excluded = excludeProperties.indexOf(cname+':'+m.name)>-1;
+
+                    // Getter & Setter are private so skip
+                    if ((privateGetter && privateSetter) || mismatchedTypes || excluded) continue;
+
                     properties.push({
                         name: m.name,
                         access: [APublic],
                         pos: Context.currentPos(),
-                        kind: FProp("get", "set", TPath({name:mType , pack:mPack}))
+                        kind: FProp(!privateGetter ? "get" : "never", !privateSetter ? "set" : "never", TPath({name:mType , pack:mPack}))
                         //kind: FProp("default", "default", TPath({name:mType , pack:mPack}))
                     });
 
@@ -303,6 +350,27 @@ class ClassGenMacros {
                             }
                         }
                     });
+
+                    if (!privateGetter && 'get_${m.name}' != m.getter) {
+                        
+                        properties.push({
+                            name: 'get_${m.name}',
+                            access: [APublic],
+                            pos: Context.currentPos(),
+                            kind: FFun({
+                                params : [],
+                                args : [],
+                                expr: m.index==null ? 
+                                    macro {
+                                        return $i{m.getter}();
+                                    } :
+                                    macro {
+                                        return $i{m.getter}($v{m.index});
+                                    },
+                                ret : TPath({name:mType , pack:mPack})
+                            })
+                        });
+                    }
 
                     binds.push({
                         clazz: clazz,
@@ -325,10 +393,35 @@ class ClassGenMacros {
                         }
                     });
 
+                    if (!privateSetter && 'set_${m.name}' != m.setter) {
+                        properties.push({
+                            name: 'set_${m.name}',
+                            access: [APublic],
+                            pos: Context.currentPos(),
+                            kind: FFun({
+                                params : [],
+                                args : [{
+                                    name: "_v",
+                                    type: TPath({name:mType , pack:mPack})
+                                }],
+                                expr:  m.index==null ?
+                                macro {
+                                    $i{m.setter}(_v);
+                                    return _v;
+                                } :
+                                macro {
+                                    $i{m.setter}($v{m.index}, _v);
+                                    return _v;
+                                },
+                                ret : TPath({name:mType , pack:mPack})
+                            })
+                        });
+                    }
+
                     propertyMap.set('set_${m.name}', true);
                     propertyMap.set('get_${m.name}', true);
-                }
-            }*/
+               }
+            }
 
 
             // now worry about the nasty details of expression and type-building
@@ -666,6 +759,7 @@ class ClassGenMacros {
                         ]
                     }
                 });
+                propertyType.set(clazz+':'+${caName}, retType);
             }
 
             // operators
