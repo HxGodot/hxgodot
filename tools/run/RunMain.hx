@@ -63,7 +63,7 @@ class RunMain
 
       if (!setupProject && !forceGeneration) {
 
-         log('\nUsage:\n haxelib run hxgodot init [-y]\n  1. Setup a sample project in the current working directory.\n  2. Generate Godot 4 bindings in the current working directory.\n\n haxelib run generate_bindings [-y]\n  1. Generate Godot 4 bindings in the current working directory.\n');
+         log('Usage:\n haxelib run hxgodot init [-y]\n  1. Setup a sample project in the current working directory.\n  2. Generate Godot 4 bindings in the current working directory.\n\n haxelib run generate_bindings [-y]\n  1. Generate Godot 4 bindings in the current working directory.\n');
          return;
       }
 
@@ -184,6 +184,6 @@ class RunMain
       // adds the insert to the following line if its too long
       if (insert.length > 27) return '$header                            |__|\n${StringTools.trim(insert)}\n';
       // makes sure there are 28 characters before the ascii art continues
-      return '$header${StringTools.rpad(insert, " ", 28)}|__|\n';
+      return '$header${StringTools.rpad(insert, " ", 28)}|__|\n\n';
    }
 }
