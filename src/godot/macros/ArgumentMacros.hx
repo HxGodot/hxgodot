@@ -36,6 +36,10 @@ class ArgumentMacros {
                     case 'Int64': macro { (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}, $i{_src}):haxe.Int64); }
                     case 'Float': macro { (untyped __cpp__('*((double*){0}) = {1}', $i{_dest}, $i{_src}):Float); }
                     //case 'GDString': macro { (untyped __cpp__('*((const char*){0}) = (const char*){1}->_native_ptr()', $i{_dest}, $i{_src}):String); }
+                    case 'Vector2':
+                        macro {
+                            untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
+                        };
                     case 'Vector3':
                         macro {
                             untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*3)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
@@ -70,6 +74,17 @@ class ArgumentMacros {
                         ));
                         str;
                     }
+                    case 'Vector2':
+                        macro { 
+                            var v:Array<godot.Types.GDExtensionFloat> = cpp.NativeArray.create(2);
+                            var d = cpp.NativeArray.address(v, 0);
+                            cpp.Native.memcpy(
+                                d,
+                                (untyped __cpp__('(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}, $v{_index}, $v{_offset}):cpp.Star<godot.Types.GDExtensionFloat>),
+                                untyped __cpp__('sizeof(float)*3')
+                            );
+                            v;
+                        };
                     case 'Vector3':
                         macro { 
                             var v:Array<godot.Types.GDExtensionFloat> = cpp.NativeArray.create(3);
