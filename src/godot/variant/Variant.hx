@@ -219,6 +219,9 @@ abstract Variant(__Variant) from __Variant to __Variant {
     // ARRAY
     @:from inline static function fromGDArray(_x:godot.variant.GDArray):Variant
         return _buildVariant2(GDExtensionVariantType.ARRAY, _x.native_ptr());
+    // Vector2
+    @:from inline static function fromVector2(_x:godot.variant.Vector2):Variant
+        return _buildVariant2(GDExtensionVariantType.VECTOR2, _x.native_ptr());
     // Vector3
     @:from inline static function fromVector3(_x:godot.variant.Vector3):Variant
         return _buildVariant2(GDExtensionVariantType.VECTOR3, _x.native_ptr());
