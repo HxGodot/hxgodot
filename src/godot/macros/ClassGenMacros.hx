@@ -1,5 +1,7 @@
 package godot.macros;
 
+#if macro
+
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.MacroStringTools;
@@ -14,7 +16,17 @@ using StringTools;
 
 class ClassGenMacros {
     static var outputFolder = "./bindings";
+    
     static var propertyType:Map<String, String> = new Map<String, String>();
+    
+    static var propertiesToExcludeForNow = [ // TODO: filter these out, till we come up with something better
+            "BaseMaterial3D:grow",
+            "Node:name",
+            "PointLight2D:height",
+            "DirectionalLight2D:height",
+            "PlaceholderTexture2D:size"
+        ];
+    
     static var logBuf = new StringBuf();
 
     public static function api() {
@@ -44,33 +56,57 @@ class ClassGenMacros {
     static function _generateClasses(_api:Dynamic) {
         var classes = cast(_api.classes, Array<Dynamic>);
         var singletons = cast(_api.singletons, Array<Dynamic>);
-
-        /*
-        var inheritancePairs = new Map<String, String>();
-        for (c in classes)
-            inheritancePairs.set(c.name, c.inherits != null ? c.inherits : null);
-
-
-        var inheritanceLists = new Map<String, Array<String>>();
-
-        for (c in classes) {
-            var res:Array<String> = [c.name];
-            var parent = inheritancePairs.get(c.name);
-            while(parent != null) {
-                res.push(parent);
-                parent = inheritancePairs.get(parent);
-            }
-            inheritanceLists.set(c.name, res);
-        }
-
-        //trace(inheritanceLists);
-        */
-
+        
         // track singletons
         var singletonMap = new Map<String, Bool>();
         for (s in singletons)
             singletonMap.set(s.type, true);
 
+        // build an inheritance search structure for methods
+        var classMap = new Map<String, Map<String, Null<Int>>>();
+        var inheritancePairs = new Map<String, String>();
+        for (c in classes) {
+            var mMap = new Map<String, Null<Int>>();
+            if (c.methods != null)
+                for (m in cast(c.methods, Array<Dynamic>)) {
+                    var realArgCount = 0;
+                    if (m.arguments != null) {
+                        for (a in cast(m.arguments, Array<Dynamic>)) {
+                            if (a.default_value == null)
+                                realArgCount++;
+                        }
+                    }
+                    mMap.set(m.name, realArgCount);
+                }
+            classMap.set(c.name, mMap);
+            inheritancePairs.set(c.name, c.inherits != null ? c.inherits : null);
+        }
+
+        // little helper function
+        function _isInheritedMethod(_class:String, _method:String) {
+            if (_method == null) return null;
+
+            var res = {inherited: false, realArgCount: 0, pClass: null};
+            var current = _class;
+            while (current != null) {
+                var m = classMap.get(current).get(_method);
+                if (m != null) {                    
+                    if (current == _class) {
+                        res.inherited = false;
+                        res.realArgCount = m;
+                        break;
+                    }
+                    else {
+                        res.inherited = true;
+                        res.realArgCount = m;
+                        res.pClass = current;
+                        break;
+                    }
+                }
+                current = inheritancePairs.get(current);
+            }
+            return res;
+        }
 
         for (c in classes) {
             var cname = '${c.name}';
@@ -154,6 +190,7 @@ class ClassGenMacros {
             var binds = new Array<FunctionBind>();
 
             // methods
+            var methodMap = new Map<String, Bool>();
             if (c.methods != null) {
                 for (m in cast(c.methods, Array<Dynamic>)) {
 
@@ -180,12 +217,26 @@ class ClassGenMacros {
                                     type: {name:argType , pack:argPack}
                                 }); 
                             } else {
+
                                 //var argType = TypeMacros.getTypeName(a.meta != null ? a.meta : a.type);
                                 var argType = TypeMacros.getTypeName(a.type);
                                 var argPack = TypeMacros.getTypePackage(argType);
+
+                                // deal with the proper default value and parse it into an expression
+                                var defVal:String = a.default_value;
+                                var defValExpr = null;
+                                if (defVal != null) {
+                                    //defVal = defVal.replace("&", "");
+                                    if (TypeMacros.isTypeNative(argType)) {
+                                        if (defVal.length == 0) // empty string, wtf
+                                            defVal = "\"\"";
+                                        defValExpr = Context.parse(defVal, Context.currentPos());
+                                    }
+                                } 
                                 args.push({
                                     name: ArgumentMacros.guardAgainstKeywords(a.name),
-                                    type: {name:argType , pack:argPack}
+                                    type: {name:argType , pack:argPack},
+                                    defaultValue: defValExpr
                                 });    
                             }                        
                         }
@@ -220,6 +271,7 @@ class ClassGenMacros {
                     var retPack = TypeMacros.getTypePackage(retType);
 
                     propertyType.set(c.name+':'+caName, retType);
+                    methodMap.set(caName, true);
 
                     // what access levels?
                     var access = [APublic];
@@ -264,17 +316,22 @@ class ClassGenMacros {
             // signals
             // TODO: explicitly type signals and their arguments?
             var signals = [];
+            var signalMap = new Map<String, Dynamic>();
             if (c.signals != null) {
                 for (s in cast(c.signals, Array<Dynamic>)) {
+            
                     var isValid = 0;
-                    var sname = s.name;
+                    var sname = 'on_${s.name}';
                     var gname = 'get_$sname';
+                    var argTypeStr = '';
                     var sig = [];
                     if (s.arguments != null) {
                         for (a in cast(s.arguments, Array<Dynamic>)) {
                             var t = TypeMacros.getTypePackage(a.type);
-                            if (!TypeMacros.isTypeAllowed(a.type))
+                            if (!TypeMacros.isTypeAllowed(a.type)){
                                 isValid += 1;
+                                argTypeStr += '${a.type} ';
+                            }
                             sig.push(TNamed(a.name, TPath({name: TypeMacros.getTypeName(a.type), pack: t})));
                         }
                     }
@@ -289,24 +346,30 @@ class ClassGenMacros {
                         
                         @:noCompletion
                         function $gname() {
-                            return godot.variant.Signal.fromObjectSignal(this, $v{sname});
+                            return godot.variant.Signal.fromObjectSignal(this, $v{s.name});
                         }
                     };
 
                     if (isValid == 0)
                         signals = signals.concat(cls.fields);
-                }                
+                    else
+                        log('Signal ignored: type currently not allowed: $sname:$argTypeStr');
+                }
             }
             
             // properties
             var properties = [];
+            
             // TODO: setters and getters might be used with multiple properties but different arguments! -> Bind parameters?
-            var propertyMap = new Map<String, Bool>();
             if (c.properties != null) {
                 for (m in cast(c.properties, Array<Dynamic>)) {
-                    if (!TypeMacros.isTypeAllowed(m.type))
+                    var mName = ArgumentMacros.guardAgainstKeywords(m.name);
+
+                    if (!TypeMacros.isTypeAllowed(m.type)) {
+                        log('Property ignored: type currently not allowed: $mName:${m.type}');
                         continue;
-                    
+                    }
+
                     var mType = TypeMacros.getTypeName(m.type);
                     var mPack = TypeMacros.getTypePackage(mType);
 
@@ -323,110 +386,85 @@ class ClassGenMacros {
                         mismatchedTypes = true;
                     }
 
-                    var excludeProperties = [
-                        "BaseMaterial3D:grow",
-                        "Node:name",
-                    ];
-                    var excluded = excludeProperties.indexOf(cname+':'+m.name)>-1;
+                    var excluded = propertiesToExcludeForNow.indexOf(cname+':'+mName)>-1;
 
                     // Getter & Setter are private so skip
                     if ((privateGetter && privateSetter) || mismatchedTypes || excluded) continue;
 
+                    // collect information about the getter/setter along the inheritance chain and their arguments. 
+                    // we allow default arguments and only count "real" arguments when analyzing whether allow the 
+                    // property to be created
+                    var gInfo = _isInheritedMethod(cname, m.getter);
+                    var sInfo = _isInheritedMethod(cname, m.setter);
+
+                    if (gInfo.realArgCount > 1) {
+                        log('Property ignored: getter has too many arguments, $cname:$mName has ${gInfo.realArgCount} args.');
+                        continue;
+                    }
+                    if (sInfo != null && sInfo.realArgCount > 1) {
+                        log('Property ignored: setter has too many arguments, $cname:$mName has ${sInfo.realArgCount} args.');
+                        continue;
+                    }
+
                     properties.push({
-                        name: m.name,
+                        name: mName,
                         access: [APublic],
                         pos: Context.currentPos(),
                         kind: FProp(!privateGetter ? "get" : "never", !privateSetter ? "set" : "never", TPath({name:mType , pack:mPack}))
                         //kind: FProp("default", "default", TPath({name:mType , pack:mPack}))
                     });
 
-                    binds.push({
-                        clazz: clazz,
-                        name: 'get_${m.name}',
-                        type: FunctionBindType.PROPERTY_GET,
-                        returnType: {name:mType , pack:mPack},
-                        access: [],
-                        arguments: [],
-                        macros: {
-                            field: null,
-                            fieldSetter: null,
-                            extra: {
-                                setter: TypeMacros.fixCase(m.setter), 
-                                getter: TypeMacros.fixCase(m.getter),
-                                index: m.index
-                            }
-                        }
-                    });
+                    var gName = 'get_${mName}';
+                    var sName = 'set_${mName}';
 
-                    if (!privateGetter && 'get_${m.name}' != m.getter) {
-                        
-                        properties.push({
-                            name: 'get_${m.name}',
-                            access: [APublic],
-                            pos: Context.currentPos(),
-                            kind: FFun({
-                                params : [],
-                                args : [],
-                                expr: m.index==null ? 
-                                    macro {
-                                        return $i{m.getter}();
-                                    } :
-                                    macro {
-                                        return $i{m.getter}($v{m.index});
-                                    },
-                                ret : TPath({name:mType , pack:mPack})
-                            })
+                    if (!privateGetter &&
+                        !methodMap.exists(gName) && 
+                        (!gInfo.inherited || gName != m.getter)) {
+
+                        binds.push({
+                            clazz: clazz,
+                            name: gName,
+                            type: FunctionBindType.PROPERTY_GET,
+                            returnType: {name:mType , pack:mPack},
+                            access: [],
+                            arguments: [],
+                            macros: {
+                                field: null,
+                                fieldSetter: null,
+                                extra: {
+                                    setter: TypeMacros.fixCase(m.setter), 
+                                    getter: TypeMacros.fixCase(m.getter),
+                                    index: m.index
+                                }
+                            }
                         });
                     }
 
-                    binds.push({
-                        clazz: clazz,
-                        name: 'set_${m.name}',
-                        type: FunctionBindType.PROPERTY_SET,
-                        returnType: {name:mType , pack:mPack},
-                        access: [],
-                        arguments: [{
-                            name: "_v",
-                            type: {name:mType , pack:mPack}
-                        }],
-                        macros: {
-                            field: null,
-                            fieldSetter: null,
-                            extra: {
-                                setter: TypeMacros.fixCase(m.setter), 
-                                getter: TypeMacros.fixCase(m.getter),
-                                index: m.index
-                            }
-                        }
-                    });
+                    if (!privateSetter && 
+                        !methodMap.exists(sName) && 
+                        (!sInfo.inherited || sName != m.setter)) {
 
-                    if (!privateSetter && 'set_${m.name}' != m.setter) {
-                        properties.push({
-                            name: 'set_${m.name}',
-                            access: [APublic],
-                            pos: Context.currentPos(),
-                            kind: FFun({
-                                params : [],
-                                args : [{
-                                    name: "_v",
-                                    type: TPath({name:mType , pack:mPack})
-                                }],
-                                expr:  m.index==null ?
-                                macro {
-                                    $i{m.setter}(_v);
-                                    return _v;
-                                } :
-                                macro {
-                                    $i{m.setter}($v{m.index}, _v);
-                                    return _v;
-                                },
-                                ret : TPath({name:mType , pack:mPack})
-                            })
+                        binds.push({
+                            clazz: clazz,
+                            name: sName,
+                            type: FunctionBindType.PROPERTY_SET,
+                            returnType: {name:mType , pack:mPack},
+                            access: [],
+                            arguments: [{
+                                name: "_v",
+                                type: {name:mType , pack:mPack}
+                            }],
+                            macros: {
+                                field: null,
+                                fieldSetter: null,
+                                extra: {
+                                    setter: TypeMacros.fixCase(m.setter), 
+                                    getter: TypeMacros.fixCase(m.getter),
+                                    index: m.index
+                                }
+                            }
                         });
                     }
-
-                    propertyMap.set('set_${m.name}', true);
-                    propertyMap.set('get_${m.name}', true);
                }
             }
 
@@ -449,10 +487,8 @@ class ClassGenMacros {
                     case FunctionBindType.VIRTUAL_METHOD, FunctionBindType.METHOD, FunctionBindType.STATIC_METHOD:
                         FunctionMacros.buildMethod(bind, fields);
 
-                    /* TODO: That shit is incomplete for engine-classes. They have an invariation we dont bother modelling here!
                     case FunctionBindType.PROPERTY_GET, FunctionBindType.PROPERTY_SET:
-                        FunctionMacros.buildPropertyMethod(bind, fields);
-                    */
+                        FunctionMacros.buildPropertyMethod(bind, fields);                   
 
                     default:
                 }
@@ -586,9 +622,23 @@ class ClassGenMacros {
                         }
                         var argType = TypeMacros.getTypeName(a.type);
                         var argPack = TypeMacros.getTypePackage(argType);
+
+                        // deal with the proper default value and parse it into an expression
+                        var defVal:String = a.default_value;
+                        var defValExpr = null;
+                        if (defVal != null) {
+                            //defVal = defVal.replace("&", "");
+                            if (TypeMacros.isTypeNative(argType)) {
+                                if (defVal.length == 0) // empty string, wtf
+                                    defVal = "\"\"";
+                                defValExpr = Context.parse(defVal, Context.currentPos());
+                            }
+                        }
+
                         args.push({
                             name: ArgumentMacros.guardAgainstKeywords(a.name),
-                            type: {name:argType , pack:argPack}
+                            type: {name:argType , pack:argPack},
+                            defaultValue: defValExpr
                         });
                     }
                 }
@@ -713,9 +763,23 @@ class ClassGenMacros {
                         }
                         var argType = TypeMacros.getTypeName(a.type);
                         var argPack = TypeMacros.getTypePackage(argType);
+
+                        // deal with the proper default value and parse it into an expression
+                        var defVal:String = a.default_value;
+                        var defValExpr = null;
+                        if (defVal != null) {
+                            //defVal = defVal.replace("&", "");
+                            if (TypeMacros.isTypeNative(argType)) {
+                                if (defVal.length == 0) // empty string, wtf
+                                    defVal = "\"\"";
+                                defValExpr = Context.parse(defVal, Context.currentPos());
+                            }
+                        }
+
                         args.push({
                             name: ArgumentMacros.guardAgainstKeywords(a.name),
-                            type: {name:argType , pack:argPack}
+                            type: {name:argType , pack:argPack},
+                            defaultValue: defValExpr
                         });
                     }
                 }
@@ -921,6 +985,9 @@ class ClassGenMacros {
             var sizeName = '${b.name.toUpperCase()}_SIZE';
             var sizeValue = builtin_class_sizes.get(b.name);
 
+            // TODO: remove this hack! We kill PackedColorArrays etc at the moment
+            var isAllowed = TypeMacros.isTypeAllowed(b.name);
+
             var cls = macro class $name implements godot.variant.IBuiltIn {
                 @:noCompletion
                 private function new() {}
@@ -932,12 +999,14 @@ class ClassGenMacros {
 
                 @:noCompletion
                 inline public function set_native_ptr(_ptr:godot.Types.GDExtensionTypePtr):Void {
-                    if ($v{has_destructor} == true) // we need to release first if we got a destructor
-                        untyped __cpp__('((GDExtensionPtrDestructor){0})({1})', _destructor, this.native_ptr());
+                    if ($v{isAllowed} == true) { // TODO: remove this hack!
+                        if ($v{has_destructor} == true) // we need to release first if we got a destructor
+                            untyped __cpp__('((GDExtensionPtrDestructor){0})({1})', _destructor, this.native_ptr());
 
-                    // now use copy constructor, otherwise we leak like shit
-                    untyped __cpp__("std::array<GDExtensionConstTypePtr, 1> call_args = { (GDExtensionTypePtr){0} }", _ptr);
-                    untyped __cpp__('((GDExtensionPtrConstructor){0})({1}, (GDExtensionConstTypePtr*)call_args.data());', _constructor_1, this.native_ptr());
+                        // now use copy constructor, otherwise we leak like shit
+                        untyped __cpp__("std::array<GDExtensionConstTypePtr, 1> call_args = { (GDExtensionTypePtr){0} }", _ptr);
+                        untyped __cpp__('((GDExtensionPtrConstructor){0})({1}, (GDExtensionConstTypePtr*)call_args.data());', _constructor_1, this.native_ptr());
+                    }
                 }
             };
             var init = macro class {
@@ -1143,3 +1212,5 @@ ${structHeaderContent.toString()}
          Sys.println('Log has been written to "$log"');
     }
 }
+
+#end

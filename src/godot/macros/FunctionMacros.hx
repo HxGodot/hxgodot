@@ -1,5 +1,7 @@
 package godot.macros;
 
+#if macro
+
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import godot.macros.TypeMacros;
@@ -214,7 +216,7 @@ class FunctionMacros {
                             cast ($v{_bind.name}:godot.variant.StringName).native_ptr(),
                             untyped __cpp__("call_args.data()"),
                             untyped __cpp__("call_args.size()"),
-                            ret,
+                            _hx__ret,
                             err
                         );
                     });
@@ -223,7 +225,7 @@ class FunctionMacros {
                         untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})({1}, (GDExtensionConstTypePtr*)call_args.data(), (GDExtensionTypePtr){2}, {3});', 
                             $i{mname},
                             this.native_ptr(),
-                            ret,
+                            _hx__ret,
                             $v{_bind.arguments.length}
                         );
                     });
@@ -232,7 +234,7 @@ class FunctionMacros {
                     untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})({1}, nullptr, (GDExtensionTypePtr){2}, 0);', 
                         $i{mname},
                         this.native_ptr(),
-                        ret
+                        _hx__ret
                     );
                 });
             }
@@ -240,7 +242,7 @@ class FunctionMacros {
             // use a variant for the return type
             body = macro {
                 var ret2 = new godot.variant.Variant();
-                var ret = ret2.native_ptr();
+                var _hx__ret = ret2.native_ptr();
                 $b{exprs};
             };
 
@@ -295,7 +297,7 @@ class FunctionMacros {
                             cast ($v{_bind.name}:godot.variant.StringName).native_ptr(),
                             untyped __cpp__("call_args.data()"),
                             untyped __cpp__("call_args.size()"),
-                            ret,
+                            _hx__ret,
                             err
                         );
                     });
@@ -304,7 +306,7 @@ class FunctionMacros {
                         untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})({1}, (GDExtensionConstTypePtr*)call_args.data(), (GDExtensionTypePtr){2}, {3});', 
                             $i{mname},
                             this.native_ptr(),
-                            ret,
+                            _hx__ret,
                             $v{_bind.arguments.length}
                         );
                     });
@@ -313,7 +315,7 @@ class FunctionMacros {
                     untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})({1}, nullptr, (GDExtensionTypePtr){2}, 0);', 
                         $i{mname},
                         this.native_ptr(),
-                        ret
+                        _hx__ret
                     );
                 });
             }
@@ -322,7 +324,7 @@ class FunctionMacros {
                 // a native return type
                 body = macro {
                     var ret2:$typePath = $v{defaultValue};
-                    var ret = cpp.Native.addressOf(ret2);
+                    var _hx__ret = cpp.Native.addressOf(ret2);
                     $b{exprs};
                     return ret2;
                 };
@@ -331,7 +333,7 @@ class FunctionMacros {
                 var typePath = _bind.returnType;
                 body = macro {
                     var ret2 = new $typePath();
-                    var ret = ret2.native_ptr();
+                    var _hx__ret = ret2.native_ptr();
                     $b{exprs};
                     return ret2;
                 };
@@ -388,7 +390,7 @@ class FunctionMacros {
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})(nullptr, (GDExtensionConstTypePtr*)call_args.data(), (GDExtensionTypePtr){1}, {2});', 
                         $i{mname},
-                        ret,
+                        _hx__ret,
                         $v{_bind.arguments.length}
                     );
                 });
@@ -396,7 +398,7 @@ class FunctionMacros {
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})(nullptr, nullptr, (GDExtensionTypePtr){1}, 0);', 
                         $i{mname},
-                        ret
+                        _hx__ret
                     );
                 });
             }
@@ -405,7 +407,7 @@ class FunctionMacros {
                 // a native return type
                 body = macro {
                     var ret2:$typePath = $v{defaultValue};
-                    var ret = cpp.Native.addressOf(ret2);
+                    var _hx__ret = cpp.Native.addressOf(ret2);
                     $b{exprs};
                     return ret2;
                 };
@@ -414,7 +416,7 @@ class FunctionMacros {
                 var typePath = _bind.returnType;
                 body = macro {
                     var ret2 = new $typePath();
-                    var ret = ret2.native_ptr();
+                    var _hx__ret = ret2.native_ptr();
                     $b{exprs};
                     return ret2;
                 };
@@ -467,7 +469,7 @@ class FunctionMacros {
                 untyped __cpp__('((GDExtensionPtrGetter){0})({1}, (GDExtensionTypePtr){2});', 
                     $i{mname},
                     this.native_ptr(),
-                    ret
+                    _hx__ret
                 );
             }];
 
@@ -475,7 +477,7 @@ class FunctionMacros {
                 // a native return type
                 body = macro {
                     var ret2:$typePath = $v{defaultValue};
-                    var ret = cpp.Native.addressOf(ret2);
+                    var _hx__ret = cpp.Native.addressOf(ret2);
                     $b{exprs};
                     return ret2;
                 };
@@ -484,7 +486,7 @@ class FunctionMacros {
                 var typePath = _bind.returnType;
                 body = macro {
                     var ret2 = new $typePath();
-                    var ret = ret2.native_ptr();
+                    var _hx__ret = ret2.native_ptr();
                     $b{exprs};
                     return ret2;
                 };
@@ -563,7 +565,7 @@ class FunctionMacros {
                 $i{oname},
                 $left,
                 $right,
-                ret
+                _hx__ret
             );
         }];
 
@@ -572,7 +574,7 @@ class FunctionMacros {
             // a native return type
             body = macro {
                 var ret2:$typePath = $v{defaultValue};
-                var ret = cpp.Native.addressOf(ret2);
+                var _hx__ret = cpp.Native.addressOf(ret2);
                 $b{exprs};
                 return ret2;
             };
@@ -581,7 +583,7 @@ class FunctionMacros {
             var typePath = _bind.returnType;
             body = macro {
                 var ret2 = new $typePath();
-                var ret = ret2.native_ptr();
+                var _hx__ret = ret2.native_ptr();
                 $b{exprs};
                 return ret2;
             };
@@ -625,7 +627,7 @@ class FunctionMacros {
                     $i{mname},
                     this.native_ptr(),
                     $i{index},
-                    ret
+                    _hx__ret
                 );
             }];
 
@@ -633,7 +635,7 @@ class FunctionMacros {
                 // a native return type
                 body = macro {
                     var ret2:$typePath = $v{defaultValue};
-                    var ret = cpp.Native.addressOf(ret2);
+                    var _hx__ret = cpp.Native.addressOf(ret2);
                     $b{exprs};
                     return ret2;
                 };
@@ -642,7 +644,7 @@ class FunctionMacros {
                 var typePath = _bind.returnType;
                 body = macro {
                     var ret2 = new $typePath();
-                    var ret = ret2.native_ptr();
+                    var _hx__ret = ret2.native_ptr();
                     $b{exprs};
                     return ret2;
                 };
@@ -747,13 +749,13 @@ class FunctionMacros {
               case FunctionBindType.STATIC_METHOD: {
                 exprs = exprs.concat(vArgs.argBody);
                   exprs.push(macro {
-                           untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, (GDExtensionConstTypePtr*)call_args.data(), {1})', $i{mname}, ret);
+                           untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, (GDExtensionConstTypePtr*)call_args.data(), {1})', $i{mname}, _hx__ret);
                         });
               }
                     default: {
                         exprs = exprs.concat(vArgs.argBody);
                         exprs.push(macro {
-                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, (GDExtensionConstTypePtr*)call_args.data(), {2})', $i{mname}, this.native_ptr(), ret);
+                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, (GDExtensionConstTypePtr*)call_args.data(), {2})', $i{mname}, this.native_ptr(), _hx__ret);
                         });
                     }
                 }
@@ -762,12 +764,12 @@ class FunctionMacros {
                     case FunctionBindType.VIRTUAL_METHOD: {}
               case FunctionBindType.STATIC_METHOD: {
                   exprs.push(macro {
-                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, nullptr, {1})', $i{mname}, ret);
+                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, nullptr, {1})', $i{mname}, _hx__ret);
                         });
               }
                     default: {
                         exprs.push(macro {
-                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', $i{mname}, this.native_ptr(), ret);
+                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', $i{mname}, this.native_ptr(), _hx__ret);
                         });
                     }
                 }
@@ -790,7 +792,7 @@ class FunctionMacros {
                     // a native return type
                     body = macro {
                         var ret2:$typePath = $v{defaultValue};
-                        var ret = cpp.Native.addressOf(ret2);
+                        var _hx__ret = cpp.Native.addressOf(ret2);
                         $b{exprs};
                         return ret2;
                     };
@@ -813,7 +815,6 @@ class FunctionMacros {
         });
     }
 
-    /*
     public static function buildPropertyMethod(_bind:FunctionBind, _fields:Array<Field>) {
         var mname = '_${_bind.name}';
 
@@ -863,7 +864,6 @@ class FunctionMacros {
             })
         });
     }
-    */
 
     // utils
     static function _buildCallArgs(_bind:FunctionBind):CallArgs {
@@ -875,7 +875,9 @@ class FunctionMacros {
 
             for (a in _bind.arguments) {
                 var argName = '${a.name}';
-                argExprs.push({name:argName, type:TPath(a.type)});            
+                var arg = {name:argName, type:TPath(a.type)};
+                var argType = arg.type;
+                argExprs.push(arg);            
 
                 if (a.isVarArg) {
                     rest = argName;
@@ -883,9 +885,9 @@ class FunctionMacros {
                 }
 
                 if (TypeMacros.isTypeNative(a.type.name))
-                    conCallArgs.push(macro {untyped __cpp__('call_args.push_back((GDExtensionTypePtr)&{0})', $i{argName});});
+                    conCallArgs.push(macro {untyped __cpp__('call_args.push_back((GDExtensionTypePtr)&{0})', ($i{argName}:$argType));});
                 else
-                    conCallArgs.push(macro {untyped __cpp__('call_args.push_back((GDExtensionTypePtr){0})', $i{argName}.native_ptr());});
+                    conCallArgs.push(macro {untyped __cpp__('call_args.push_back((GDExtensionTypePtr){0})', ($i{argName}:$argType).native_ptr());});
             }
 
             var tmp = [
@@ -908,31 +910,56 @@ class FunctionMacros {
 
         } else {
             // preprocess the arguments
+            // make sure we wrap cast all arguments to allow for default arguments and the way they are handled with Dynamic
             var argExprs = [];
             var conCallArgs = [];
             for (a in _bind.arguments) {
-                var argName = '${a.name}';
-                argExprs.push({name:argName, type:TPath(a.type)});            
+                var argName = '${a.name}'.trim();
+                var arg:haxe.macro.FunctionArg = {name:argName, type:TPath(a.type)};
+
+                var pack = TypeMacros.getTypePackage(a.type.name).join(".");
+                var argType = pack.length > 0 ? '$pack.${a.type.name}' : a.type.name;
+
+                if (a.defaultValue != null) {
+                    arg.opt = true;
+                    arg.value = a.defaultValue;
+                }
+
+                argExprs.push(arg);
+
                 if (TypeMacros.isTypeNative(a.type.name))
-                    conCallArgs.push({type: '(GDExtensionTypePtr)&', name: argName});
+                    conCallArgs.push({
+                        type: '(GDExtensionTypePtr)&', 
+                        name: '_hxwrap__$argName',
+                        decl: 'var _hxwrap__$argName:$argType = ($argName:${argType});'
+                    });
                 else
-                    conCallArgs.push({type: '(GDExtensionTypePtr)', name: '${argName}.native_ptr()'});
+                    conCallArgs.push({
+                        type: '(GDExtensionTypePtr)',
+                        name: '_hxwrap__$argName',
+                        decl: 'var _hxwrap__$argName = ($argName:${argType}).native_ptr();'
+                    });
             }
 
             // wtf is even happening? Well, we assemble a std::array in using several untyped __cpp__ calls to allow for proper typing...
+            var argBody = [];
             var tmp = [];
             var vals = [];
+            var decls = [];
             for (i in 0...conCallArgs.length) {
                 tmp.push('${conCallArgs[i].type}{$i}');
                 vals.push('${conCallArgs[i].name}');
+                argBody.push(Context.parse(conCallArgs[i].decl, Context.currentPos()));
             }
+
             var sArgs = 'std::array<GDExtensionConstTypePtr, ${_bind.arguments.length}> call_args = { ${tmp.join(",")} }';
             var tmp2 = 'untyped __cpp__("$sArgs", ${vals.length > 0 ? vals.join(",") : null})';
+            argBody.push(Context.parse(tmp2, Context.currentPos()));
 
             return {
                 argExprs: argExprs, // for Haxe's function call
                 argCount: _bind.arguments.length,
-                argBody: [Context.parse(tmp2, Context.currentPos())] // actual function body code
+                argBody: argBody // actual function body code
             };
         }
     }
@@ -948,7 +975,8 @@ class FunctionMacros {
             body = macro {
                 // managed types need a pointer indirection
                 var retOriginal:godot.Types.VoidPtr = untyped __cpp__('nullptr');
-                var ret:godot.Types.VoidPtr = untyped __cpp__('&{0}', retOriginal);
+                var _hx__ret:godot.Types.VoidPtr = untyped __cpp__('&{0}', retOriginal);
+                
                 $b{_exprs};
 
                 if (retOriginal != null) {
@@ -970,7 +998,7 @@ class FunctionMacros {
         } else {
             body = macro {
                 var ret2 = new $typePath();
-                var ret = ret2.native_ptr();
+                var _hx__ret = ret2.native_ptr();
                 $b{_exprs};
                 return ret2;
             };
@@ -979,3 +1007,5 @@ class FunctionMacros {
         return body;        
     }
 }
+
+#end

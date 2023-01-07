@@ -1,5 +1,7 @@
 package godot.macros;
 
+#if macro
+
 import godot.Types;
 import godot.variant.Vector3;
 import haxe.macro.Context;
@@ -165,8 +167,10 @@ class ArgumentMacros {
                     "typedef",
                     "final",
                     "inline",
-                    "char": 'hx_$_str';
+                    "char": 'gd_$_str';
             default: _str;
         }
     }
 }
+
+#end
