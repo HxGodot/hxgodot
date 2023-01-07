@@ -1,5 +1,7 @@
 package godot.macros;
 
+#if macro
+
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.MacroStringTools;
@@ -219,3 +221,5 @@ class PostInitMacros {
         return postInitClass.fields;
     }
 }
+
+#end

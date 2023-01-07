@@ -1,5 +1,7 @@
 package godot.macros;
 
+#if macro
+
 import godot.Types;
 
 using StringTools;
@@ -94,7 +96,8 @@ class TypeMacros {
                 "uint8_t", "uint8", "cpp.UInt8",
                 "int8_t", "int8", "cpp.Int8",
                 "int16_t", "int16", "cpp.Int16",
-                "real_t", "float", "double", "float_t", "double_t", "Float",
+                "real_t", "float", "double", 
+                "float_t", "double_t", "Float",
                 "float32_t", "cpp.Float32",
                 "void", "const void*", "godot.Types.VoidPtr": true;
 
@@ -132,6 +135,17 @@ class TypeMacros {
                 // "Vector2i",
                 // "Vector3i",
                 // "Projection",
+
+                "PackedByteArray",
+                "PackedColorArray",
+                "PackedFloat32Array",
+                "PackedFloat64Array",
+                "PackedInt32Array",
+                "PackedInt64Array",
+                "PackedStringArray",
+                "PackedVector2Array",
+                "PackedVector3Array",
+
                 "const uint8_t *",
                 "Vector4", // TODO
                 "Vector4i": false;  // TODO
@@ -278,6 +292,6 @@ class TypeMacros {
         */
         return _str;
     }
-
-    
 }
+
+#end

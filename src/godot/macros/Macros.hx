@@ -1,5 +1,7 @@
 package godot.macros;
 
+#if macro
+
 import godot.Types;
 import haxe.macro.Context;
 import haxe.macro.Expr;
@@ -56,20 +58,20 @@ class Macros {
             "], pos);
         classMeta.add(":headerClassCode", [macro "
                 static void *___binding_create_callback(void *p_token, void *p_instance) {
-                    int base = 0;
+                    int base = 99;
                     hx::SetTopOfStack(&base,true);
                     void *res = _hx____binding_create_callback(p_token, p_instance);
                     hx::SetTopOfStack((int*)0,true);
                     return res;
                 }
                 static void ___binding_free_callback(void *p_token, void *p_instance, void *p_binding) {
-                    int base = 0;
+                    int base = 99;
                     hx::SetTopOfStack(&base,true);
                     _hx____binding_free_callback(p_token, p_instance, p_binding);
                     hx::SetTopOfStack((int*)0,true);
                 }
                 static GDExtensionBool ___binding_reference_callback(void *p_token, void *p_instance, GDExtensionBool p_reference) { 
-                    int base = 0;
+                    int base = 99;
                     hx::SetTopOfStack(&base,true);
                     GDExtensionBool res = _hx____binding_reference_callback(p_token, p_instance, p_reference);
                     hx::SetTopOfStack((int*)0,true);
@@ -211,9 +213,6 @@ class Macros {
 
         return fields;
     }
-#if macro
-    
-    
 
     static function buildFieldBindings(
         _fields:Array<haxe.macro.Field>,
@@ -708,7 +707,7 @@ class Macros {
 
             vCallbacks += '
                 static void ${vname}__onVirtualCall(GDExtensionClassInstancePtr p_instance, const GDExtensionTypePtr *p_args, GDExtensionTypePtr r_ret) {
-                    int base = 0;
+                    int base = 99;
                     hx::SetTopOfStack(&base,true);
                     GDExtensionClassCallVirtual res = nullptr;
                     ${_cppClassName} instance = (${_cppClassName}((${_cppClassName}_obj*)(((cpp::utils::RootedObject*)p_instance)->getObject())));
@@ -748,7 +747,7 @@ class Macros {
         // add the callback wrappers, so we can play along with GC
         var cppCode = vCallbacks + '
             static GDExtensionObjectPtr __onCreate(void *p_userdata) {
-                int base = 0;
+                int base = 99;
                 hx::SetTopOfStack(&base,true);
                 GDExtensionObjectPtr res = ${_cppClassName}_obj::_hx___create((void *)p_userdata);
                 hx::SetTopOfStack((int*)0,true);
@@ -756,14 +755,14 @@ class Macros {
             }
 
             static void __onFree(void *p_userdata, GDExtensionClassInstancePtr p_instance) {
-                int base = 0;
+                int base = 99;
                 hx::SetTopOfStack(&base,true);
                 ${_cppClassName}_obj::_hx___free((void *)p_userdata, p_instance);
                 hx::SetTopOfStack((int*)0,true);
             }
 
             static GDExtensionClassCallVirtual __onGetVirtualFunc(void *p_userdata, const GDExtensionStringNamePtr p_name) {
-                int base = 0;
+                int base = 99;
                 hx::SetTopOfStack(&base,true);
                 GDExtensionClassCallVirtual res = (GDExtensionClassCallVirtual)${_cppClassName}_obj::_hx___getVirtualFunc(p_userdata, p_name);
                 hx::SetTopOfStack((int*)0,true);
@@ -778,7 +777,7 @@ class Macros {
                 GDExtensionVariantPtr r_return,
                 GDExtensionCallError *r_error)
             {   
-                int base = 0;
+                int base = 99;
                 hx::SetTopOfStack(&base,true);
                 ${_cppClassName}_obj::_hx___bindCall(
                     (void *)method_userdata,
@@ -797,7 +796,7 @@ class Macros {
                 const GDExtensionTypePtr *p_args,
                 GDExtensionTypePtr r_ret)
             {
-                int base = 0;
+                int base = 99;
                 hx::SetTopOfStack(&base,true);
                 ${_cppClassName}_obj::_hx___bindCallPtr(
                     (void *)method_userdata,
@@ -931,5 +930,6 @@ class Macros {
         }
         return _fields.concat(fieldBindingsClass.fields.concat(virtualFuncImpls));
     }
-#end
 }
+
+#end

@@ -53,6 +53,7 @@ if env['platform'] == "windows":
     env.Append(CCFLAGS = ['-EHs', '-FS', '-GR', '-GS-', '-MT', '-nologo', '-Oy-', '-wd4996', '/fp:precise', '/WX-'])
     if env['target'] == 'debug':
         env.Append(CCFLAGS = ['-Od'])
+        env.Append(LINKFLAGS=['-debug:full'])
     else:
         env.Append(CCFLAGS = ['-O2'])
 
