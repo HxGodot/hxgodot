@@ -132,6 +132,12 @@ class ArgumentMacros {
                         }
 
                     default: {
+                        var isRefCounted = switch (Context.follow(haxe.macro.ComplexTypeTools.toType(_type))) {
+                            case TInst(_classType, _): _classType.get().meta.has(":gdRefCounted");
+                            default: false;
+                        }
+                        //trace(_type + " " + isRefCounted);
+
                         var identBindings = '&::godot::${_d.name}_obj::___binding_callbacks';
                         macro {
                             // managed types need a pointer indirection
@@ -148,6 +154,9 @@ class ArgumentMacros {
                                     $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
                                     obj
                                 );
+
+                            if ($v{isRefCounted} == true)
+                                instance.reference();
 
                             instance;
                         }
