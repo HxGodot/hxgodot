@@ -527,10 +527,13 @@ class ClassGenMacros {
 
             if (singletonMap.exists(cname)) {
                 var sig = macro class {
+                    public static var __instance:$typePathComplex = null;
                     public static function singleton() {
-                        var ret:$typePathComplex = cast Type.createEmptyInstance(Wrapped.classTags.get(__class_name));
-                        ret.__owner = godot.Types.GodotNativeInterface.global_get_singleton(__class_name.native_ptr());
-                        return ret;
+                        if (__instance == null) {
+                            __instance = cast Type.createEmptyInstance(Wrapped.classTags.get(__class_name));
+                            __instance.__owner = godot.Types.GodotNativeInterface.global_get_singleton(__class_name.native_ptr());
+                        }
+                        return __instance;
                     }
                 };
                 fields = fields.concat(sig.fields);
