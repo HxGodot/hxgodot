@@ -245,44 +245,6 @@ class FunctionMacros {
                 var _hx__ret = ret2.native_ptr();
                 $b{exprs};
             };
-
-            /*
-            var exprs = [];
-            if (_bind.arguments.length > 0) {
-                exprs = exprs.concat(vArgs.argBody);
-                if (_bind.hasVarArg) {// use variant call
-                    exprs.push(macro {
-                        var err = new godot.Types.GDExtensionCallError();
-                        godot.Types.GodotNativeInterface.variant_call(
-                            (this:godot.variant.Variant).native_ptr(),
-                            cast ($v{_bind.name}:godot.variant.StringName).native_ptr(),
-                            untyped __cpp__("call_args.data()"),
-                            untyped __cpp__("call_args.size()"),
-                            null,
-                            err
-                        );
-                    });
-                }
-                else
-                    exprs.push(macro {
-                        untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})({1}, (GDExtensionConstTypePtr*)call_args.data(), nullptr, {2});', 
-                            $i{mname},
-                            this.native_ptr(),
-                            $v{_bind.arguments.length}
-                        );
-                    });
-            } else {
-                exprs.push(macro {
-                    untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})({1}, nullptr, nullptr, 0);', 
-                        $i{mname},
-                        this.native_ptr()
-                    );
-                });
-            }
-            body = macro {
-                $b{exprs};
-            };
-            */
         } else {            
             var typePath = TPath(_bind.returnType);
             var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
