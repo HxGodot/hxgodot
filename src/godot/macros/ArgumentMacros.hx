@@ -136,7 +136,6 @@ class ArgumentMacros {
                             case TInst(_classType, _): _classType.get().meta.has(":gdRefCounted");
                             default: false;
                         }
-                        //trace(_type + " " + isRefCounted);
 
                         var identBindings = '&::godot::${_d.name}_obj::___binding_callbacks';
                         macro {
