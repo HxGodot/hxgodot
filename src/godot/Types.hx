@@ -275,6 +275,8 @@ typedef GDExtensionPtrIndexedGetter = Int;
 typedef GDExtensionPtrIndexedSetter = Int;
 typedef GDExtensionCallError = Int;
 
+typedef GDExtensionPtrUtilityFunction = Int;
+
 #else
 
 // typedef to properly allow typing into the godot-side
@@ -304,6 +306,8 @@ typedef GDExtensionPtrSetter = VoidPtr;
 typedef GDExtensionPtrOperatorEvaluator = VoidPtr;
 typedef GDExtensionPtrIndexedGetter = VoidPtr;
 typedef GDExtensionPtrIndexedSetter = VoidPtr;
+
+typedef GDExtensionPtrUtilityFunction = VoidPtr;
 
 // simple extern class to make the includes work
 @:include("godot_cpp/godot.hpp")
@@ -444,6 +448,10 @@ extern class GodotNativeInterface {
 
     inline public static function variant_get_ptr_builtin_method(_type:Int, _method:GDExtensionStringNamePtr, _hash:cpp.Int64):GDExtensionPtrBuiltInMethod {
         return untyped __cpp__('(cpp::Function<void (void *,const void **,void *,int)> *)godot::internal::gdn_interface->variant_get_ptr_builtin_method((GDExtensionVariantType){0}, {1}, {2})', _type, _method, _hash);
+    }
+
+    inline public static function variant_get_ptr_utility_function(_function:GDExtensionStringNamePtr, _hash:cpp.Int64):GDExtensionPtrUtilityFunction {
+        return untyped __cpp__('(cpp::Function<void (void *,const void **,int)> *)godot::internal::gdn_interface->variant_get_ptr_utility_function({0}, {1})', _function, _hash);
     }
 
     @:native("godot::internal::gdn_interface->variant_call")

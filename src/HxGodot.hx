@@ -28,6 +28,22 @@ class HxGodot {
     }
 
     static function main() {
+        // setup constructors
+        __Variant.__initBindings();
+
+        // use https://github.com/jasononeil/compiletime to embed all found extensionclasses and use rtti to register them
+        // TODO: the compile-time lib should prolly be replaced with something lightweight in the long run
+        var builtins = CompileTime.getAllClasses(godot.variant.IBuiltIn);
+        for (t in builtins) {
+            if (Reflect.hasField(t, "__init_builtin_constructors")) // built-in class constructors and shit
+                Reflect.field(t, "__init_builtin_constructors")();
+        }
+        for (t in builtins) {
+            if (Reflect.hasField(t, "__init_builtin_bindings")) // built-in class bindings
+                Reflect.field(t, "__init_builtin_bindings")();
+        }
+
+        // now override the trace function for error handling and GDUtils prints
         haxe.Log.trace = function(v:Dynamic, ?infos:haxe.PosInfos) {
             if (infos.customParams != null) {
                 // TODO: Sucks, but lets do this for now
@@ -38,27 +54,12 @@ class HxGodot {
                 lines.unshift(Std.string(v));
                 GodotNativeInterface.print_error(lines.join('\n'), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
             } else {
-                GodotNativeInterface.print_warning(Std.string(v), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
+                //GodotNativeInterface.print_warning(Std.string(v), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
+                GDUtils.print((Std.string(v):godot.variant.GDString));
             }
-        }  
-
-        // setup constructors
-        __Variant.__initBindings();
-
-        // use https://github.com/jasononeil/compiletime to embed all found extensionclasses and use rtti to register them
-        // TODO: the compile-time lib should prolly be replaced with something lightweight in the long run
-        var builtins = CompileTime.getAllClasses(godot.variant.IBuiltIn);
-        trace('Available builtins: ${builtins.length}');
-        for (t in builtins) {
-            if (Reflect.hasField(t, "__init_builtin_constructors")) // built-in class constructors and shit
-                Reflect.field(t, "__init_builtin_constructors")();
         }
-        for (t in builtins) {
-            if (Reflect.hasField(t, "__init_builtin_bindings")) // built-in class bindings
-                Reflect.field(t, "__init_builtin_bindings")();
-        }
+
         var tmp = CompileTime.getAllClasses(godot.Wrapped);
-        trace('Available classes: ${tmp.length}');
         for (t in tmp) {
             if (Reflect.hasField(t, "__init_engine_bindings")) // engine class bindings
                 Reflect.field(t, "__init_engine_bindings")();
@@ -69,6 +70,12 @@ class HxGodot {
             if (Reflect.hasField(t, "__registerClass")) // extension class bindings
                 Reflect.field(t, "__registerClass")();
         }
+
+        //trace(CompileTime.buildGitCommitSha());
+        godot.core.GDUtils.print_rich('
+[b][color=FFA500]Hx[/color][color=6495ED]Godot[/color] (${godot.core.GDUtils.HXGODOT_VERSION})[/b]
+${builtins.length} builtins / ${tmp.length} classes available
+');
     }
 
     public static function shutdown() {

@@ -31,12 +31,6 @@
 #include <hxcpp.h>
 #include <godot_cpp/godot.hpp>
 
-//#include <godot_cpp/classes/wrapped.hpp>
-//#include <godot_cpp/core/class_db.hpp>
-//#include <godot_cpp/core/memory.hpp>
-//include <godot_cpp/variant/variant.hpp>
-
-//#include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/defs.hpp>
 
 namespace godot {

@@ -2,7 +2,7 @@ package godot.core;
 
 import godot.Types;
 
-class GDConstants {	
+class GDConstants { 
     inline public static var CMP_EPSILON = 0.00001;
     inline public static var CMP_EPSILON2 = (CMP_EPSILON * CMP_EPSILON);
 
@@ -27,9 +27,9 @@ class GDConstants {
     }
     
     inline public static function SIGN(m_v:GDExtensionFloat):GDExtensionFloat {
-		return m_v == 0 ? 0.0 : (m_v < 0 ? -1.0 : 1.0);
-	}
-	inline public static function CLAMP(m_a:GDExtensionFloat, m_min:GDExtensionFloat, m_max:GDExtensionFloat):GDExtensionFloat {
-		return m_a < m_min ? m_min : (m_a > m_max ? m_max : m_a);
-	}
+        return m_v == 0 ? 0.0 : (m_v < 0 ? -1.0 : 1.0);
+    }
+    inline public static function CLAMP(m_a:GDExtensionFloat, m_min:GDExtensionFloat, m_max:GDExtensionFloat):GDExtensionFloat {
+        return m_a < m_min ? m_min : (m_a > m_max ? m_max : m_a);
+    }
 }

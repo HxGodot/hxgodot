@@ -226,7 +226,7 @@ class FunctionMacros {
                             $i{mname},
                             this.native_ptr(),
                             _hx__ret,
-                            $v{_bind.arguments.length}
+                            $v{vArgs.argCount}
                         );
                     });
             } else {
@@ -249,7 +249,7 @@ class FunctionMacros {
             var typePath = TPath(_bind.returnType);
             var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
             var exprs = [];
-            if (_bind.arguments.length > 0) {
+            if (vArgs.argCount > 0) {
                 exprs = exprs.concat(vArgs.argBody);
                 if (_bind.hasVarArg) // use variant call
                     exprs.push(macro {
@@ -269,7 +269,7 @@ class FunctionMacros {
                             $i{mname},
                             this.native_ptr(),
                             _hx__ret,
-                            $v{_bind.arguments.length}
+                            $v{vArgs.argCount}
                         );
                     });
             } else {
@@ -325,12 +325,12 @@ class FunctionMacros {
         var body = null;
         if (_bind.returnType.name == "Void") {
             var exprs = [];
-            if (_bind.arguments.length > 0) {
+            if (vArgs.argCount > 0) {
                 exprs = exprs.concat(vArgs.argBody);
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})(nullptr, (GDExtensionConstTypePtr*)call_args.data(), nullptr, {1});', 
                         $i{mname},
-                        $v{_bind.arguments.length}
+                        $v{vArgs.argCount}
                     );
                 });
             } else {
@@ -347,13 +347,13 @@ class FunctionMacros {
             var typePath = TPath(_bind.returnType);
             var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
             var exprs = [];
-            if (_bind.arguments.length > 0) {
+            if (vArgs.argCount > 0) {
                 exprs = exprs.concat(vArgs.argBody);
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})(nullptr, (GDExtensionConstTypePtr*)call_args.data(), (GDExtensionTypePtr){1}, {2});', 
                         $i{mname},
                         _hx__ret,
-                        $v{_bind.arguments.length}
+                        $v{vArgs.argCount}
                     );
                 });
             } else {
@@ -397,18 +397,20 @@ class FunctionMacros {
         });
 
         // forward static fields to abstract
-        var callArgs = [for (a in _bind.arguments) a.name];
-        _abstractFields.push({
-            name: _bind.name,
-            access: [AInline, APublic, AStatic],
-            pos: Context.currentPos(),
-            kind: FFun({
-                args: vArgs.argExprs,
-                expr: Context.parse('{ return ${_bind.clazz.name}.${_bind.name}(${callArgs.join(",")}); }', Context.currentPos()),
-                params: [],
-                ret: TPath(_bind.returnType)
-            })
-        });
+        if (_abstractFields != null) {
+            var callArgs = [for (a in _bind.arguments) a.name];
+            _abstractFields.push({
+                name: _bind.name,
+                access: [AInline, APublic, AStatic],
+                pos: Context.currentPos(),
+                kind: FFun({
+                    args: vArgs.argExprs,
+                    expr: Context.parse('{ return ${_bind.clazz.name}.${_bind.name}(${callArgs.join(",")}); }', Context.currentPos()),
+                    params: [],
+                    ret: TPath(_bind.returnType)
+                })
+            });
+        }
     }
 
     // 
@@ -667,7 +669,7 @@ class FunctionMacros {
         var body = null;
         if (_bind.returnType.name == "Void") {
             var exprs = [];
-            if (_bind.arguments.length > 0) {
+            if (vArgs.argCount > 0) {
                 switch (_bind.type) {
                     case FunctionBindType.VIRTUAL_METHOD: {}
                     case FunctionBindType.STATIC_METHOD: {
@@ -705,7 +707,7 @@ class FunctionMacros {
             var typePath = TPath(_bind.returnType);
             var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
             var exprs = [];
-            if (_bind.arguments.length > 0) {
+            if (vArgs.argCount > 0) {
                 switch (_bind.type) {
                     case FunctionBindType.VIRTUAL_METHOD: {}
               case FunctionBindType.STATIC_METHOD: {
@@ -827,6 +829,89 @@ class FunctionMacros {
         });
     }
 
+    // 
+    public static function buildUtilityStaticMethod(_bind:FunctionBind, _fields:Array<Field>) {
+        var mname = '_method_${_bind.name}';
+        
+        // preprocess the arguments
+        var vArgs = _buildCallArgs(_bind);
+
+        // now build the function body
+        var body = null;
+        if (_bind.returnType.name == "Void") {
+            var exprs = [];
+            if (vArgs.argCount > 0) {
+                exprs = exprs.concat(vArgs.argBody);
+                exprs.push(macro {
+                    untyped __cpp__('((GDExtensionPtrUtilityFunction){0})(nullptr, (GDExtensionConstTypePtr*)call_args.data(), {1});', 
+                        $i{mname},
+                        $v{vArgs.argCount}
+                    );
+                });
+            } else {
+                exprs.push(macro {
+                    untyped __cpp__('((GDExtensionPtrUtilityFunction){0})(nullptr, nullptr, 0);', 
+                        $i{mname}
+                    );
+                });
+            }
+            body = macro {
+                $b{exprs};
+            };
+        } else {
+            var typePath = TPath(_bind.returnType);
+            var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
+            var exprs = [];
+            if (vArgs.argCount > 0) {
+                exprs = exprs.concat(vArgs.argBody);
+                exprs.push(macro {
+                    untyped __cpp__('((GDExtensionPtrUtilityFunction){0})((GDExtensionTypePtr){1}, (GDExtensionConstTypePtr*)call_args.data(), {2});', 
+                        $i{mname},
+                        _hx__ret,
+                        $v{vArgs.argCount}
+                    );
+                });
+            } else {
+                exprs.push(macro {
+                    untyped __cpp__('((GDExtensionPtrUtilityFunction){0})((GDExtensionTypePtr){1}, nullptr, 0);', 
+                        $i{mname},
+                        _hx__ret
+                    );
+                });
+            }
+
+            if (TypeMacros.isTypeNative(_bind.returnType.name)) {
+                // a native return type
+                body = macro {
+                    var ret2:$typePath = $v{defaultValue};
+                    var _hx__ret = cpp.Native.addressOf(ret2);
+                    $b{exprs};
+                    return ret2;
+                };
+            } else {
+                // // we have a managed return type, create it properly
+                var typePath = _bind.returnType;
+                body = macro {
+                    var ret2 = new $typePath();
+                    var _hx__ret = ret2.native_ptr();
+                    $b{exprs};
+                    return ret2;
+                };
+            }
+        }
+        _fields.push({
+            name: _bind.name,
+            access: _bind.access,
+            pos: Context.currentPos(),
+            kind: FFun({
+                args: vArgs.argExprs,
+                expr: body,
+                params: [],
+                ret: TPath(_bind.returnType)
+            })
+        });
+    }
+
     // utils
     static function _buildCallArgs(_bind:FunctionBind):CallArgs {
         if (_bind.hasVarArg) {
@@ -866,7 +951,7 @@ class FunctionMacros {
 
             return {
                 argExprs: argExprs, // for Haxe's function call
-                argCount: _bind.arguments.length,
+                argCount: conCallArgs.length,
                 argBody: tmp // actual function body code
             };
 

@@ -1,6 +1,7 @@
 package example;
 
 import godot.GlobalConstants;
+import godot.core.GDUtils;
 import godot.variant.Vector3;
 import godot.variant.GDString;
 import godot.variant.TypedSignal;
@@ -28,6 +29,11 @@ class HxExample extends godot.Node {
     function set_hx_ImportantFloat(_v:Float):Float {
 
         var test = new HxExample();
+
+        // custom print functions out of godot.core.GDUtils. The cast to GDString is important!
+        GDUtils.print(("print: This is a test":GDString));
+        GDUtils.print_rich(("print_rich: [b]Bold[/b], [color=red]Red text[/color]":GDString));
+        GDUtils.print_verbose(("print_verbose: This is a test":GDString));
 
         trace("Setting ImportantFloat to: " + _v);
         trace(GDString.humanize_size(Std.int(_v * 1000)));

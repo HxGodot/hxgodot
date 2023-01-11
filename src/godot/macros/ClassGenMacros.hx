@@ -15,6 +15,9 @@ using haxe.macro.ExprTools;
 using StringTools;
 
 class ClassGenMacros {
+
+    static var libName = "";
+    static var libVersion = "";
     static var outputFolder = "./bindings";
     
     static var propertyType:Map<String, String> = new Map<String, String>();
@@ -33,15 +36,19 @@ class ClassGenMacros {
         var use64 = Context.defined("HXCPP_M64");
         var useDouble = false; // TODO: Support double Godot builds
         var sizeKey = '${useDouble ? "double" : "float"}_${use64 ? "64" : "32"}';
+        var hl = haxe.Json.parse(sys.io.File.getContent("./haxelib.json"));
         var api = haxe.Json.parse(sys.io.File.getContent("./src/godot_cpp/extension_api.json"));
 
         var action = 'Generating binding classes for ${api.header.version_full_name} ($sizeKey)...';
         Sys.println(action);
 
+        libName = hl.name;
+        libVersion = hl.version;
         outputFolder = StringTools.replace(Context.getDefines().get("output"), "\"", "");
 
         Sys.println('Targeting "$outputFolder"');
 
+        _generateUtilities(api);
         _generateGlobalEnums(api);
         _generateNativeStructs(api, sizeKey);
         _generateBuiltins(api, sizeKey);
@@ -826,8 +833,8 @@ class ClassGenMacros {
                     arguments: args,
                     hasVarArg: hasVarArg,
                     macros: {
-                        field: hasVarArg ? null : (macro class {@:noCompletion static var $mname:godot.Types.GDExtensionPtrBuiltInMethod;}).fields[0],
-                        fieldSetter: hasVarArg ? null : [
+                        field: (macro class {@:noCompletion static var $mname:godot.Types.GDExtensionPtrBuiltInMethod;}).fields[0],
+                        fieldSetter: [
                             'var name_${m.name}:godot.variant.StringName = "${m.name}"',
                             '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_builtin_method(${type}, name_${m.name}.native_ptr(), untyped __cpp__(\'{0}\', $mhash))' 
                         ]
@@ -1074,6 +1081,143 @@ class ClassGenMacros {
 
             sys.io.File.saveContent(path+"/"+abstractName+".hx", output);
         }
+    }
+
+    static function _generateUtilities(_api:Dynamic) {
+
+        var name = "GDUtils";
+
+        var type = 0;
+        var typePath = {name:name, pack:['godot', 'core']};
+        var typePathComplex = TPath(typePath);
+
+        var clazz:ClassContext = {
+            name: name,
+            type: type,
+            typePath: typePath
+        };
+
+        var binds = new Array<FunctionBind>();
+        for (m in cast(_api.utility_functions, Array<Dynamic>)) {
+
+            var caName = ArgumentMacros.guardAgainstKeywords(m.name);
+
+            var isAllowed = true;
+            var args = new Array<FunctionArgument>();
+
+            var argExprs = [];
+            if (m.arguments != null) {
+                for (a in cast(m.arguments, Array<Dynamic>)) {
+                    if (!TypeMacros.isTypeAllowed(a.type)) {
+                        isAllowed = false;
+                        break;
+                    }
+                    var argType = TypeMacros.getTypeName(a.type);
+                    var argPack = TypeMacros.getTypePackage(argType);
+
+                    args.push({
+                        name: ArgumentMacros.guardAgainstKeywords(a.name),
+                        type: {name:argType , pack:argPack}
+                    });
+                }
+            }
+
+            // deal with varargs
+            var hasVarArg = false;
+            if (m.is_vararg != null && m.is_vararg == true) {
+                args.push({
+                    name: "vararg",
+                    type: {name:"Rest", params:[TPType(macro : Dynamic)], pack:["haxe"]},
+                    isVarArg: true
+                });
+                hasVarArg = true;
+            }
+
+            if (!isAllowed) {
+                log('Utiltity function ignored: one of $name.$caName\'s argument types currently not allowed.');
+                continue;
+            }
+
+            if (!TypeMacros.isTypeAllowed(m.return_type)) {
+                log('Utiltity function ignored: $name.$caName\'s return types currently not allowed.');
+                continue;
+            }
+
+            // what return type?
+            var retType = "Void";
+            if (m.return_type != null)
+                retType = TypeMacros.getTypeName(m.return_type);
+            var retPack = TypeMacros.getTypePackage(retType);
+
+            // what access levels?
+            var access = [APublic, AStatic];
+
+            var mname = '_method_${caName}';
+            var mhash = Std.string(m.hash);
+            binds.push({
+                clazz: clazz,
+                name: '${caName}',
+                type: FunctionBindType.STATIC_METHOD,
+                returnType: {name:retType , pack:retPack},
+                access: access,
+                arguments: args,
+                hasVarArg: hasVarArg,
+                macros: {
+                    field: (macro class {@:noCompletion static var $mname:godot.Types.GDExtensionPtrBuiltInMethod;}).fields[0],
+                    fieldSetter: [
+                        'var name_${m.name}:godot.variant.StringName = "${m.name}"',
+                        '$mname = godot.Types.GodotNativeInterface.variant_get_ptr_utility_function(name_${m.name}.native_ptr(), untyped __cpp__(\'{0}\', $mhash))' 
+                    ]
+                }
+            });            
+        }
+
+        var pointerInits = [];
+        var pointers = [];
+        var funcs = [];
+        for (bind in binds) {
+            if (bind.macros.fieldSetter != null) {
+                for (s in bind.macros.fieldSetter)
+                    switch (bind.type) {
+                        default: pointerInits.push(Context.parse(s, Context.currentPos()));
+                    }
+            }
+            if (bind.macros.field != null)
+                pointers.push(bind.macros.field);
+
+            switch (bind.type) {
+                case FunctionBindType.STATIC_METHOD:
+                    FunctionMacros.buildUtilityStaticMethod(bind, funcs);
+                default:
+            }
+        }
+
+        // generate class
+        var cls = macro class $name implements godot.variant.IBuiltIn {
+            public static var HXGODOT_NAME = $v{libName};
+            public static var HXGODOT_VERSION = $v{libVersion};
+        };
+        cls.fields = cls.fields.concat(funcs);
+        var inits = macro class {
+            @:noCompletion
+            static function __init_builtin_bindings() {
+                $b{pointerInits};
+            }
+        }
+        cls.fields = cls.fields.concat(inits.fields);
+        cls.fields = cls.fields.concat(pointers);
+
+        cls.pack = typePath.pack;
+
+        var ptr = new haxe.macro.Printer();
+        var output = ptr.printTypeDefinition(cls);
+
+        var path = outputFolder + "/" + cls.pack.join("/");
+
+        if (sys.FileSystem.exists(path) == false)
+            sys.FileSystem.createDirectory(path);
+
+        sys.io.File.saveContent(path+"/"+name+".hx", output);
     }
 
     static function _generateGlobalEnums(_api:Dynamic) {
