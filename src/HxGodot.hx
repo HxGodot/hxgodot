@@ -72,8 +72,8 @@ class HxGodot {
         }
 
         //trace(CompileTime.buildGitCommitSha());
-        godot.core.GDUtils.print_rich('
-[b][color=FFA500]Hx[/color][color=6495ED]Godot[/color] (${godot.core.GDUtils.HXGODOT_VERSION})[/b]
+        GDUtils.print_rich('
+[b][color=FFA500]Hx[/color][color=6495ED]Godot[/color] (${GDUtils.HXGODOT_VERSION})[/b]
 ${builtins.length} builtins / ${tmp.length} classes available
 ');
     }
