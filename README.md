@@ -53,7 +53,24 @@ When you are first starting out HxGodot is able to generate a simple example pro
     ![image](https://user-images.githubusercontent.com/5015415/212428088-965ae83c-e1dc-4a98-b82d-4c42e4866f87.png)
     Here you will find the scenetree with the custom Haxe nodes that are contained in the extension.
  
+ 6. You can now study the included Haxe code and play around with it. Just repeat Step 4 and restart Godot. 
+    Feel free to modify this project or use it as a base for a more complex project.
+    
+    Speaking of a more complex project, you can also checkout our full sample game here: https://github.com/HxGodot/squash-the-creeps-3d-hxgodot
  
+## Updating the HxGodot in an existing project
+
+In cases where hxgodot was updated you dont need to recreate your existing project. In such cases you can follow the following steps:
+
+1.  Update hxgodot via git
+
+    `haxelib git hxgodot https://github.com/HxGodot/hxgodot.git`:
+2. Generate a new set of bindings (usually updates come with improvements)
+    
+    `haxelib run hxgodot generate_bindings`
+3. Rebuild your project's extension
+
+    `scons platform=<windows|linux|macos> target=<debug|release>`
 
 
 
