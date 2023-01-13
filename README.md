@@ -1,46 +1,64 @@
+![logo.png](https://hxgodot.github.io/logo2.png)
+# HxGodot - A Haxe GDExtension for Godot 4
 
-> !!! ATTENTION: This library is currently in a major rework as I prepare the alpha release. The following documentation might not help you right now. !!!
+HxGodot combines Haxe's hxcpp target with Godot 4's GDExtension mechanism to supercharge the way you build games with Godot. Nodes are written in Haxe, bundled as a GDExtension and behave like any other Node in your scenes(attach scripts, signals, etc).
 
-— Michael (dazKind)
+> **Warning** There might be crashes, pieces of the API not working or straight up missing. That being said, we appreciate you testing HxGodot in smaller projects. Feel free to get in touch in should you face issues or bugs.
 
-# hxgodot-cpp
-
-Integrate Haxe and its hxcpp target runtime via the Godot 4.x GDExtension into Godot 4.x.
-
-## What?
-> There always was interest from the Haxe community and I think it would be great it can work with Godot, but somehow it never materialized into anything. - Godot's Project Lead Juan: https://twitter.com/reduzio/status/1548236136551632900
-
-Let's make this work. 
-
-This is an early (pre-alpha) Haxe-hxcpp project that builds a dynamic library that can be loaded by Godot 4.x. 
-
-## Goal
-The goal is to evolve this project into a full library that allows writing extensions and new nodes in Haxe and eventually allow for cppia-scripting.
 
 ## Getting started
-Prerequisites: 
-- https://scons.org/ 
-- Haxe 4.2+
+### Prerequisites & Toolchain: 
+- A Commandline shell of your choice. We assume a *nix-based shell for all commands presented here.
+- [SCons](https://scons.org/)
+- [Haxe 4.2+](https://haxe.org/download/)
+  
+  Install Haxe and setup Haxe's package manager via `haxelib setup` 
+- hxcpp 4.2+
+  
+  Install hxcpp by running `haxelib install hxcpp`
 - Godot 4 beta10+ (best build from master)
 
-```
-haxelib git hxgodot https://github.com/dazKind/hxgodot-cpp.git
-mkdir <sample_project>
-cd <sample_project>
-haxelib run hxgodot init
-```
+### First time setup
+
+When you are first starting out HxGodot is able to generate a simple example project for you. Let's go into a shell and do that:
+
+1. Install hxgodot via `haxelib`: 
+   
+   ```haxelib git hxgodot https://github.com/HxGodot/hxgodot.git```
+2. Create yourself a folder somewhere for the sample project we are about to generate and enter it: 
+
+   `mkdir <sample_project> && cd <sample_project>`
+3. Now run the included cli-tool and and follow the instructions: 
+
+   `haxelib run hxgodot init`
+
+   ![image](https://user-images.githubusercontent.com/5015415/212423704-a1a145c6-56e3-43fe-afce-36860a453e1f.png)
+
+   Let's take a closer look at the folder's content, that we just generated for you:
+   
+   ![image](https://user-images.githubusercontent.com/5015415/212425501-696bff72-4f84-4792-bc49-901849bef3c8.png)
+   
+   - `bin`: Will contain the compiled gdextension binaries
+   - `bindings`: Will contain the generated Haxe bindings for Godot4's classes. Also holds a `log.txt` which contains reports about things that were ignored or could not be handled. Usefull if you miss a function in Godot's API, here you will usually find the reason why.
+   - `build.hxml`: this contains the build-instructions for Haxe when building the extension. Here you can add extra compiler defines for debugging or specify which Haxe code modules you want to include in your extension or which third party Haxe libraries to include. See the included comments.
+   - `example.gdextension`: This is the extension-file Godot4 will use to load the correct binaries for your CPU architecture.
+   - `project.godot`: Main Godot Project File. This file is the entry-point for Godot and includes a section to include loading our `example.gdextension` file
+   - `SConstruct`: This is the SCONS build file. This what runs the build pipeline and assembles the binary of your choice.
+   - `src`: This folder contains the sample's Haxe code. It holds basic examples of a few Godot nodes written in Haxe and runs a few tests & interactions.
+   
+ 4. Build the extension:
+    `scons platform=<windows|linux|macos> target=<debug|release>`
+    
+ 5. Open the sample-project in Godot4
+    ![image](https://user-images.githubusercontent.com/5015415/212428088-965ae83c-e1dc-4a98-b82d-4c42e4866f87.png)
+    Here you will find the scenetree with the custom Haxe nodes that are contained in the extension.
+ 
+ 
+
+
 
 ## Debugging
 - Windows: Startup your VisualStudio and setup it up to launch your compile Godot 4.x executable with the test-project defined on the cmdline. 
 `<path to godot binary> -e --path <included test project folder>`
 You should be able to step through the code on both sides(godot & hxgodot) and see what's going on.
 
-## What's missing
-See the https://github.com/dazKind/hxgodot-cpp/issues
-
-## Contribute
-You know cpp, Haxe and would love to have a lasting impact when it comes to opensource gamedevelopment? 
-
-Then join the effort here!
-
-To get in touch, visit the #haxe discord(https://discord.gg/VR6S5uft), via twitter(https://twitter.com/dazKind) or via michael.bickel[at]gmail.com.
