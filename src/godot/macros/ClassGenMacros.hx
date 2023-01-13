@@ -249,11 +249,15 @@ class ClassGenMacros {
                         }
                     }
 
-                    if (!isAllowed)
+                    if (!isAllowed) {
+                        log('Method ignored: one of $cname.$caName\'s argument types currently not allowed.');
                         continue;
+                    }
 
-                    if (!TypeMacros.isTypeAllowed(m.return_value.type))
+                    if (!TypeMacros.isTypeAllowed(m.return_value.type)) {
+                        log('Method ignored: $cname.$caName\'s return type ${m.return_value.type} currently not allowed.');
                         continue;
+                    }
 
                     // what return type?
                     var retType = "Void";
@@ -653,8 +657,10 @@ class ClassGenMacros {
                     }
                 }
 
-                if (!isAllowed)
+                if (!isAllowed) {
+                    log('Built-in Constructor ignored: one of ${b.name}.${c.name}\'s argument types currently not allowed.');
                     continue;
+                }
 
                 var cname = '_constructor_${c.index}';
                 binds.push({
@@ -805,11 +811,15 @@ class ClassGenMacros {
                     hasVarArg = true;
                 }
 
-                if (!isAllowed)
+                if (!isAllowed) {
+                    log('Built-in Method ignored: one of ${b.name}.$caName\'s argument types currently not allowed.');
                     continue;
+                }
 
-                if (!TypeMacros.isTypeAllowed(m.return_type))
+                if (!TypeMacros.isTypeAllowed(m.return_type)) {
+                    log('Built-in Method ignored: ${b.name}.$caName\'s return type ${m.return_type} currently not allowed.');
                     continue;
+                }
 
                 // what return type?
                 var retType = "Void";

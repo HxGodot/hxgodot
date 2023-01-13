@@ -136,13 +136,13 @@ class TypeMacros {
                 // "Vector3i",
                 // "Projection",
 
-                "PackedByteArray",
+                //"PackedByteArray",
                 "PackedColorArray",
                 "PackedFloat32Array",
                 "PackedFloat64Array",
                 "PackedInt32Array",
                 "PackedInt64Array",
-                "PackedStringArray",
+                //"PackedStringArray",
                 "PackedVector2Array",
                 "PackedVector3Array",
 
