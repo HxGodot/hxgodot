@@ -8,7 +8,7 @@ import haxe.macro.MacroStringTools;
 import haxe.macro.TypeTools;
 
 class PostInitMacros {
-	public static function buildPostInit(_typePath, _parent_class_name:String, _godotBaseclass:String, _cppClassName:String, ?_isRefCounted:Bool = false) {
+	public static function buildPostInit(_typePath, _parent_class_name:String, _godotBaseclass:String, _cppClassName:String, _inheritanceDepth:Int, ?_isRefCounted:Bool = false) {
         var className = _typePath.name;
         var ctType = TPath(_typePath);
         var clsId = '${_typePath.pack.join(".")}.${_typePath.name}';
@@ -21,6 +21,7 @@ class PostInitMacros {
             static var __class_tag:godot.Types.VoidPtr;
             static var __class_name:godot.variant.StringName;
             static var __parent_class_name:godot.variant.StringName;
+            static var __inheritance_depth:Int = $v{_inheritanceDepth};
 
             static function ___binding_create_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr):godot.Types.VoidPtr {
                 var tmp = $inst;
@@ -145,7 +146,7 @@ class PostInitMacros {
     }
 
 
-    public static function buildPostInitExtension(_typePath, _parent_class_name:String, _godotBaseclass:String, _cppClassName:String, ?_isRefCounted:Bool = false) {
+    public static function buildPostInitExtension(_typePath, _parent_class_name:String, _godotBaseclass:String, _cppClassName:String, _inheritanceDepth:Int, ?_isRefCounted:Bool = false) {
         var className = _typePath.name;
         var ctType = TPath(_typePath);
         var clsId = '${_typePath.pack.join(".")}.${_typePath.name}';
@@ -158,6 +159,7 @@ class PostInitMacros {
             static var __class_tag:godot.Types.VoidPtr;
             static var __class_name:godot.variant.StringName;
             static var __parent_class_name:godot.variant.StringName;
+            static var __inheritance_depth:Int = $v{_inheritanceDepth};
 
             static function ___binding_create_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr):godot.Types.VoidPtr {
             	return untyped __cpp__("nullptr");

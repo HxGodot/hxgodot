@@ -173,42 +173,65 @@ class Macros {
             }
         }
 
-        if (isEngineClass) {
-            // properly bootstrap this class
-            fields = fields.concat(PostInitMacros.buildPostInit(typePath, parent_class_name, typePath.name, classNameCpp, isRefCounted));
-        }
-        else {
-            // find the first engine-class up the inheritance chain
-            var engine_parent = null;
-            // also collect all engine virtuals up the chain
-            var engineVirtuals = [];
-            var next = cls.get().superClass.t.get();
-            while (next != null) {
-                if (engine_parent == null && next.meta.has(":gdEngineClass")) {
-                    engine_parent = next;
-                }
-                
-                // TODO: this can be slow?
-                for (k=>v in virtualFields) {
-                    for (f in next.fields.get())
-                        if (f.name == k)
-                            engineVirtuals.push(v);
-                }
-
-                next = next.superClass != null ? next.superClass.t.get() : null;
+        // find the first engine-class up the inheritance chain
+        var engine_parent = null;
+        // count the depth of the inheritance chain. we need it later to register all classes in the correct order
+        var inheritanceDepth = 0;
+        // also collect all engine virtuals up the chain
+        var engineVirtuals = [];
+        var next = cls.get().superClass.t.get();
+        while (next != null) {
+            if (engine_parent == null && next.meta.has(":gdEngineClass")) {
+                engine_parent = next;
+            }
+            
+            // TODO: this can be slow?
+            for (k=>v in virtualFields) {
+                for (f in next.fields.get())
+                    if (f.name == k)
+                        engineVirtuals.push(v);
             }
 
-            if (engine_parent == null)
-                throw "Impossible";
+            inheritanceDepth++;
+            next = next.superClass != null ? next.superClass.t.get() : null;
+        }
 
-            //trace("////////////////////////////////////////////////////////////////////////////////");
-            //trace('// Class: ${className}');
+        if (!isEngineClass && engine_parent == null)
+            throw "Impossible";
 
+        if (isEngineClass) {
+            // properly bootstrap this class
+            fields = fields.concat(PostInitMacros.buildPostInit(
+                typePath,
+                parent_class_name,
+                typePath.name,
+                classNameCpp,
+                inheritanceDepth,
+                isRefCounted
+            ));
+        }
+        else {
             // we got an extension class, so make sure we got the whole extension bindings for the fields covered!
-            fields = buildFieldBindings(fields, typePath.name, classMeta, typePath, extensionFields, engineVirtuals, classNameCpp, extensionProperties);
+            fields = buildFieldBindings(
+                fields,
+                typePath.name,
+                classMeta,
+                typePath,
+                extensionFields,
+                engineVirtuals,
+                classNameCpp,
+                extensionProperties
+            );
 
             // properly bootstrap this class
-            fields = fields.concat(PostInitMacros.buildPostInitExtension(typePath, parent_class_name, engine_parent.name, classNameCpp, isRefCounted));
+            fields = fields.concat(PostInitMacros.buildPostInitExtension(
+                typePath,
+                parent_class_name,
+                engine_parent.name,
+                classNameCpp,
+                inheritanceDepth,
+                isRefCounted
+            ));
         }
 
         return fields;

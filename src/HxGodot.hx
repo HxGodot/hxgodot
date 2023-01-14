@@ -59,7 +59,16 @@ class HxGodot {
             }
         }
 
-        var tmp = CompileTime.getAllClasses(godot.Wrapped);
+        // sort all classes depending on their inheritance depth, this way everything registers in order
+        var tmp = Lambda.array(CompileTime.getAllClasses(godot.Wrapped));
+        haxe.ds.ArraySort.sort(tmp, function(_a:Dynamic, _b:Dynamic) {
+            var a = Reflect.field(_a, "__inheritance_depth");
+            var b = Reflect.field(_b, "__inheritance_depth");
+            if (a > b) return 1;
+            else if (a < b) return -1;
+            return 0;
+        });
+
         for (t in tmp) {
             if (Reflect.hasField(t, "__init_engine_bindings")) // engine class bindings
                 Reflect.field(t, "__init_engine_bindings")();
