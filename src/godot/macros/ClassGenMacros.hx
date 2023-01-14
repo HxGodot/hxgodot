@@ -198,6 +198,7 @@ class ClassGenMacros {
 
             // methods
             var methodMap = new Map<String, Bool>();
+            var methodForbiddenMap = new Map<String, Bool>();
             if (c.methods != null) {
                 for (m in cast(c.methods, Array<Dynamic>)) {
 
@@ -251,11 +252,13 @@ class ClassGenMacros {
 
                     if (!isAllowed) {
                         log('Method ignored: one of $cname.$caName\'s argument types currently not allowed.');
+                        methodForbiddenMap.set(caName, true);
                         continue;
                     }
 
                     if (!TypeMacros.isTypeAllowed(m.return_value.type)) {
                         log('Method ignored: $cname.$caName\'s return type ${m.return_value.type} currently not allowed.');
+                        methodForbiddenMap.set(caName, true);
                         continue;
                     }
 
@@ -407,6 +410,12 @@ class ClassGenMacros {
                     // property to be created
                     var gInfo = _isInheritedMethod(cname, m.getter);
                     var sInfo = _isInheritedMethod(cname, m.setter);
+
+                    // make sure we dont create a property if the getter or setter is blocked
+                    if ((m.setter != null && methodForbiddenMap.exists(m.setter)) || methodForbiddenMap.exists(m.getter)) {
+                        log('Property ignored: setter/getter is forbidden, $cname:$mName.');
+                        continue;
+                    }
 
                     if (gInfo.realArgCount > 1) {
                         log('Property ignored: getter has too many arguments, $cname:$mName has ${gInfo.realArgCount} args.');
