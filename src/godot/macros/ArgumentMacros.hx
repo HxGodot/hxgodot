@@ -132,7 +132,7 @@ class ArgumentMacros {
                         }
 
                     default: {
-                        var isRefCounted = switch (Context.follow(haxe.macro.ComplexTypeTools.toType(_type))) {
+                        var isRefCounted = switch (Context.followWithAbstracts(haxe.macro.ComplexTypeTools.toType(_type))) {
                             case TInst(_classType, _): _classType.get().meta.has(":gdRefCounted");
                             default: false;
                         }

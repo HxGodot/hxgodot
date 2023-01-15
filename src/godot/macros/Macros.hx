@@ -9,6 +9,7 @@ import haxe.macro.MacroStringTools;
 import haxe.macro.TypeTools;
 import godot.macros.ArgumentMacros;
 import godot.macros.PostInitMacros;
+import haxe.macro.ComplexTypeTools;
 
 using haxe.macro.ExprTools;
 using StringTools;
@@ -93,75 +94,77 @@ class Macros {
         var virtualFields = new Map<String, haxe.macro.Field>();
 
         for (field in fields) {
-            for (fmeta in field.meta) {
-                switch (fmeta.name) {
-                    case ":export":
-                        switch (field.kind) {
-                            case FFun(_f):
-                                extensionFields.push(field);
-                            case FProp(_g, _s, _type):
-                                extensionProperties.push(field);
-                            case FVar(_t, _e): { 
+            var isExported = false;
 
-                                // trace(field);
-                                // trace(_t + " " + _e);
-                                if (_t == null) { // no type supplied, check value expr
-                                    switch (_e.expr) {
-                                        case ENew(_ct, _params): {
-                                            if (_ct.name == "TypedSignal") {
-                                                field.kind = FVar(TPath(_ct), _e);
-                                                extensionProperties.push(field);
-                                            }
-                                        }
-                                        default:
-                                    }
-                                } else {
-                                    switch(_t) {
-                                        case TPath(_p): {
-                                            if (_p.name == "TypedSignal") 
-                                                extensionProperties.push(field);
-                                        }
-                                        default:
-                                    }
-                                }
+            for (fmeta in field.meta)
+                if (fmeta.name == ":export")
+                    isExported = true;
 
-                                //trace(_t + " " + _e);
-                                //trace(field);
+            switch (field.kind) {
+                case FFun(_f):
+                    if (isExported)
+                        extensionFields.push(field);
+                case FProp(_g, _s, _type):
+                    if (isExported)
+                        extensionProperties.push(field);
+                case FVar(_t, _e): {
+                    if (_t == null && _e == null) continue; // safe case for us, let the compiler complain about this ;)
 
-                                // make sure we only allow integer constants
-                                /* TODO: we dont really need these, yet
-                                function fatalError() {
-                                    Context.fatalError("Exported Constant is not an integer: " + field.name, Context.currentPos());
-                                }
-                                if (_e == null) {
-                                    Context.fatalError("Exported Constant has no value: " + field.name, Context.currentPos());
-                                    continue;
-                                }
-                                if (_t == null) { // no type supplied, check value expr
-                                    switch (_e.expr) {
-                                        case EConst(_ct): {
-                                            switch (_ct) {
-                                                case CInt(_value): extensionIntegerConstants.push(field);
-                                                default: fatalError();
-                                            }
-                                        }
-                                        default: fatalError();
-                                    }
-                                } else {
-                                    switch(_t) {
-                                        case TPath(_p): {
-                                            if (_p.name == "Int") 
-                                                extensionIntegerConstants.push(field);
-                                            else 
-                                                fatalError();
-                                        }
+                    var ft = _t == null ? Context.typeof(_e) : Context.follow(ComplexTypeTools.toType(_t));
+
+                    if (isExported) {
+                    
+                        switch (ft) {
+                            case TInst(t, params): trace(t.get().name);// t.pack
+                            case TAbstract(t, params): {
+                                var tname = t.toString();
+                                if (tname == "godot.variant.Signal") // we dont allow that
+                                    Context.fatalError('Signal "${field.name}" has to be explicitly typed as TypedSignal.', Context.currentPos());
+                                else if (tname == "godot.variant.TypedSignal") // special case for signals
+                                    extensionProperties.push(field);
+                            }
+                            default: 
+                        }
+
+                        // make sure we only allow integer constants
+                        /* TODO: we dont really need these, yet
+                        function fatalError() {
+                            Context.fatalError("Exported Constant is not an integer: " + field.name, Context.currentPos());
+                        }
+                        if (_e == null) {
+                            Context.fatalError("Exported Constant has no value: " + field.name, Context.currentPos());
+                            continue;
+                        }
+                        if (_t == null) { // no type supplied, check value expr
+                            switch (_e.expr) {
+                                case EConst(_ct): {
+                                    switch (_ct) {
+                                        case CInt(_value): extensionIntegerConstants.push(field);
                                         default: fatalError();
                                     }
                                 }
-                                */
+                                default: fatalError();
+                            }
+                        } else {
+                            switch(_t) {
+                                case TPath(_p): {
+                                    if (_p.name == "Int") 
+                                        extensionIntegerConstants.push(field);
+                                    else 
+                                        fatalError();
+                                }
+                                default: fatalError();
                             }
                         }
+                        */
+                    }
+                    
+                    // if pack[0] == godot && !TypeMacros.isACustomBuiltIn()
+                    // move into custom initialization
+
+           
                 }
+                        
             }
 
             // collect overrides and check them vs. engine fields of the same name
