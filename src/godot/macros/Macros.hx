@@ -26,6 +26,11 @@ class Macros {
     //static var virtuals:Map<String, haxe.macro.Field> = new Map();
     static var extensionClasses:Map<String, Bool> = new Map();
 
+    inline static function _checkGodotType(_field, _gt) {
+        if (_gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(_gt.name))
+            Context.fatalError('${_field.name}:${_gt.name}: We don\'t support class level initialization of Godot classes yet!', Context.currentPos());
+    }
+
     macro static public function build():Array<haxe.macro.Field> {
         var pos = Context.currentPos();
         var cls = Context.getLocalClass();
@@ -110,9 +115,9 @@ class Macros {
                 case FVar(_t, _e): {
                     if (_t == null && _e == null) continue; // safe case for us, let the compiler complain about this ;)
 
-                    var ft = _t == null ? Context.typeof(_e) : Context.follow(ComplexTypeTools.toType(_t));
+                    if (isExported) {
+                        var ft = _t != null ? Context.follow(ComplexTypeTools.toType(_t), true) : Context.typeof(_e);
 
-                    if (isExported) {                    
                         switch (ft) {
                             //case TInst(t, params): trace(t.get().name);// t.pack
                             case TAbstract(t, params): {
@@ -125,53 +130,54 @@ class Macros {
                             default: 
                         }
 
-                        // make sure we only allow integer constants
-                        /* TODO: we dont really need these, yet
-                        function fatalError() {
-                            Context.fatalError("Exported Constant is not an integer: " + field.name, Context.currentPos());
-                        }
-                        if (_e == null) {
-                            Context.fatalError("Exported Constant has no value: " + field.name, Context.currentPos());
-                            continue;
-                        }
-                        if (_t == null) { // no type supplied, check value expr
-                            switch (_e.expr) {
-                                case EConst(_ct): {
-                                    switch (_ct) {
-                                        case CInt(_value): extensionIntegerConstants.push(field);
-                                        default: fatalError();
-                                    }
-                                }
-                                default: fatalError();
-                            }
-                        } else {
-                            switch(_t) {
-                                case TPath(_p): {
-                                    if (_p.name == "Int") 
-                                        extensionIntegerConstants.push(field);
-                                    else 
-                                        fatalError();
-                                }
-                                default: fatalError();
-                            }
-                        }
-                        */
+                        // // make sure we only allow integer constants
+                        // TODO: we dont really need these, yet
+                        // function fatalError() {
+                        //     Context.fatalError("Exported Constant is not an integer: " + field.name, Context.currentPos());
+                        // }
+                        // if (_e == null) {
+                        //     Context.fatalError("Exported Constant has no value: " + field.name, Context.currentPos());
+                        //     continue;
+                        // }
+                        // if (_t == null) { // no type supplied, check value expr
+                        //     switch (_e.expr) {
+                        //         case EConst(_ct): {
+                        //             switch (_ct) {
+                        //                 case CInt(_value): extensionIntegerConstants.push(field);
+                        //                 default: fatalError();
+                        //             }
+                        //         }
+                        //         default: fatalError();
+                        //     }
+                        // } else {
+                        //     switch(_t) {
+                        //         case TPath(_p): {
+                        //             if (_p.name == "Int") 
+                        //                 extensionIntegerConstants.push(field);
+                        //             else 
+                        //                 fatalError();
+                        //         }
+                        //         default: fatalError();
+                        //     }
+                        // }
                     }
 
+                    
                     // TODO: allow for normal and static initialization of Godot classes.
                     // add a compiler warning to make people aware                    
                     if (_e != null) {
-                        var eType = Context.typeof(_e);
-                        function _checkGodotType(_gt) {
-                            if (_gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(_gt.name))
-                                Context.fatalError('${field.name}:${_gt.name}: We don\'t support class level initialization of Godot classes yet!', Context.currentPos());
-                        }
+                        
+                        /*var eType = Context.typeExpr(_e);
+
+                        trace(eType);
+                        
                         switch (eType) {
-                            case TInst(t, _): _checkGodotType(t.get());
-                            case TAbstract(t, _): _checkGodotType(t.get());
+                            case TInst(t, _): _checkGodotType(field, t.get());
+                            case TAbstract(t, _): _checkGodotType(field, t.get());
                             default:
-                        }                        
-                    }       
+                        }*/
+                    }  
+                    
                 }                        
             }
 

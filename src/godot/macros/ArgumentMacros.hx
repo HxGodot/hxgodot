@@ -155,7 +155,7 @@ class ArgumentMacros {
                                 );
 
                             if ($v{isRefCounted} == true)
-                                instance.reference();
+                                untyped instance.reference();
 
                             instance;
                         }
