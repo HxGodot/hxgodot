@@ -26,11 +26,6 @@ class Macros {
     //static var virtuals:Map<String, haxe.macro.Field> = new Map();
     static var extensionClasses:Map<String, Bool> = new Map();
 
-    inline static function _checkGodotType(_field, _gt) {
-        if (_gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(_gt.name))
-            Context.fatalError('${_field.name}:${_gt.name}: We don\'t support class level initialization of Godot classes yet!', Context.currentPos());
-    }
-
     macro static public function build():Array<haxe.macro.Field> {
         var pos = Context.currentPos();
         var cls = Context.getLocalClass();
@@ -92,11 +87,39 @@ class Macros {
         var bDef = 'constexpr GDExtensionInstanceBindingCallbacks ${classNameCpp}_obj::___binding_callbacks;';
         classMeta.add(":cppFileCode", [macro $v{bDef}], pos);
 
+
         // register these extension fields
         var extensionFields = [];
         //var extensionIntegerConstants = [];
         var extensionProperties = [];
         var virtualFields = new Map<String, haxe.macro.Field>();
+
+        // find the first engine-class up the inheritance chain
+        var engine_parent = null;
+        // count the depth of the inheritance chain. we need it later to register all classes in the correct order
+        var inheritanceDepth = 0;
+        // also collect all engine virtuals up the chain
+        var engineVirtuals = [];
+        var next = cls.get().superClass.t.get();
+        while (next != null) {
+            if (engine_parent == null && next.meta.has(":gdEngineClass")) {
+                engine_parent = next;
+            }
+            
+            // TODO: this can be slow?
+            for (k=>v in virtualFields) {
+                for (f in next.fields.get())
+                    if (f.name == k)
+                        engineVirtuals.push(v);
+            }
+
+            inheritanceDepth++;
+            next = next.superClass != null ? next.superClass.t.get() : null;
+        }
+
+        if (!isEngineClass && engine_parent == null)
+            throw "Impossible";
+        
 
         for (field in fields) {
             var isExported = false;
@@ -115,9 +138,23 @@ class Macros {
                 case FVar(_t, _e): {
                     if (_t == null && _e == null) continue; // safe case for us, let the compiler complain about this ;)
 
-                    if (isExported) {
-                        var ft = _t != null ? Context.follow(ComplexTypeTools.toType(_t), true) : Context.typeof(_e);
+                    var ft = _t != null ? Context.follow(ComplexTypeTools.toType(_t)) : Context.typeof(_e);
 
+                    // TODO: allow for normal and static initialization of Godot classes.
+                    // add a compiler warning to make people aware                    
+                    if (!isEngineClass && _e != null) {
+                        function _checkGodotType(_gt) {
+                            if (_gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(_gt.name))
+                                Context.fatalError('${field.name}:${_gt.name}: We don\'t support class level initialization of Godot classes yet!', Context.currentPos());
+                        }                     
+                        switch (ft) {
+                            case TInst(t, _): _checkGodotType(t.get());
+                            case TAbstract(t, _): _checkGodotType(t.get());
+                            default:
+                        }
+                    }
+
+                    if (isExported) {
                         switch (ft) {
                             //case TInst(t, params): trace(t.get().name);// t.pack
                             case TAbstract(t, params): {
@@ -160,24 +197,7 @@ class Macros {
                         //         default: fatalError();
                         //     }
                         // }
-                    }
-
-                    
-                    // TODO: allow for normal and static initialization of Godot classes.
-                    // add a compiler warning to make people aware                    
-                    if (_e != null) {
-                        
-                        /*var eType = Context.typeExpr(_e);
-
-                        trace(eType);
-                        
-                        switch (eType) {
-                            case TInst(t, _): _checkGodotType(field, t.get());
-                            case TAbstract(t, _): _checkGodotType(field, t.get());
-                            default:
-                        }*/
-                    }  
-                    
+                    }                    
                 }                        
             }
 
@@ -190,31 +210,7 @@ class Macros {
             }
         }
 
-        // find the first engine-class up the inheritance chain
-        var engine_parent = null;
-        // count the depth of the inheritance chain. we need it later to register all classes in the correct order
-        var inheritanceDepth = 0;
-        // also collect all engine virtuals up the chain
-        var engineVirtuals = [];
-        var next = cls.get().superClass.t.get();
-        while (next != null) {
-            if (engine_parent == null && next.meta.has(":gdEngineClass")) {
-                engine_parent = next;
-            }
-            
-            // TODO: this can be slow?
-            for (k=>v in virtualFields) {
-                for (f in next.fields.get())
-                    if (f.name == k)
-                        engineVirtuals.push(v);
-            }
-
-            inheritanceDepth++;
-            next = next.superClass != null ? next.superClass.t.get() : null;
-        }
-
-        if (!isEngineClass && engine_parent == null)
-            throw "Impossible";
+        
 
         if (isEngineClass) {
             // properly bootstrap this class
