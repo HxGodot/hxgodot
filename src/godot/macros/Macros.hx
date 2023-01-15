@@ -618,7 +618,7 @@ class Macros {
                         });
                     } else {
                         binds.push(macro {
-                            $i{methodRoot}.$fname($a{argExprs});
+                            $i{methodRoot}.$fname($a{argVariantExprs});
                         });
 
                         bindPtrs.push(macro {
