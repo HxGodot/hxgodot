@@ -112,10 +112,9 @@ class Macros {
 
                     var ft = _t == null ? Context.typeof(_e) : Context.follow(ComplexTypeTools.toType(_t));
 
-                    if (isExported) {
-                    
+                    if (isExported) {                    
                         switch (ft) {
-                            case TInst(t, params): trace(t.get().name);// t.pack
+                            //case TInst(t, params): trace(t.get().name);// t.pack
                             case TAbstract(t, params): {
                                 var tname = t.toString();
                                 if (tname == "godot.variant.Signal") // we dont allow that
@@ -158,13 +157,22 @@ class Macros {
                         }
                         */
                     }
-                    
-                    // if pack[0] == godot && !TypeMacros.isACustomBuiltIn()
-                    // move into custom initialization
 
-           
-                }
-                        
+                    // TODO: allow for normal and static initialization of Godot classes.
+                    // add a compiler warning to make people aware                    
+                    if (_e != null) {
+                        var eType = Context.typeof(_e);
+                        function _checkGodotType(_gt) {
+                            if (_gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(_gt.name))
+                                Context.fatalError('${field.name}:${_gt.name}: We don\'t support class level initialization of Godot classes yet!', Context.currentPos());
+                        }
+                        switch (eType) {
+                            case TInst(t, _): _checkGodotType(t.get());
+                            case TAbstract(t, _): _checkGodotType(t.get());
+                            default:
+                        }                        
+                    }       
+                }                        
             }
 
             // collect overrides and check them vs. engine fields of the same name
