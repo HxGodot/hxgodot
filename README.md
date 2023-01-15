@@ -79,3 +79,7 @@ In cases where hxgodot was updated you dont need to recreate your existing proje
 `<path to godot binary> -e --path <included test project folder>`
 You should be able to step through the code on both sides(godot & hxgodot) and see what's going on.
 
+
+## Good to know
+- Godot exposes around 850 classes in the extension API. Haxe's compiler will automatically only compile classes that your code actually imports / uses into the extension.
+
