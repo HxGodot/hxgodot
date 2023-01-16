@@ -48,7 +48,7 @@ enum abstract GDExtensionVariantType(Int) from Int to Int {
     var PACKED_VECTOR3_ARRAY;
     var PACKED_COLOR_ARRAY;
     
-    var MAX;
+    var MAXIMUM;
     var INVALID;
 
     inline public static function fromString(_str:String):Int {
@@ -171,7 +171,7 @@ enum abstract GDExtensionVariantOperator(Int) from Int to Int {
     var NOT;
     /* containment */
     var IN;
-    var MAX;
+    var MAXIMUM;
 
     inline public static function fromString(_str:String):Int {
         return switch (_str) {

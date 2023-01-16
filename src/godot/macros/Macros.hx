@@ -268,11 +268,20 @@ class Macros {
                 case TPath(_d):
                     switch(_d.name) {
                         case 'Bool': godot.Types.GDExtensionVariantType.BOOL;
+                        case 'Color': godot.Types.GDExtensionVariantType.COLOR;
                         case 'Int', 'Int64': godot.Types.GDExtensionVariantType.INT;
                         case 'Float': godot.Types.GDExtensionVariantType.FLOAT;
+                        case 'Plane': godot.Types.GDExtensionVariantType.PLANE;
+                        case 'Rect2': godot.Types.GDExtensionVariantType.RECT2;
+                        case 'Rect2i': godot.Types.GDExtensionVariantType.RECT2I;
+                        case 'Quaternion': godot.Types.GDExtensionVariantType.QUATERNION;
                         case 'String', 'GDString': godot.Types.GDExtensionVariantType.STRING;
                         case 'Vector2': godot.Types.GDExtensionVariantType.VECTOR2;
+                        case 'Vector2i': godot.Types.GDExtensionVariantType.VECTOR2I;
                         case 'Vector3': godot.Types.GDExtensionVariantType.VECTOR3;
+                        case 'Vector3i': godot.Types.GDExtensionVariantType.VECTOR3I;
+                        case 'Vector4': godot.Types.GDExtensionVariantType.VECTOR4;
+                        case 'Vector4i': godot.Types.GDExtensionVariantType.VECTOR4I;
                         default: godot.Types.GDExtensionVariantType.NIL;
                     }
                 default: godot.Types.GDExtensionVariantType.NIL;

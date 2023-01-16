@@ -35,12 +35,20 @@ class ArgumentMacros {
                         var tmp = haxe.Int64.ofInt($i{_src});
                         (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}, tmp):Int); 
                     }
+                    case 'Color':
+                        macro {
+                            untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*4)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
+                        };
                     case 'Int64': macro { (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}, $i{_src}):haxe.Int64); }
                     case 'Float': macro { (untyped __cpp__('*((double*){0}) = {1}', $i{_dest}, $i{_src}):Float); }
                     //case 'GDString': macro { (untyped __cpp__('*((const char*){0}) = (const char*){1}->_native_ptr()', $i{_dest}, $i{_src}):String); }
                     case 'Vector2':
                         macro {
                             untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
+                        };
+                    case 'Vector2i':
+                        macro {
+                            untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(int)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
                         };
                     case 'Vector3':
                         macro {
