@@ -24,35 +24,35 @@ abstract Vector2i(__Vector2i) from __Vector2i to __Vector2i {
         #end
     }
 
-	public var x(get, set):Int;
-	inline function get_x() return this[0];
-	inline function set_x(_v:Int) {this[0] = _v; return _v;}
+    public var x(get, set):Int;
+    inline function get_x() return this[0];
+    inline function set_x(_v:Int) {this[0] = _v; return _v;}
 
-	public var y(get, set):Int;
-	inline function get_y() return this[1];
-	inline function set_y(_v:Int) {this[1] = _v; return _v;}
+    public var y(get, set):Int;
+    inline function get_y() return this[1];
+    inline function set_y(_v:Int) {this[1] = _v; return _v;}
 
-	@:arrayAccess
-	inline public function get(_i:Int) return this[_i];
+    @:arrayAccess
+    inline public function get(_i:Int) return this[_i];
 
-	@:arrayAccess
-	inline public function setAt(_i:Int, _v:Int):Void
-	    this[_i] = _v;
+    @:arrayAccess
+    inline public function setAt(_i:Int, _v:Int):Void
+        this[_i] = _v;
 
-	inline public function copy():Vector2i
-	    return new Vector2i(this[0], this[1]);
+    inline public function copy():Vector2i
+        return new Vector2i(this[0], this[1]);
 
-	public function min(p_vector2i:Vector2i):Vector2i {
-		return new Vector2i(Std.int(MIN(x, p_vector2i.x)), Std.int(MIN(y, p_vector2i.y)));
-	}
+    public function min(p_vector2i:Vector2i):Vector2i {
+        return new Vector2i(Std.int(MIN(x, p_vector2i.x)), Std.int(MIN(y, p_vector2i.y)));
+    }
 
-	public function  max(p_vector2i:Vector2i):Vector2i {
-		return new Vector2i(Std.int(MAX(x, p_vector2i.x)), Std.int(MAX(y, p_vector2i.y)));
-	}
+    public function  max(p_vector2i:Vector2i):Vector2i {
+        return new Vector2i(Std.int(MAX(x, p_vector2i.x)), Std.int(MAX(y, p_vector2i.y)));
+    }
 
-	public function aspect():Float { return x / y; }
-	public function sign():Vector2i { return new Vector2i(Std.int(SIGN(x)), Std.int(SIGN(y))); }
-	public function abs():Vector2i { return new Vector2i(Std.int(Math.abs(x)), Std.int(Math.abs(y))); }
+    public function aspect():Float { return x / y; }
+    public function sign():Vector2i { return new Vector2i(Std.int(SIGN(x)), Std.int(SIGN(y))); }
+    public function abs():Vector2i { return new Vector2i(Std.int(Math.abs(x)), Std.int(Math.abs(y))); }
 
     public function clamp(p_min:Vector2i, p_max:Vector2i):Vector2i {
         return new Vector2i(
@@ -187,19 +187,19 @@ abstract Vector2i(__Vector2i) from __Vector2i to __Vector2i {
     }
 
     @:op(A < B)
-	inline public static function lt(lhs:Vector2i, rhs:Vector2i) { 
+    inline public static function lt(lhs:Vector2i, rhs:Vector2i) { 
         return (lhs.x == rhs.x) ? (lhs.y < rhs.y) : (lhs.x < rhs.x);
     }
-	@:op(A > B)
+    @:op(A > B)
     inline public static function gt(lhs:Vector2i, rhs:Vector2i) {
         return (lhs.x == rhs.x) ? (lhs.y > rhs.y) : (lhs.x > rhs.x);
     }
 
-	@:op(A <= B)
+    @:op(A <= B)
     inline public static function ltequals(lhs:Vector2i, rhs:Vector2i) { 
         return lhs.x == rhs.x ? (lhs.y <= rhs.y) : (lhs.x < rhs.x);
     }
-	@:op(A >= B)
+    @:op(A >= B)
     inline public static function gtequals(lhs:Vector2i, rhs:Vector2i) {
         return lhs.x == rhs.x ? (lhs.y >= rhs.y) : (lhs.x > rhs.x);
     }

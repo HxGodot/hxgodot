@@ -43,27 +43,27 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
         #end
     }
 
-	public var x(get, set):GDExtensionFloat;
-	inline function get_x() return this[0];
-	inline function set_x(_v:GDExtensionFloat) {this[0] = _v; return _v;}
+    public var x(get, set):GDExtensionFloat;
+    inline function get_x() return this[0];
+    inline function set_x(_v:GDExtensionFloat) {this[0] = _v; return _v;}
 
-	public var y(get, set):GDExtensionFloat;
-	inline function get_y() return this[1];
-	inline function set_y(_v:GDExtensionFloat) {this[1] = _v; return _v;}
+    public var y(get, set):GDExtensionFloat;
+    inline function get_y() return this[1];
+    inline function set_y(_v:GDExtensionFloat) {this[1] = _v; return _v;}
 
-	public var z(get, set):GDExtensionFloat;
-	inline function get_z() return this[2];
-	inline function set_z(_v:GDExtensionFloat) {this[2] = _v; return _v;}
+    public var z(get, set):GDExtensionFloat;
+    inline function get_z() return this[2];
+    inline function set_z(_v:GDExtensionFloat) {this[2] = _v; return _v;}
 
-	@:arrayAccess
-	inline public function get(_i:Int) return this[_i];
+    @:arrayAccess
+    inline public function get(_i:Int) return this[_i];
 
-	@:arrayAccess
-	inline public function setAt(_i:Int, _v:GDExtensionFloat):Void
-	    this[_i] = _v;
+    @:arrayAccess
+    inline public function setAt(_i:Int, _v:GDExtensionFloat):Void
+        this[_i] = _v;
 
-	inline public function copy():Vector3
-	    return new Vector3(this[0], this[1], this[2]);
+    inline public function copy():Vector3
+        return new Vector3(this[0], this[1], this[2]);
 
     public function cross(p_with:Vector3):Vector3 {
         var ret = new Vector3(

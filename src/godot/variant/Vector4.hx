@@ -44,30 +44,30 @@ abstract Vector4(__Vector4) from __Vector4 to __Vector4 {
     }
 
     public var x(get, set):GDExtensionFloat;
-	inline function get_x() return this[0];
-	inline function set_x(_v:GDExtensionFloat) {this[0] = _v; return _v;}
+    inline function get_x() return this[0];
+    inline function set_x(_v:GDExtensionFloat) {this[0] = _v; return _v;}
 
-	public var y(get, set):GDExtensionFloat;
-	inline function get_y() return this[1];
-	inline function set_y(_v:GDExtensionFloat) {this[1] = _v; return _v;}
+    public var y(get, set):GDExtensionFloat;
+    inline function get_y() return this[1];
+    inline function set_y(_v:GDExtensionFloat) {this[1] = _v; return _v;}
 
-	public var z(get, set):GDExtensionFloat;
-	inline function get_z() return this[2];
-	inline function set_z(_v:GDExtensionFloat) {this[2] = _v; return _v;}
+    public var z(get, set):GDExtensionFloat;
+    inline function get_z() return this[2];
+    inline function set_z(_v:GDExtensionFloat) {this[2] = _v; return _v;}
 
-	public var w(get, set):GDExtensionFloat;
-	inline function get_w() return this[3];
-	inline function set_w(_v:GDExtensionFloat) {this[3] = _v; return _v;}
+    public var w(get, set):GDExtensionFloat;
+    inline function get_w() return this[3];
+    inline function set_w(_v:GDExtensionFloat) {this[3] = _v; return _v;}
 
-	@:arrayAccess
-	inline public function get(_i:Int) return this[_i];
+    @:arrayAccess
+    inline public function get(_i:Int) return this[_i];
 
-	@:arrayAccess
-	inline public function setAt(_i:Int, _v:GDExtensionFloat):Void
-	    this[_i] = _v;
+    @:arrayAccess
+    inline public function setAt(_i:Int, _v:GDExtensionFloat):Void
+        this[_i] = _v;
 
-	inline public function copy():Vector4
-	    return new Vector4(this[0], this[1], this[2], this[3]);
+    inline public function copy():Vector4
+        return new Vector4(this[0], this[1], this[2], this[3]);
 
     public function dot(p_vec4:Vector4):Float {
         return x * p_vec4.x + y * p_vec4.y + z * p_vec4.z + w * p_vec4.w;

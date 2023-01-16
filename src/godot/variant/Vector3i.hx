@@ -25,27 +25,27 @@ abstract Vector3i(__Vector3i) from __Vector3i to __Vector3i {
         #end
     }
 
-	public var x(get, set):Int;
-	inline function get_x() return this[0];
-	inline function set_x(_v:Int) {this[0] = _v; return _v;}
+    public var x(get, set):Int;
+    inline function get_x() return this[0];
+    inline function set_x(_v:Int) {this[0] = _v; return _v;}
 
-	public var y(get, set):Int;
-	inline function get_y() return this[1];
-	inline function set_y(_v:Int) {this[1] = _v; return _v;}
+    public var y(get, set):Int;
+    inline function get_y() return this[1];
+    inline function set_y(_v:Int) {this[1] = _v; return _v;}
 
-	public var z(get, set):Int;
-	inline function get_z() return this[2];
-	inline function set_z(_v:Int) {this[2] = _v; return _v;}
+    public var z(get, set):Int;
+    inline function get_z() return this[2];
+    inline function set_z(_v:Int) {this[2] = _v; return _v;}
 
-	@:arrayAccess
-	inline public function get(_i:Int) return this[_i];
+    @:arrayAccess
+    inline public function get(_i:Int) return this[_i];
 
-	@:arrayAccess
-	inline public function setAt(_i:Int, _v:Int):Void
-	    this[_i] = _v;
+    @:arrayAccess
+    inline public function setAt(_i:Int, _v:Int):Void
+        this[_i] = _v;
 
-	inline public function copy():Vector3i
-	    return new Vector3i(this[0], this[1], this[2]);
+    inline public function copy():Vector3i
+        return new Vector3i(this[0], this[1], this[2]);
 
     public function length_squared():haxe.Int64 {
         return x * x + y * y + z * z;

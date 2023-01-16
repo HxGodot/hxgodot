@@ -5,8 +5,8 @@ import godot.variant.Color;
 import godot.variant.Vector2;
 
 typedef NamedColor = {
-	var name:String;
-	var color:Color;
+    var name:String;
+    var color:Color;
 };
 
 class GDConstants { 
@@ -36,12 +36,12 @@ class GDConstants {
     inline public static var CORNER_BOTTOM_LEFT = 3;
 
     inline public static var EULER_ORDER_XYZ = 0;
-	inline public static var EULER_ORDER_XZY = 1;
-	inline public static var EULER_ORDER_YXZ = 2;
-	inline public static var EULER_ORDER_YZX = 3;
-	inline public static var EULER_ORDER_ZXY = 4;
-	inline public static var EULER_ORDER_ZYX = 5;
-	
+    inline public static var EULER_ORDER_XZY = 1;
+    inline public static var EULER_ORDER_YXZ = 2;
+    inline public static var EULER_ORDER_YZX = 3;
+    inline public static var EULER_ORDER_ZXY = 4;
+    inline public static var EULER_ORDER_ZYX = 5;
+    
     inline public static var CLOCKWISE = 0;
     inline public static var COUNTERCLOCKWISE = 1;
 

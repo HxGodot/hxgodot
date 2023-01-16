@@ -25,12 +25,12 @@ abstract Quaternion(__Quaternion) from __Quaternion to __Quaternion {
     }
 
     inline static public function fromQuaternion(from:Quaternion):Quaternion {
-		return new Quaternion(from.x, from.y, from.z, from.w);
-	}
+        return new Quaternion(from.x, from.y, from.z, from.w);
+    }
 
     inline static public function fromBasis(from:Basis):Quaternion {
-		return from.get_rotation_quaternion();
-	}
+        return from.get_rotation_quaternion();
+    }
     
     inline static public function fromAxisAngle(axis:Vector3, angle:GDExtensionFloat):Quaternion {
         #if MATH_CHECKS
@@ -56,52 +56,52 @@ abstract Quaternion(__Quaternion) from __Quaternion to __Quaternion {
     }
 
     inline static public function fromArc(arc_from:Vector3, arc_to:Vector3):Quaternion {
-		var c:Vector3 = arc_from.cross(arc_to);
-		var d = arc_from.dot(arc_to);
+        var c:Vector3 = arc_from.cross(arc_to);
+        var d = arc_from.dot(arc_to);
 
         var q = new Quaternion();
-		if (d < -1.0 + CMP_EPSILON) {
-			q.x = 0;
-			q.y = 1;
-			q.z = 0;
-			q.w = 0;
-		} else {
-			var s = Math.sqrt((1.0 + d) * 2.0);
-			var rs = 1.0 / s;
+        if (d < -1.0 + CMP_EPSILON) {
+            q.x = 0;
+            q.y = 1;
+            q.z = 0;
+            q.w = 0;
+        } else {
+            var s = Math.sqrt((1.0 + d) * 2.0);
+            var rs = 1.0 / s;
 
-			q.x = c.x * rs;
-			q.y = c.y * rs;
-			q.z = c.z * rs;
-			q.w = s * 0.5;
-		}
+            q.x = c.x * rs;
+            q.y = c.y * rs;
+            q.z = c.z * rs;
+            q.w = s * 0.5;
+        }
         return q;
     }
 
-	public var x(get, set):GDExtensionFloat;
-	inline function get_x() return this[0];
-	inline function set_x(_v:GDExtensionFloat) {this[0] = _v; return _v;}
+    public var x(get, set):GDExtensionFloat;
+    inline function get_x() return this[0];
+    inline function set_x(_v:GDExtensionFloat) {this[0] = _v; return _v;}
 
-	public var y(get, set):GDExtensionFloat;
-	inline function get_y() return this[1];
-	inline function set_y(_v:GDExtensionFloat) {this[1] = _v; return _v;}
+    public var y(get, set):GDExtensionFloat;
+    inline function get_y() return this[1];
+    inline function set_y(_v:GDExtensionFloat) {this[1] = _v; return _v;}
 
-	public var z(get, set):GDExtensionFloat;
-	inline function get_z() return this[2];
-	inline function set_z(_v:GDExtensionFloat) {this[2] = _v; return _v;}
+    public var z(get, set):GDExtensionFloat;
+    inline function get_z() return this[2];
+    inline function set_z(_v:GDExtensionFloat) {this[2] = _v; return _v;}
 
-	public var w(get, set):GDExtensionFloat;
-	inline function get_w() return this[3];
-	inline function set_w(_v:GDExtensionFloat) {this[3] = _v; return _v;}
+    public var w(get, set):GDExtensionFloat;
+    inline function get_w() return this[3];
+    inline function set_w(_v:GDExtensionFloat) {this[3] = _v; return _v;}
 
-	@:arrayAccess
-	inline public function get(_i:Int) return this[_i];
+    @:arrayAccess
+    inline public function get(_i:Int) return this[_i];
 
-	@:arrayAccess
-	inline public function setAt(_i:Int, _v:GDExtensionFloat):Void
-	    this[_i] = _v;
+    @:arrayAccess
+    inline public function setAt(_i:Int, _v:GDExtensionFloat):Void
+        this[_i] = _v;
 
-	inline public function copy():Quaternion
-	    return new Quaternion(this[0], this[1], this[2], this[3]);
+    inline public function copy():Quaternion
+        return new Quaternion(this[0], this[1], this[2], this[3]);
 
 
     inline public function get_axis_angle(r_axis:Vector3, r_angle:Float):Void {

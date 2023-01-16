@@ -25,326 +25,322 @@ abstract Rect2(__Rect2) from __Rect2 to __Rect2 {
     }
 
     // inline static public function fromRect2i(from:Rect2i):Rect2 {
-	// 	return new Rect2(from.position.copy(), from.size.copy());
-	// }
+    // 	return new Rect2(from.position.copy(), from.size.copy());
+    // }
 
     inline static public function fromFloats(x:GDExtensionFloat, y:GDExtensionFloat, width:GDExtensionFloat, height:GDExtensionFloat):Rect2 {
-		return new Rect2(new Vector2(x, y), new Vector2(width, height));
-	}
+        return new Rect2(new Vector2(x, y), new Vector2(width, height));
+    }
 
     public var position(get, set):Vector2;
-	inline function get_position():Vector2 { return this[0]; }
-	inline function set_position(p_pos:Vector2):Vector2 { this[0] = p_pos; return p_pos; }
+    inline function get_position():Vector2 { return this[0]; }
+    inline function set_position(p_pos:Vector2):Vector2 { this[0] = p_pos; return p_pos; }
 
     public var size(get, set):Vector2;
-	inline function get_size():Vector2 { return this[1]; }
-	inline function set_size(p_size:Vector2):Vector2 { this[1] = p_size; return p_size; }
+    inline function get_size():Vector2 { return this[1]; }
+    inline function set_size(p_size:Vector2):Vector2 { this[1] = p_size; return p_size; }
 
     public var end(get, set):Vector2;
-	inline function get_end():Vector2 { return position + size; }
+    inline function get_end():Vector2 { return position + size; }
     inline function set_end(p_end:Vector2):Vector2 { size = p_end - position; return p_end; }
 
     @:arrayAccess
-	inline public function get(_i:Int) return this[_i];
+    inline public function get(_i:Int) return this[_i];
 
-	@:arrayAccess
-	inline public function setAt(_i:Int, _v:Vector2):Void
-	    this[_i] = _v;
+    @:arrayAccess
+    inline public function setAt(_i:Int, _v:Vector2):Void
+        this[_i] = _v;
 
-	inline public function copy():Rect2 {
+    inline public function copy():Rect2 {
         return new Rect2(position.copy(), size.copy());
     }
 
-	public function get_area():Float { return size.x * size.y; }
+    public function get_area():Float { return size.x * size.y; }
 
-	public function get_center():Vector2 { return position + (size * 0.5); }
+    public function get_center():Vector2 { return position + (size * 0.5); }
 
-	public function intersects(p_rect:Rect2, p_include_borders:Bool = false):Bool {
+    public function intersects(p_rect:Rect2, p_include_borders:Bool = false):Bool {
         #if MATH_CHECKS
-		if ((size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {
-			ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
-		}
+        if ((size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {
+            ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
+        }
         #end
-		if (p_include_borders) {
-			if (position.x > (p_rect.position.x + p_rect.size.x)) {
-				return false;
-			}
-			if ((position.x + size.x) < p_rect.position.x) {
-				return false;
-			}
-			if (position.y > (p_rect.position.y + p_rect.size.y)) {
-				return false;
-			}
-			if ((position.y + size.y) < p_rect.position.y) {
-				return false;
-			}
-		} else {
-			if (position.x >= (p_rect.position.x + p_rect.size.x)) {
-				return false;
-			}
-			if ((position.x + size.x) <= p_rect.position.x) {
-				return false;
-			}
-			if (position.y >= (p_rect.position.y + p_rect.size.y)) {
-				return false;
-			}
-			if ((position.y + size.y) <= p_rect.position.y) {
-				return false;
-			}
-		}
+        if (p_include_borders) {
+            if (position.x > (p_rect.position.x + p_rect.size.x)) {
+                return false;
+            }
+            if ((position.x + size.x) < p_rect.position.x) {
+                return false;
+            }
+            if (position.y > (p_rect.position.y + p_rect.size.y)) {
+                return false;
+            }
+            if ((position.y + size.y) < p_rect.position.y) {
+                return false;
+            }
+        } else {
+            if (position.x >= (p_rect.position.x + p_rect.size.x)) {
+                return false;
+            }
+            if ((position.x + size.x) <= p_rect.position.x) {
+                return false;
+            }
+            if (position.y >= (p_rect.position.y + p_rect.size.y)) {
+                return false;
+            }
+            if ((position.y + size.y) <= p_rect.position.y) {
+                return false;
+            }
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	public function distance_to(p_point:Vector2):Float {
+    public function distance_to(p_point:Vector2):Float {
         #if MATH_CHECKS
-		if ((size.x < 0 || size.y < 0)) {
-			ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
-		}
+        if ((size.x < 0 || size.y < 0)) {
+            ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
+        }
         #end
-		var dist:Float = 0.0;
-		var inside = true;
+        var dist:Float = 0.0;
+        var inside = true;
 
-		if (p_point.x < position.x) {
-			var d:Float = position.x - p_point.x;
-			dist = d;
-			inside = false;
-		}
-		if (p_point.y < position.y) {
-			var d:Float = position.y - p_point.y;
-			dist = inside ? d : MIN(dist, d);
-			inside = false;
-		}
-		if (p_point.x >= (position.x + size.x)) {
-			var d:Float = p_point.x - (position.x + size.x);
-			dist = inside ? d : MIN(dist, d);
-			inside = false;
-		}
-		if (p_point.y >= (position.y + size.y)) {
-			var d:Float = p_point.y - (position.y + size.y);
-			dist = inside ? d : MIN(dist, d);
-			inside = false;
-		}
+        if (p_point.x < position.x) {
+            var d:Float = position.x - p_point.x;
+            dist = d;
+            inside = false;
+        }
+        if (p_point.y < position.y) {
+            var d:Float = position.y - p_point.y;
+            dist = inside ? d : MIN(dist, d);
+            inside = false;
+        }
+        if (p_point.x >= (position.x + size.x)) {
+            var d:Float = p_point.x - (position.x + size.x);
+            dist = inside ? d : MIN(dist, d);
+            inside = false;
+        }
+        if (p_point.y >= (position.y + size.y)) {
+            var d:Float = p_point.y - (position.y + size.y);
+            dist = inside ? d : MIN(dist, d);
+            inside = false;
+        }
 
-		if (inside) {
-			return 0;
-		} else {
-			return dist;
-		}
-	}
+        if (inside) {
+            return 0;
+        } else {
+            return dist;
+        }
+    }
 
-	public function encloses(p_rect:Rect2):Bool {
+    public function encloses(p_rect:Rect2):Bool {
         #if MATH_CHECKS
-		if ((size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {
-			ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
-		}
+        if ((size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {
+            ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
+        }
         #end
-		return (p_rect.position.x >= position.x) && (p_rect.position.y >= position.y) &&
-				((p_rect.position.x + p_rect.size.x) <= (position.x + size.x)) &&
-				((p_rect.position.y + p_rect.size.y) <= (position.y + size.y));
-	}
+        return (p_rect.position.x >= position.x) && (p_rect.position.y >= position.y) &&
+                ((p_rect.position.x + p_rect.size.x) <= (position.x + size.x)) &&
+                ((p_rect.position.y + p_rect.size.y) <= (position.y + size.y));
+    }
 
-	public function has_area():Bool {
-		return size.x > 0.0 && size.y > 0.0;
-	}
+    public function has_area():Bool {
+        return size.x > 0.0 && size.y > 0.0;
+    }
 
-	// Returns the instersection between two Rect2s or an empty Rect2 if there is no intersection
-	public function intersection(p_rect:Rect2):Rect2 {
-		var new_rect:Rect2 = p_rect;
+    // Returns the instersection between two Rect2s or an empty Rect2 if there is no intersection
+    public function intersection(p_rect:Rect2):Rect2 {
+        var new_rect:Rect2 = p_rect;
 
-		if (!intersects(new_rect)) {
-			return new Rect2();
-		}
+        if (!intersects(new_rect)) {
+            return new Rect2();
+        }
 
-		new_rect.position.x = MAX(p_rect.position.x, position.x);
-		new_rect.position.y = MAX(p_rect.position.y, position.y);
+        new_rect.position.x = MAX(p_rect.position.x, position.x);
+        new_rect.position.y = MAX(p_rect.position.y, position.y);
 
-		var p_rect_end:Point2 = p_rect.position + p_rect.size;
-		var end:Point2 = position + size;
+        var p_rect_end:Point2 = p_rect.position + p_rect.size;
+        var end:Point2 = position + size;
 
-		new_rect.size.x = MIN(p_rect_end.x, end.x) - new_rect.position.x;
-		new_rect.size.y = MIN(p_rect_end.y, end.y) - new_rect.position.y;
+        new_rect.size.x = MIN(p_rect_end.x, end.x) - new_rect.position.x;
+        new_rect.size.y = MIN(p_rect_end.y, end.y) - new_rect.position.y;
 
-		return new_rect;
-	}
+        return new_rect;
+    }
 
-	public function merge(p_rect:Rect2):Rect2 { ///< return a merged rect
+    public function merge(p_rect:Rect2):Rect2 { ///< return a merged rect
         #if MATH_CHECKS
-		if ((size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {
-			ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
-		}
+        if ((size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {
+            ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
+        }
         #end
-		var new_rect:Rect2 = new Rect2();
+        var new_rect:Rect2 = new Rect2();
 
-		new_rect.position.x = MIN(p_rect.position.x, position.x);
-		new_rect.position.y = MIN(p_rect.position.y, position.y);
+        new_rect.position.x = MIN(p_rect.position.x, position.x);
+        new_rect.position.y = MIN(p_rect.position.y, position.y);
 
-		new_rect.size.x = MAX(p_rect.position.x + p_rect.size.x, position.x + size.x);
-		new_rect.size.y = MAX(p_rect.position.y + p_rect.size.y, position.y + size.y);
+        new_rect.size.x = MAX(p_rect.position.x + p_rect.size.x, position.x + size.x);
+        new_rect.size.y = MAX(p_rect.position.y + p_rect.size.y, position.y + size.y);
 
-		new_rect.size = new_rect.size - new_rect.position; // Make relative again.
+        new_rect.size = new_rect.size - new_rect.position; // Make relative again.
 
-		return new_rect;
-	}
+        return new_rect;
+    }
 
-	public function has_point(p_point:Point2):Bool {
+    public function has_point(p_point:Point2):Bool {
         #if MATH_CHECKS
-		if ((size.x < 0 || size.y < 0)) {
-			ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
-		}
+        if ((size.x < 0 || size.y < 0)) {
+            ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
+        }
         #end
-		if (p_point.x < position.x) {
-			return false;
-		}
-		if (p_point.y < position.y) {
-			return false;
-		}
+        if (p_point.x < position.x) {
+            return false;
+        }
+        if (p_point.y < position.y) {
+            return false;
+        }
 
-		if (p_point.x >= (position.x + size.x)) {
-			return false;
-		}
-		if (p_point.y >= (position.y + size.y)) {
-			return false;
-		}
+        if (p_point.x >= (position.x + size.x)) {
+            return false;
+        }
+        if (p_point.y >= (position.y + size.y)) {
+            return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	public function grow(p_amount:Float):Rect2 {
-        // trace("Grow1: "+this);
-		var g:Rect2 = copy();
-        // trace("G.pos=this.pos:"+(g.position==position)+" G.siz=this.siz:"+(g.size==size));
-        // trace("Grow2: "+g);
-		g.grow_by(p_amount);
-        // trace("Grow3: g="+g+" this="+this);
-		return g;
-	}
+    public function grow(p_amount:Float):Rect2 {
+        var g:Rect2 = copy();
+        g.grow_by(p_amount);
+        return g;
+    }
 
-	inline function grow_by(p_amount:Float):Void {
-		position.x -= p_amount;
-		position.y -= p_amount;
-		size.x += p_amount * 2;
-		size.y += p_amount * 2;
-	}
+    inline function grow_by(p_amount:Float):Void {
+        position.x -= p_amount;
+        position.y -= p_amount;
+        size.x += p_amount * 2;
+        size.y += p_amount * 2;
+    }
 
-	public function grow_side(p_side:Int, p_amount:Float):Rect2 {
-		var g:Rect2 = copy();
-		g = g.grow_individual((SIDE_LEFT == p_side) ? p_amount : 0,
-				(SIDE_TOP == p_side) ? p_amount : 0,
-				(SIDE_RIGHT == p_side) ? p_amount : 0,
-				(SIDE_BOTTOM == p_side) ? p_amount : 0);
-		return g;
-	}
+    public function grow_side(p_side:Int, p_amount:Float):Rect2 {
+        var g:Rect2 = copy();
+        g = g.grow_individual((SIDE_LEFT == p_side) ? p_amount : 0,
+                (SIDE_TOP == p_side) ? p_amount : 0,
+                (SIDE_RIGHT == p_side) ? p_amount : 0,
+                (SIDE_BOTTOM == p_side) ? p_amount : 0);
+        return g;
+    }
 
-	public function grow_individual(p_left:Float, p_top:Float, p_right:Float, p_bottom:Float):Rect2 {
-		var g:Rect2 = copy();
-		g.position.x -= p_left;
-		g.position.y -= p_top;
-		g.size.x += p_left + p_right;
-		g.size.y += p_top + p_bottom;
+    public function grow_individual(p_left:Float, p_top:Float, p_right:Float, p_bottom:Float):Rect2 {
+        var g:Rect2 = copy();
+        g.position.x -= p_left;
+        g.position.y -= p_top;
+        g.size.x += p_left + p_right;
+        g.size.y += p_top + p_bottom;
 
-		return g;
-	}
+        return g;
+    }
 
-	public function expand(p_vector:Vector2):Rect2 {
-		var r:Rect2 = copy();
-		r.expand_to(p_vector);
-		return r;
-	}
+    public function expand(p_vector:Vector2):Rect2 {
+        var r:Rect2 = copy();
+        r.expand_to(p_vector);
+        return r;
+    }
 
     function expand_to(p_vector:Vector2):Void { // In place function for speed.
         #if MATH_CHECKS
-		if ((size.x < 0 || size.y < 0)) {
-			ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
-		}
+        if ((size.x < 0 || size.y < 0)) {
+            ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
+        }
         #end
-		var begin:Vector2 = position;
-		var end:Vector2 = position + size;
+        var begin:Vector2 = position;
+        var end:Vector2 = position + size;
 
-		if (p_vector.x < begin.x) {
-			begin.x = p_vector.x;
-		}
-		if (p_vector.y < begin.y) {
-			begin.y = p_vector.y;
-		}
+        if (p_vector.x < begin.x) {
+            begin.x = p_vector.x;
+        }
+        if (p_vector.y < begin.y) {
+            begin.y = p_vector.y;
+        }
 
-		if (p_vector.x > end.x) {
-			end.x = p_vector.x;
-		}
-		if (p_vector.y > end.y) {
-			end.y = p_vector.y;
-		}
+        if (p_vector.x > end.x) {
+            end.x = p_vector.x;
+        }
+        if (p_vector.y > end.y) {
+            end.y = p_vector.y;
+        }
 
-		position = begin;
-		size = end - begin;
-	}
+        position = begin;
+        size = end - begin;
+    }
 
-	public function abs():Rect2 {
-		return new Rect2(new Point2(position.x + MIN(size.x, 0), position.y + MIN(size.y, 0)), size.abs());
-	}
+    public function abs():Rect2 {
+        return new Rect2(new Point2(position.x + MIN(size.x, 0), position.y + MIN(size.y, 0)), size.abs());
+    }
 
-	public function get_support(p_normal:Vector2):Vector2 {
-		var half_extents:Vector2 = size * 0.5;
-		var ofs:Vector2 = position + half_extents;
-		return new Vector2(
-					   (p_normal.x > 0) ? -half_extents.x : half_extents.x,
-					   (p_normal.y > 0) ? -half_extents.y : half_extents.y) +
-				ofs;
-	}
+    public function get_support(p_normal:Vector2):Vector2 {
+        var half_extents:Vector2 = size * 0.5;
+        var ofs:Vector2 = position + half_extents;
+        return new Vector2(
+                       (p_normal.x > 0) ? -half_extents.x : half_extents.x,
+                       (p_normal.y > 0) ? -half_extents.y : half_extents.y) +
+                ofs;
+    }
 
-	public function intersects_filled_polygon(p_points:Array<Vector2>, p_point_count:Int):Bool {
-		var center:Vector2 = get_center();
-		var side_plus = 0;
-		var side_minus = 0;
-		var end:Vector2 = position + size;
+    public function intersects_filled_polygon(p_points:Array<Vector2>, p_point_count:Int):Bool {
+        var center:Vector2 = get_center();
+        var side_plus = 0;
+        var side_minus = 0;
+        var end:Vector2 = position + size;
 
-		var i_f = p_point_count - 1;
-		for (i in 0...p_point_count) {
-			var a:Vector2 = p_points[i_f];
-			var b:Vector2 = p_points[i];
-			i_f = i;
+        var i_f = p_point_count - 1;
+        for (i in 0...p_point_count) {
+            var a:Vector2 = p_points[i_f];
+            var b:Vector2 = p_points[i];
+            i_f = i;
 
-			var r:Vector2 = (b - a);
-			var l:Float = r.length();
-			if (l == 0.0) {
-				continue;
-			}
+            var r:Vector2 = (b - a);
+            var l:Float = r.length();
+            if (l == 0.0) {
+                continue;
+            }
 
-			// Check inside.
-			var tg:Vector2 = r.orthogonal();
-			var s:Float = tg.dot(center) - tg.dot(a);
-			if (s < 0.0) {
-				side_plus++;
-			} else {
-				side_minus++;
-			}
+            // Check inside.
+            var tg:Vector2 = r.orthogonal();
+            var s:Float = tg.dot(center) - tg.dot(a);
+            if (s < 0.0) {
+                side_plus++;
+            } else {
+                side_minus++;
+            }
 
-			// Check ray box.
-			r /= l;
-			var ir:Vector2 = new Vector2(1.0 / r.x, 1.0 / r.y);
+            // Check ray box.
+            r /= l;
+            var ir:Vector2 = new Vector2(1.0 / r.x, 1.0 / r.y);
 
-			// lb is the corner of AABB with minimal coordinates - left bottom, rt is maximal corner
-			// r.org is origin of ray
-			var t13:Vector2 = (position - a) * ir;
-			var t24:Vector2 = (end - a) * ir;
+            // lb is the corner of AABB with minimal coordinates - left bottom, rt is maximal corner
+            // r.org is origin of ray
+            var t13:Vector2 = (position - a) * ir;
+            var t24:Vector2 = (end - a) * ir;
 
-			var tmin:Float = MAX(MIN(t13.x, t24.x), MIN(t13.y, t24.y));
-			var tmax:Float = MIN(MAX(t13.x, t24.x), MAX(t13.y, t24.y));
+            var tmin:Float = MAX(MIN(t13.x, t24.x), MIN(t13.y, t24.y));
+            var tmax:Float = MIN(MAX(t13.x, t24.x), MAX(t13.y, t24.y));
 
-			// if tmax < 0, ray (line) is intersecting AABB, but the whole AABB is behind us
-			if (tmax < 0 || tmin > tmax || tmin >= l) {
-				continue;
-			}
+            // if tmax < 0, ray (line) is intersecting AABB, but the whole AABB is behind us
+            if (tmax < 0 || tmin > tmax || tmin >= l) {
+                continue;
+            }
 
-			return true;
-		}
+            return true;
+        }
 
-		if (side_plus * side_minus == 0) {
-			return true; // All inside.
-		} else {
-			return false;
-		}
-	}
+        if (side_plus * side_minus == 0) {
+            return true; // All inside.
+        } else {
+            return false;
+        }
+    }
 
     public function is_equal_approx(p_rect:Rect2):Bool {
         return position.is_equal_approx(p_rect.position) && size.is_equal_approx(p_rect.size);
