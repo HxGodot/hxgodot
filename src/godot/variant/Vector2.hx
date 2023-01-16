@@ -39,38 +39,38 @@ abstract Vector2(__Vector2) from __Vector2 to __Vector2 {
     }
 
     public var x(get, set):GDExtensionFloat;
-	inline function get_x() return this[0];
-	inline function set_x(_v:GDExtensionFloat) {this[0] = _v; return _v;}
+    inline function get_x() return this[0];
+    inline function set_x(_v:GDExtensionFloat) {this[0] = _v; return _v;}
 
-	public var y(get, set):GDExtensionFloat;
-	inline function get_y() return this[1];
-	inline function set_y(_v:GDExtensionFloat) {this[1] = _v; return _v;}
+    public var y(get, set):GDExtensionFloat;
+    inline function get_y() return this[1];
+    inline function set_y(_v:GDExtensionFloat) {this[1] = _v; return _v;}
 
-	@:arrayAccess
-	inline public function get(_i:Int) return this[_i];
+    @:arrayAccess
+    inline public function get(_i:Int) return this[_i];
 
-	@:arrayAccess
-	inline public function setAt(_i:Int, _v:GDExtensionFloat):Void
-	    this[_i] = _v;
+    @:arrayAccess
+    inline public function setAt(_i:Int, _v:GDExtensionFloat):Void
+        this[_i] = _v;
 
-	inline public function copy():Vector2
-	    return new Vector2(this[0], this[1]);
+    inline public function copy():Vector2
+        return new Vector2(this[0], this[1]);
 
-	public function min(p_vector2:Vector2):Vector2 {
-		return new Vector2(MIN(x, p_vector2.x), MIN(y, p_vector2.y));
-	}
+    public function min(p_vector2:Vector2):Vector2 {
+        return new Vector2(MIN(x, p_vector2.x), MIN(y, p_vector2.y));
+    }
 
-	public function  max(p_vector2:Vector2):Vector2 {
-		return new Vector2(MAX(x, p_vector2.x), MAX(y, p_vector2.y));
-	}
+    public function  max(p_vector2:Vector2):Vector2 {
+        return new Vector2(MAX(x, p_vector2.x), MAX(y, p_vector2.y));
+    }
 
-	public function abs():Vector2 {
-		return new Vector2(Math.abs(x), Math.abs(y));
-	}
+    public function abs():Vector2 {
+        return new Vector2(Math.abs(x), Math.abs(y));
+    }
 
-	public function orthogonal() {
-		return new Vector2(y, -x);
-	}
+    public function orthogonal() {
+        return new Vector2(y, -x);
+    }
 
     public function aspect():Float { return x / y; }
 
