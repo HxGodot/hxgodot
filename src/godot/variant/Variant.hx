@@ -12,8 +12,8 @@ uint8_t opaque[GODOT_CPP_VARIANT_SIZE] = {0};
 _FORCE_INLINE_ ::GDExtensionVariantPtr _native_ptr() const { return const_cast<uint8_t (*)[GODOT_CPP_VARIANT_SIZE]>(&opaque); }
 ')
 class __Variant {
-    public static var from_type_constructor = new haxe.ds.Vector<godot.Types.GDExtensionVariantFromTypeConstructorFunc>(GDExtensionVariantType.MAX);
-    public static var to_type_constructor = new haxe.ds.Vector<godot.Types.GDExtensionTypeFromVariantConstructorFunc>(GDExtensionVariantType.MAX);
+    public static var from_type_constructor = new haxe.ds.Vector<godot.Types.GDExtensionVariantFromTypeConstructorFunc>(GDExtensionVariantType.MAXIMUM);
+    public static var to_type_constructor = new haxe.ds.Vector<godot.Types.GDExtensionTypeFromVariantConstructorFunc>(GDExtensionVariantType.MAXIMUM);
 
     public function new() {
         //GodotNativeInterface.variant_new_nil(native_ptr()); // WTF!!!!
@@ -32,7 +32,7 @@ class __Variant {
     }
 
     static function __initBindings() {
-        for (i in 1...GDExtensionVariantType.MAX) {
+        for (i in 1...GDExtensionVariantType.MAXIMUM) {
             from_type_constructor[i] = GodotNativeInterface.get_variant_from_type_constructor(i);
             to_type_constructor[i] = GodotNativeInterface.get_variant_to_type_constructor(i);
         }
