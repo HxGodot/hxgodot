@@ -92,34 +92,7 @@ class Macros {
         var extensionFields = [];
         //var extensionIntegerConstants = [];
         var extensionProperties = [];
-        var virtualFields = new Map<String, haxe.macro.Field>();
-
-        // find the first engine-class up the inheritance chain
-        var engine_parent = null;
-        // count the depth of the inheritance chain. we need it later to register all classes in the correct order
-        var inheritanceDepth = 0;
-        // also collect all engine virtuals up the chain
-        var engineVirtuals = [];
-        var next = cls.get().superClass.t.get();
-        while (next != null) {
-            if (engine_parent == null && next.meta.has(":gdEngineClass")) {
-                engine_parent = next;
-            }
-            
-            // TODO: this can be slow?
-            for (k=>v in virtualFields) {
-                for (f in next.fields.get())
-                    if (f.name == k)
-                        engineVirtuals.push(v);
-            }
-
-            inheritanceDepth++;
-            next = next.superClass != null ? next.superClass.t.get() : null;
-        }
-
-        if (!isEngineClass && engine_parent == null)
-            throw "Impossible";
-        
+        var virtualFields = new Map<String, haxe.macro.Field>();   
 
         for (field in fields) {
             var isExported = false;
@@ -132,9 +105,11 @@ class Macros {
                 case FFun(_f):
                     if (isExported)
                         extensionFields.push(field);
+
                 case FProp(_g, _s, _type):
                     if (isExported)
                         extensionProperties.push(field);
+
                 case FVar(_t, _e): {
                     if (_t == null && _e == null) continue; // safe case for us, let the compiler complain about this ;)
 
@@ -146,7 +121,7 @@ class Macros {
                         function _checkGodotType(_gt) {
                             if (_gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(_gt.name))
                                 Context.fatalError('${field.name}:${_gt.name}: We don\'t support class level initialization of Godot classes yet!', Context.currentPos());
-                        }                     
+                        }
                         switch (ft) {
                             case TInst(t, _): _checkGodotType(t.get());
                             case TAbstract(t, _): _checkGodotType(t.get());
@@ -164,7 +139,7 @@ class Macros {
                                 else if (tname == "godot.variant.TypedSignal") // special case for signals
                                     extensionProperties.push(field);
                             }
-                            default: 
+                            default:
                         }
 
                         // // make sure we only allow integer constants
@@ -210,7 +185,31 @@ class Macros {
             }
         }
 
-        
+        // find the first engine-class up the inheritance chain
+        var engine_parent = null;
+        // count the depth of the inheritance chain. we need it later to register all classes in the correct order
+        var inheritanceDepth = 0;
+        // also collect all engine virtuals up the chain
+        var engineVirtuals = [];
+        var next = cls.get().superClass.t.get();
+        while (next != null) {
+            if (engine_parent == null && next.meta.has(":gdEngineClass")) {
+                engine_parent = next;
+            }
+            
+            // TODO: this can be slow?
+            for (k=>v in virtualFields) {
+                for (f in next.fields.get())
+                    if (f.name == k)
+                        engineVirtuals.push(v);
+            }
+
+            inheritanceDepth++;
+            next = next.superClass != null ? next.superClass.t.get() : null;
+        }
+
+        if (!isEngineClass && engine_parent == null)
+            throw "Impossible";        
 
         if (isEngineClass) {
             // properly bootstrap this class
@@ -739,7 +738,6 @@ class Macros {
         }
 
         for (f in _virtualFields) {
-            ////trace(f);
 
             var vname = 'virtual_${_className}_${f.name}';
             virtualFuncCallbacks.push(macro {
