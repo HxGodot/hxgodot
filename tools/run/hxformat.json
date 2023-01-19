@@ -1,0 +1,15 @@
+{
+	"lineEnds": {
+		"leftCurly": "after",
+		"emptyCurly": "noBreak"
+	},
+	"sameLine": {
+		"ifElse": "same",
+		"doWhile": "next",
+		"tryBody": "next",
+		"tryCatch": "next"
+	},
+	"indentation": {
+		"character": "   "
+	}
+}
