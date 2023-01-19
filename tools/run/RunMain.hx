@@ -168,7 +168,7 @@ ${REGULAR_TEXT}Flags:
       log('${SUCCESS_TEXT}Done.');
    }
 
-   public static inline final PROMPT_TIMEOUT_DURATION:Float = 5;
+   public static inline final PROMPT_TIMEOUT_DURATION:Float = 30;
 
    public static function prompt(text:String, onYes:Function, onNo:Function):Bool {
       while (true) {
