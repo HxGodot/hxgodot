@@ -92,6 +92,8 @@ class Macros {
         var extensionFields = [];
         //var extensionIntegerConstants = [];
         var extensionProperties = [];
+        var staticInits = [];
+        var staticsToRewriteForInit = [];
         var virtualFields = new Map<String, haxe.macro.Field>();   
 
         for (field in fields) {
@@ -119,8 +121,11 @@ class Macros {
                     // add a compiler warning to make people aware                    
                     if (!isEngineClass && _e != null) {
                         function _checkGodotType(_gt) {
-                            if (_gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(_gt.name))
-                                Context.fatalError('${field.name}:${_gt.name}: We don\'t support class level initialization of Godot classes yet!', Context.currentPos());
+                            if (_gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(_gt.name)) {
+                                //Context.fatalError('${field.name}:${_gt.name}: We don\'t support class level initialization of Godot classes yet!', Context.currentPos());
+                                staticInits.push(macro $i{field.name} = $_e);
+                                staticsToRewriteForInit.push(field);
+                            }
                         }
                         switch (ft) {
                             case TInst(t, _): _checkGodotType(t.get());
@@ -185,6 +190,23 @@ class Macros {
             }
         }
 
+        // rewrite the static godt vars and add the expr to the classes __static_init() function
+        for (f in staticsToRewriteForInit) {
+            var res = fields.remove(f);
+            if (res != null) {
+                switch (f.kind) {
+                    case FVar(_path, _expr): {
+                        if (_path == null) // in case where we have no type on the var, grab it from the expression
+                            _path = TypeTools.toComplexType(Context.typeof(_expr));
+                        f.kind = FVar(_path, null);
+                        fields.push(f);
+                    }
+                    default: throw "Error, what did we just try to remove?!";
+                }
+            }
+        }
+        staticsToRewriteForInit = null;
+
         // find the first engine-class up the inheritance chain
         var engine_parent = null;
         // count the depth of the inheritance chain. we need it later to register all classes in the correct order
@@ -212,7 +234,7 @@ class Macros {
         }
 
         if (!isEngineClass && engine_parent == null)
-            throw "Impossible";        
+            throw "Impossible";
 
         if (isEngineClass) {
             // properly bootstrap this class
@@ -235,7 +257,8 @@ class Macros {
                 extensionFields,
                 engineVirtuals,
                 classNameCpp,
-                extensionProperties
+                extensionProperties,
+                staticInits
             );
 
             // properly bootstrap this class
@@ -260,7 +283,8 @@ class Macros {
         _extensionFields:Array<haxe.macro.Field>,
         _virtualFields:Array<Dynamic>,
         _cppClassName:String, 
-        _extensionProperties:Array<haxe.macro.Field>) 
+        _extensionProperties:Array<haxe.macro.Field>,
+        _staticInits:Array<haxe.macro.Expr>) 
     {
         var pos = Context.currentPos();
         var ctType = TPath(_typePath);
@@ -934,6 +958,10 @@ class Macros {
                 $b{regOut};
                 // getter and setters have been registered, now register the properties
                 $b{regPropOut};
+            }
+
+            static function __static_init() {
+                $b{_staticInits};
             }
 
             static function __bindCall(

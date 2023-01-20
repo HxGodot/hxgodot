@@ -79,6 +79,9 @@ class HxGodot {
 
             if (Reflect.hasField(t, "__registerClass")) // extension class bindings
                 Reflect.field(t, "__registerClass")();
+
+            if (Reflect.hasField(t, "__static_init")) // extension static initialization
+                Reflect.field(t, "__static_init")();
         }
 
         //trace(CompileTime.buildGitCommitSha());
