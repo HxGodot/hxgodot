@@ -69,6 +69,7 @@ class HxGodot {
             return 0;
         });
 
+        // now init the binding classes and register the extension classes
         for (t in tmp) {
             if (Reflect.hasField(t, "__init_engine_bindings")) // engine class bindings
                 Reflect.field(t, "__init_engine_bindings")();
