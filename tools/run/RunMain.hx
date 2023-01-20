@@ -119,7 +119,9 @@ class RunMain {
             });
             if (madeBindings) {
                log('${REGULAR_TEXT}Your project has been setup successfully. You can compile it now via:
+
  ${COMMAND_TEXT}scons platform=<windows|linux|macos> target=<debug|release>
+
 ${REGULAR_TEXT}Afterwards, you can open it in Godot 4 - Have fun! :)');
             }
          case 'generate_bindings':
@@ -153,7 +155,7 @@ ${REGULAR_TEXT}Flags:
       log('${STATUS_TEXT}Populating project folder...');
       templateDir = Path.join([libDir, "tools", "template"]);
       _recursiveLoop(templateDir);
-      log('${SUCCESS_TEXT}Done.');
+      log('${SUCCESS_TEXT}Done.\n');
    }
 
    public static function doGenerateBindings() {
@@ -172,13 +174,14 @@ ${REGULAR_TEXT}Flags:
 
    public static function prompt(text:String, onYes:Function, onNo:Function):Bool {
       while (true) {
-         Sys.print(text.trim() + ' $RESET[y/N] ');
 
          if (flags.contains('y')) {
-            Sys.println('y');
+            //Sys.println('y');
             onYes();
             return true;
          }
+         
+         Sys.print(text.trim() + ' $RESET[y/N] ');
 
          var thread = Thread.create(() -> {
             Sys.sleep(PROMPT_TIMEOUT_DURATION);
