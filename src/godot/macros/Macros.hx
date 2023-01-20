@@ -192,15 +192,18 @@ class Macros {
         // also collect all engine virtuals up the chain
         var engineVirtuals = [];
         var next = cls.get().superClass.t.get();
+
+        // we only must collect all virtuals that belong to engine classes
         while (next != null) {
-            if (engine_parent == null && next.meta.has(":gdEngineClass")) {
+            var nextIsEngineClass = next.meta.has(":gdEngineClass");
+            if (engine_parent == null && nextIsEngineClass) {
                 engine_parent = next;
             }
             
             // TODO: this can be slow?
             for (k=>v in virtualFields) {
                 for (f in next.fields.get())
-                    if (f.name == k)
+                    if (nextIsEngineClass && f.name == k)
                         engineVirtuals.push(v);
             }
 
@@ -262,6 +265,7 @@ class Macros {
         var pos = Context.currentPos();
         var ctType = TPath(_typePath);
 
+        // TODO: move this out of here
         function _mapHxTypeToGodot(_type) {
             return _type != null ? switch(_type) {
                 case TPath(_d):
