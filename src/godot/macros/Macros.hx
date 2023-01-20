@@ -23,7 +23,6 @@ class Macros {
     inline public static var METHOD_FLAG_STATIC     = 1 << 5;
     inline public static var METHOD_FLAGS_DEFAULT   = METHOD_FLAG_NORMAL;
 
-    //static var virtuals:Map<String, haxe.macro.Field> = new Map();
     static var extensionClasses:Map<String, Bool> = new Map();
 
     macro static public function build():Array<haxe.macro.Field> {
@@ -122,6 +121,7 @@ class Macros {
                     if (!isEngineClass && _e != null) {
                         function _checkGodotType(_gt) {
                             if (_gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(_gt.name)) {
+                                // TODO: keep this error around for
                                 //Context.fatalError('${field.name}:${_gt.name}: We don\'t support class level initialization of Godot classes yet!', Context.currentPos());
                                 staticInits.push(macro $i{field.name} = $_e);
                                 staticsToRewriteForInit.push(field);
@@ -325,10 +325,6 @@ class Macros {
                 case FProp(_g, _s, _type, _expr): {
                     //trace("////////////////////////////////////////////////////////////////////////////////");
                     // trace('// FProp: ${field.name}');
-                    // trace(field);
-                    //trace(_g);
-                    //trace(_s);
-                    //trace(_type);
                     
                     var argType = _mapHxTypeToGodot(_type);
                     var hint = macro $v{godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE};
@@ -451,8 +447,6 @@ class Macros {
                     
                 }
                 case FVar(_t, _e): { // signals
-                    //trace(_t);
-                    //trace(_e);
 
                     var hint = macro $v{godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE};
                     var hint_string = macro $v{""};
@@ -494,9 +488,6 @@ class Macros {
                         var arg = arguments[i];
                         var argType = _mapHxTypeToGodot(arg.type);
                         var argTypeString = godot.Types.GDExtensionVariantType.toString(argType);
-
-                        // trace(arg);
-                        // trace(argTypeString);
 
                         regSigs.push(macro {
                             var aNamePtr:godot.Types.GDExtensionStringNamePtr = ($v{'${arg.name}'}:godot.variant.StringName).native_ptr();
@@ -558,7 +549,6 @@ class Macros {
                     // trace("////////////////////////////////////////////////////////////////////////////////");
                     // trace('// FFun: ${field.name}');
                     
-                    // trace(_f);
                     var argExprs = [];
                     var argVariantExprs = [];
                     var retAndArgsInfos = [];
@@ -686,9 +676,6 @@ class Macros {
 
                         var fname:godot.variant.StringName = $v{field.name};
 
-                        // TODO: Remove
-                        //trace("registering " + $v{field.name});
-
                         var method_info:godot.Types.GDExtensionClassMethodInfo = untyped __cpp__('{
                             {0}, // GDExtensionStringNamePtr name;
                             (void *){1}, // void *method_userdata;
@@ -747,10 +734,6 @@ class Macros {
         }
 
         // build callbacks and implementations for the virtuals 
-        //trace("////////////////////////////////////////////////////////////////////////////////");
-        //trace('// Virtuals');
-        //trace("////////////////////////////////////////////////////////////////////////////////");
-
         var vCallbacks = '';
         var virtualFuncCallbacks = [];
         var virtualFuncImpls = [];
@@ -769,8 +752,6 @@ class Macros {
 
             var vname = 'virtual_${_className}_${f.name}';
             virtualFuncCallbacks.push(macro {
-                //var vr = godot.variant.StringName.fromGDString(($v{f.name}:godot.variant.GDString));
-                //rname = vr;
                 var hs = lname.hash();
                 if (haxe.Int32.ucompare(hs, $v{djb2(f.name)}) == 0) 
                     return untyped __cpp__($v{"(void *)(GDExtensionClassCallVirtual)&"+vname+"__onVirtualCall"});
@@ -907,7 +888,6 @@ class Macros {
                 var rname;
 
                 $b{virtualFuncCallbacks};
-                //return untyped __cpp__('${vname}__onVirtualCall
                 return untyped __cpp__('nullptr'); // should never happen
             }
             
@@ -954,8 +934,10 @@ class Macros {
 
             static function __registerMethods() {
                 var library = untyped __cpp__("godot::internal::library");
+                
                 // register all methods
                 $b{regOut};
+
                 // getter and setters have been registered, now register the properties
                 $b{regPropOut};
             }
@@ -978,13 +960,6 @@ class Macros {
                         _instance
                     );
                 $b{bindCalls};
-                /*
-                const MethodBind *bind = reinterpret_cast<const MethodBind *>(p_method_userdata);
-                Variant ret = bind->call(p_instance, p_args, p_argument_count, *r_error);
-                // This assumes the return value is an empty Variant, so it doesn't need to call the destructor first.
-                // Since only NativeExtensionMethodBind calls this from the Godot side, it should always be the case.
-                internal::gdn_interface->variant_new_copy(r_return, ret._native_ptr());
-                */
             }
 
             static function __bindCallPtr(
@@ -998,9 +973,7 @@ class Macros {
                         $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
                         _instance
                     );
-                $b{bindCallPtrs};
-                //const MethodBind *bind = reinterpret_cast<const MethodBind *>(p_method_userdata);
-                //bind->ptrcall(p_instance, p_args, r_return);        
+                $b{bindCallPtrs};   
             }
         }
         return _fields.concat(fieldBindingsClass.fields.concat(virtualFuncImpls));
