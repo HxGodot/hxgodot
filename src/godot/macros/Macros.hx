@@ -97,6 +97,7 @@ class Macros {
 
         for (field in fields) {
             var isExported = false;
+            var isStatic = field.access.indexOf(AStatic) != -1;
 
             for (fmeta in field.meta)
                 if (fmeta.name == ":export")
@@ -112,7 +113,8 @@ class Macros {
                         extensionProperties.push(field);
 
                 case FVar(_t, _e): {
-                    if (_t == null && _e == null) continue; // safe case for us, let the compiler complain about this ;)
+                    // only deal with static variables or actual useful and correctly declared ones
+                    if (!isStatic || (_t == null && _e == null)) continue; // safe case for us, let the compiler complain about this ;)
 
                     var ft = _t != null ? Context.follow(ComplexTypeTools.toType(_t)) : Context.typeof(_e);
 
