@@ -37,7 +37,12 @@ class ClassGenMacros {
         var useDouble = false; // TODO: Support double Godot builds
         var sizeKey = '${useDouble ? "double" : "float"}_${use64 ? "64" : "32"}';
         var hl = haxe.Json.parse(sys.io.File.getContent("./haxelib.json"));
-        var api = haxe.Json.parse(sys.io.File.getContent("./src/godot_cpp/extension_api.json"));
+        var apiJson = "./src/godot_cpp/extension_api.json";
+        var apiJsonDefineValue = Context.definedValue('EXT_API_JSON');
+        if (apiJsonDefineValue != null) {
+            apiJson = apiJsonDefineValue;
+        }
+        var api = haxe.Json.parse(sys.io.File.getContent(apiJson));
 
         var action = 'Generating binding classes for ${api.header.version_full_name} ($sizeKey)...';
         Sys.println(action);

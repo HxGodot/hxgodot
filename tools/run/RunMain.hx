@@ -1,9 +1,12 @@
+import sys.thread.Thread;
+import haxe.Constraints.Function;
 import sys.FileSystem;
 import sys.io.File;
 import haxe.io.Path;
 
-class RunMain
-{
+using StringTools;
+
+class RunMain {
    static var projectDir:String;
    static var libDir:String;
    static var bindingDir:String;
@@ -13,162 +16,224 @@ class RunMain
    static var forceGeneration = false;
    static var confirmYes = false;
 
+   // these only use widely supported colors and formatting codes. should work on all platforms.
+   public static var RESET:String = '\x1b[0m';
+   public static var BOLD:String = '\x1b[1m';
+   public static var LIGHT:String = '\x1b[2m';
 
-   public static function log(s:String) Sys.print(s);
+   public static var REGULAR_TEXT:String = '\x1b[0;1m';
+   public static var COMMAND_TEXT:String = '\x1b[0m';
+   public static var ALT_COMMAND_TEXT:String = '\x1b[0;2m';
+   public static var SUCCESS_TEXT:String = '\x1b[0;32m';
+   public static var STATUS_TEXT:String = '\x1b[0;36m';
+   public static var ERROR_TEXT:String = '\x1b[0;31m';
 
-   public static function run(dir:String, command:String, args:Array<String>)
-   {
+   public static var LogoHxColor:String = '\x1b[0;33m';
+   public static var LogoGodotColor:String = '\x1b[0;36m';
+
+   public static function log(s:String) {
+      Sys.println('$s$RESET');
+   }
+
+   public static function run(dir:String, command:String, args:Array<String>) {
       var oldDir:String = "";
-      if (dir!="") {
+
+      if (dir != "") {
          oldDir = Sys.getCwd();
          Sys.setCwd(dir);
       }
-      Sys.command(command,args);
-      if (oldDir!="")
+
+      Sys.command(command, args);
+      if (oldDir != "")
          Sys.setCwd(oldDir);
    }
 
-   public static function main()
-   {  
+   /**
+      Gets if color and formatting should be enabled or not. formatting is
+      disabled if the environment variable HXGODOT_DISABLE_COLOR is "true",
+      "yes", or "1", or if the "-disable-color" flag is present
+   **/
+   public static var colorEnabled(get, never):Bool;
+
+   static function get_colorEnabled():Bool {
+      if (flags.contains('disable-color'))
+         return false;
+      if (Sys.getEnv('HXGODOT_DISABLE_COLOR') == null)
+         return true;
+      var envVar = Sys.getEnv('HXGODOT_DISABLE_COLOR').toLowerCase();
+      if (envVar == 'true' || envVar == 'yes' || envVar == '1')
+         return false;
+      return true;
+   }
+
+   public static function main() {
       var args = Sys.args();
 
       projectDir = Path.normalize(args.pop());
       libDir = Path.normalize(Sys.getCwd());
       bindingDir = Path.join([projectDir, 'bindings']);
 
-      #if debug
-      // lets you do `hxgodot header <text>` to test the formatter function
-      if (args[0] == "header") {
-         args.shift(); // to remove the 'header' arg
-         log(formatHeader(args.join(' ')));
-         return;
+      parseArgs(args);
+
+      if (!colorEnabled) {
+         // disables all colors and formatting in output
+         RESET = "";
+         LIGHT = "";
+         BOLD = "";
+         REGULAR_TEXT = "";
+         COMMAND_TEXT = "";
+         ALT_COMMAND_TEXT = "";
+         SUCCESS_TEXT = "";
+         STATUS_TEXT = "";
+         ERROR_TEXT = "";
+         LogoHxColor = "";
+         LogoGodotColor = "";
       }
-      #end
 
       var libInfo = haxe.Json.parse(File.getContent(Path.join([libDir, 'haxelib.json'])));
 
-      log(formatHeader('hxgodot (${libInfo.version})'));
-
-      if (args.length > 0) {
-         for (i in 0...args.length)
-            if (args[i].indexOf("init")==0) {
-               setupProject = true;
-               forceGeneration = true;
-            }
-            else if (args[i].indexOf("generate_bindings")==0)
-               forceGeneration = true;
-            else if (args[i].indexOf("-y")==0)
-               confirmYes = true;
-      }
-
-      if (!setupProject && !forceGeneration) {
-
-         log('Usage:\n haxelib run hxgodot init [-y]\n  1. Setup a sample project in the current working directory.\n  2. Generate Godot 4 bindings in the current working directory.\n\n haxelib run generate_bindings [-y]\n  1. Generate Godot 4 bindings in the current working directory.\n');
+      if (arguments.length == 0) {
+         log(formatHeader('HxGodot (${libInfo.version})'));
+         log('\n${REGULAR_TEXT}Use ${COMMAND_TEXT}haxelib run hxgodot help${REGULAR_TEXT} for usage');
          return;
       }
 
-      var successSetup = false;
-      var successGeneration = false;
-      if (setupProject)
-         successSetup = doAction('Do you want to populate the current folder ($projectDir) with a sample project?\n', doSetupProject);
+      log('${REGULAR_TEXT}HxGodot (${libInfo.version})');
 
-      if (forceGeneration)
-         successGeneration = doAction('Do you want to generate the Godot 4 bindings in your project folder ($projectDir)?\nThis can be done manually:\n\n 1. Generate Godot4 Haxe bindings:\n     cd $libDir\n     haxe build-bindings.hxml -D output="$bindingDir"\n', doGenerateBindings);
-      
-      if (successSetup) {
-         if (successGeneration)
-            log('Your project has been setup successfully. You can compile it now via:\n\n     scons platform=<windows|linux|macos> target=<debug|release>\n\nAfterwards you can open it in Godot 4 - Have fun! :)\n');
-         else
-            log('Your project folder has been setup but you lack the Godot 4 bindings.\nRun the following command to generate them:\n\n     haxelib run hxgodot generate_bindings\n');
+      switch (args[0]) {
+         case 'init' | 'setup':
+            // setup project
+            if (FileSystem.readDirectory(projectDir).length != 0) {
+               log('${ERROR_TEXT}Warning: ${BOLD}The current directory is not empty!');
+            }
+            var confirmed = prompt('${REGULAR_TEXT}Do you want to populate the current directory ${RESET}($projectDir)${REGULAR_TEXT} with a sample project?',
+               doSetupProject, () -> {
+                  log('${ERROR_TEXT}${BOLD}No action taken.');
+               });
+            if (!confirmed)
+               return;
+            var madeBindings = prompt('${REGULAR_TEXT}Do you want to generate Godot 4 bindings to use with the sample project?', doGenerateBindings, () -> {
+               log('${ERROR_TEXT}${BOLD}Did not generate bindings.');
+               log('${REGULAR_TEXT}Your project has been setup successfully, ${ERROR_TEXT}but you lack the Godot 4 bindings${RESET}${BOLD}.');
+               log('${REGULAR_TEXT}You can generate them manually with `${COMMAND_TEXT}haxelib run hxgodot generate_bindings${RESET}${BOLD}`');
+            });
+            if (madeBindings) {
+               log('${REGULAR_TEXT}Your project has been setup successfully. You can compile it now via:
+ ${COMMAND_TEXT}scons platform=<windows|linux|macos> target=<debug|release>
+${REGULAR_TEXT}Afterwards, you can open it in Godot 4 - Have fun! :)');
+            }
+         case 'generate_bindings':
+            // generate bindings
+            prompt('${REGULAR_TEXT}Do you want to generate Godot 4 bindings in the current directory? ${RESET}($projectDir)', doGenerateBindings, () -> {
+               log('${ERROR_TEXT}${BOLD}No action taken.');
+            });
+         case 'help' | 'usage':
+            log('\n${REGULAR_TEXT}Usage:
+ ${COMMAND_TEXT}haxelib run hxgodot init
+  ${REGULAR_TEXT}1. Setup a sample project in the current working directory.
+  2. Generate Godot 4 bindings in the current working directory.
+
+ ${COMMAND_TEXT}haxelib run generate_bindings ${ALT_COMMAND_TEXT}[--extension-api-json=<path>]
+  ${REGULAR_TEXT}1. Generate Godot 4 bindings in the current working directory.
+  
+${REGULAR_TEXT}Flags:
+ ${COMMAND_TEXT}-y${REGULAR_TEXT}: Automatically confirm any yes/no prompts.
+ ${COMMAND_TEXT}-disable-color${REGULAR_TEXT}: Disables color and formatting in output. Can also be disabled by setting ${COMMAND_TEXT}HXGODOT_DISABLE_COLOR=true${REGULAR_TEXT}.');
+
+         #if debug
+         case 'header':
+            // lets you do `hxgodot header <text>` to test the formatter function
+            args.shift(); // to remove the 'header' arg
+            log(formatHeader(args.join(' ')));
+         #end
       }
    }
 
-   public static function doSetupProject()
-   { 
-      log("Populating project folder...\n");
+   public static function doSetupProject() {
+      log('${STATUS_TEXT}Populating project folder...');
       templateDir = Path.join([libDir, "tools", "template"]);
       _recursiveLoop(templateDir);
-      log("Done.\n");
-      return true;
+      log('${SUCCESS_TEXT}Done.');
    }
 
-   public static function doGenerateBindings()
-   {
-      log("Generate Godot4 Haxe bindings...\n");
-      run("", "haxe", ["build-bindings.hxml", '-D', 'output="$bindingDir"']);
-      sys.io.File.saveContent(Path.join([bindingDir, '.gdignore']), '');
-      log("Done.\n");
-
-      return true;
+   public static function doGenerateBindings() {
+      log('${STATUS_TEXT}Generating Godot 4 Haxe bindings...');
+      var args = ['build-bindings.hxml', '-D', 'output="$bindingDir"'];
+      if (options.exists('extension-api-json')) {
+         args.push('-D');
+         args.push('EXT_API_JSON="${options.get('extension-api-json')}"');
+      }
+      run("", "haxe", args);
+      File.saveContent(Path.join([bindingDir, '.gdignore']), '');
+      log('${SUCCESS_TEXT}Done.');
    }
 
+   public static inline final PROMPT_TIMEOUT_DURATION:Float = 30;
 
-   public static function doAction(_prompt:String, _executeAction:()->Bool) {
-      if (confirmYes) {
-         _executeAction();
-      } else {
-         log(_prompt);
-         var gotUserResponse = false;
-         neko.vm.Thread.create(function() {
-            Sys.sleep(30);
-            if (!gotUserResponse)
-            {
-               Sys.println("\nTimeout waiting for response.");
-               Sys.println("Stopping.");
+   public static function prompt(text:String, onYes:Function, onNo:Function):Bool {
+      while (true) {
+         Sys.print(text.trim() + ' $RESET[y/N] ');
+
+         if (flags.contains('y')) {
+            Sys.println('y');
+            onYes();
+            return true;
+         }
+
+         var thread = Thread.create(() -> {
+            Sys.sleep(PROMPT_TIMEOUT_DURATION);
+            if (Thread.readMessage(false) == null) {
+               log('\r\n${ERROR_TEXT}Timeout waiting for user input.\r');
+               onNo();
                Sys.exit(-1);
             }
-         } );
+         });
 
-         while(true)
-         {
-            Sys.print("\nWould you like me to do this for you now? [y/n]\n");
-            var code = Sys.getChar(true);
-            gotUserResponse = true;
-            if (code<=32)
-               break;
-            var answer = String.fromCharCode(code);
-            if (answer=="y" || answer=="Y")
-            {
-               log("\n");
-               //setup();
-               if (!_executeAction())
-                  break;
+         var code = Sys.getChar(true);
+         Sys.print('\n');
+         thread.sendMessage(true);
+
+         switch code {
+            case 'y'.code | 'Y'.code:
+               // yes
+               onYes();
                return true;
-            }
-            if (answer=="n" || answer=="N"){
-               log("\n");
-               break;
-            }
+            case 'n'.code | 'N'.code | 13: // 13 = enter, default
+               // no
+               onNo();
+               return false;
+            case 3: // Ctrl+C
+               log('${ERROR_TEXT}Exiting.');
+               Sys.exit(-1);
+               return false;
+            default:
+               log('${ERROR_TEXT}Please press either ${BOLD}y${ERROR_TEXT} for yes or ${BOLD}n${ERROR_TEXT} for no.');
          }
-         Sys.println("Stopping.");
-         return false;
       }
-      return true;
+
+      return false;
    }
 
    static function _recursiveLoop(directory:String) {
-      if (sys.FileSystem.exists(directory)) {
-         //trace("directory found: " + directory);
-         for (file in sys.FileSystem.readDirectory(directory)) {
-            var path = haxe.io.Path.join([directory, file]);
-            if (!sys.FileSystem.isDirectory(path)) {
-               //trace("file found: " + path);
+      if (FileSystem.exists(directory)) {
+         for (file in FileSystem.readDirectory(directory)) {
+            var path = Path.join([directory, file]);
+            if (!FileSystem.isDirectory(path)) {
                _copyFile(path);
             } else {
-               var directory = haxe.io.Path.addTrailingSlash(path);
-               //trace("directory found: " + directory);
+               var directory = Path.addTrailingSlash(path);
                _recursiveLoop(directory);
             }
          }
       } else {
-         Sys.println('"$directory" does not exists');
+         log('"$directory" does not exists');
       }
    }
 
    static function _copyFile(_path:String) {
       var rel = _path.substr(templateDir.length);
       var abs = Path.join([projectDir, rel]);
-      Sys.println(abs);
+      log(abs);
       var dir = Path.directory(abs);
       if (!FileSystem.exists(dir))
          FileSystem.createDirectory(dir);
@@ -177,13 +242,48 @@ class RunMain
 
    /** adds the given string to the header to print */
    static function formatHeader(insert:String):String {
-      var header = " __ __     _____       _     _
-|  |  |_ _|   __|___ _| |___| |_
-|     |_|_|  |  | . | . | . |  _|
-|__|__|_|_|_____|___|___|___| |\n";
+      var header = '${LogoHxColor} __ __     ${LogoGodotColor}_____       _     _
+${LogoHxColor}|  |  |_ _${LogoGodotColor}|   __|___ _| |___| |_
+${LogoHxColor}|     |_|_${LogoGodotColor}|  |  | . | . | . |  _|
+${LogoHxColor}|__|__|_|_${LogoGodotColor}|_____|___|___|___| |\n';
       // adds the insert to the following line if its too long
-      if (insert.length > 27) return '$header                            |__|\n${StringTools.trim(insert)}\n';
+      if (insert.length > 27)
+         return '$header                            |__|\n${StringTools.trim(insert)}';
       // makes sure there are 28 characters before the ascii art continues
-      return '$header${StringTools.rpad(insert, " ", 28)}|__|\n\n';
+      return '$header$RESET${BOLD}${StringTools.rpad(insert, " ", 28)}${LogoGodotColor}|__|$RESET';
+   }
+
+   public static var arguments:Array<String> = [];
+   public static var flags:Array<String> = [];
+   public static var options:Map<String, Null<String>> = [];
+
+   public static function parseArgs(args:Array<String>) {
+      var pastArgs = false;
+
+      for (arg in args) {
+         if (arg.startsWith('--')) {
+            pastArgs = true;
+            var eqPos = arg.indexOf('=');
+            var key;
+            var value = '';
+            if (eqPos < 0) {
+               key = arg.substr(2);
+            } else {
+               key = arg.substr(2, eqPos - 2);
+               value = arg.substr(eqPos + 1);
+            }
+            if (options.exists(key))
+               options.set(key, options.get(key) + ' $value');
+            else
+               options.set(key, value);
+         } else if (arg.startsWith('-')) {
+            pastArgs = true;
+            if (!flags.contains(arg.substr(1))) {
+               flags.push(arg.substr(1));
+            }
+         } else {
+            arguments.push(arg);
+         }
+      }
    }
 }
