@@ -111,7 +111,8 @@ abstract Variant(__Variant) from __Variant to __Variant {
         return res;
     }
 
-    inline private static function _buildVariant2(_type:GDExtensionVariantType, _x:GDExtensionTypePtr):Variant {
+    @:noCompletion
+    inline public static function _buildVariant2(_type:GDExtensionVariantType, _x:GDExtensionTypePtr):Variant {
         var res = new Variant();
         var constructor = __Variant.from_type_constructor.get(_type);
 
@@ -300,9 +301,26 @@ abstract Variant(__Variant) from __Variant to __Variant {
     // PackedInt64Array
     @:from inline static function fromPackedInt64Array(_x:godot.variant.PackedInt64Array):Variant
         return _buildVariant2(GDExtensionVariantType.PACKED_INT64_ARRAY, _x.native_ptr());
+    
     // PackedFloat32Array
     @:from inline static function fromPackedFloat32Array(_x:godot.variant.PackedFloat32Array):Variant
         return _buildVariant2(GDExtensionVariantType.PACKED_FLOAT32_ARRAY, _x.native_ptr());
+    @:to inline public function toPackedFloat32Array():godot.variant.PackedFloat32Array {
+        var type = this.getVariantType();
+        var res = new godot.variant.PackedFloat32Array();
+        if (__Variant._canConvert(type, GDExtensionVariantType.PACKED_FLOAT32_ARRAY)) {
+            var constructor = __Variant.to_type_constructor.get(GDExtensionVariantType.PACKED_FLOAT32_ARRAY);
+            untyped __cpp__('((GDExtensionTypeFromVariantConstructorFunc){0})({1}, {2});',
+                constructor, 
+                res.native_ptr(),
+                this.native_ptr()
+            );
+        } else {
+            trace('Cannot cast ${__Variant.getGDExtensionVariantTypeString(type)} to PACKED_FLOAT32_ARRAY', true);
+        }
+        return res;
+    }
+
     // PackedFloat64Array
     @:from inline static function fromPackedFloat64Array(_x:godot.variant.PackedFloat64Array):Variant
         return _buildVariant2(GDExtensionVariantType.PACKED_FLOAT64_ARRAY, _x.native_ptr());

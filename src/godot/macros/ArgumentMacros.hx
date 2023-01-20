@@ -118,7 +118,7 @@ class ArgumentMacros {
                                 $v{_index},
                                 $v{_offset},
                                 p,
-                            PackedByteArray.PACKEDBYTEARRAY_SIZE
+                                PackedByteArray.PACKEDBYTEARRAY_SIZE
                             ));
                             p;
                         }
@@ -139,11 +139,39 @@ class ArgumentMacros {
                             p;
                         }
 
+                        
+                    case 'PackedFloat32Array':
+
+
+                        
+                        macro {
+                            var variant = godot.variant.Variant._buildVariant2(godot.Types.GDExtensionVariantType.PACKED_FLOAT32_ARRAY, $i{_args});
+                            (variant:PackedFloat32Array);
+                            /*
+                            var p = new PackedFloat32Array();
+
+                            (untyped __cpp__(
+                                'memcpy({4}->opaque, (uint8_t *)(*((({0} **){1})+{2})+{3}), {5})',
+                                $i{ptrSize},
+                                $i{_args},
+                                $v{_index},
+                                $v{_offset},
+                                p,
+                                PackedFloat32Array.PACKEDFLOAT32ARRAY_SIZE
+                            ));
+                            p;
+                            */
+                        }
+                        
+                        /**/
+
                     default: {
                         var isRefCounted = switch (Context.followWithAbstracts(haxe.macro.ComplexTypeTools.toType(_type))) {
                             case TInst(_classType, _): _classType.get().meta.has(":gdRefCounted");
                             default: false;
                         }
+
+                        trace(_d.name);
 
                         var identBindings = '&::godot::${_d.name}_obj::___binding_callbacks';
                         macro {

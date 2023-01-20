@@ -21,7 +21,8 @@ class TypeMacros {
             case "uint8_t", "uint8": "cpp.UInt8";
             case "int8_t", "int8": "cpp.Int8";
             case "int16_t", "int16": "cpp.Int16";
-            case "real_t", "float", "double": "Float";
+            case "real_t", "double", "float": "Float"; 
+            //case "double": "Float";
             case "float32": "cpp.Float32";
             // case "AABB":
             // case "Basis":
@@ -98,7 +99,7 @@ class TypeMacros {
                 "int16_t", "int16", "cpp.Int16",
                 "real_t", "float", "double", 
                 "float_t", "double_t", "Float",
-                "float32_t", "cpp.Float32",
+                "float32_t", "cpp.Float32", "cpp.Float64",
                 "void", "const void*", "godot.Types.VoidPtr": true;
 
             default: false;
@@ -112,10 +113,10 @@ class TypeMacros {
     public static function getNativeTypeDefaultValue(_type:String):Dynamic {
         return switch(_type) {
             case "Bool": false;
-            case "Float": 0.0;
+            case "Float", "cpp.Float32", "cpp.Float64": 0.0;
             case "cpp.Int64", "cpp.Int32", "cpp.Int16", "cpp.Int8", 
                 "cpp.UInt64", "cpp.UInt32", "cpp.UInt16", "cpp.UInt8": 0;
-            default: false;
+            default: false; // make the compiler complain here!
         }
     }
 
@@ -146,9 +147,7 @@ class TypeMacros {
                 "PackedVector2Array",
                 "PackedVector3Array",
 
-                "const uint8_t *",
-                "Vector4", // TODO
-                "Vector4i": false;  // TODO
+                "const uint8_t *" : false;  // TODO
                 //"AABB",
                 //"Basis",
                 //"Object", // wtf
@@ -173,16 +172,15 @@ class TypeMacros {
                 //"Basis",
                 "Color",
                 "Plane",
-                "Quaternion",
                 "Rect2",
                 "Rect2i",
+                "Quaternion",
                 //"Transform2D",
                 //"Transform3D",
                 "Vector2",
                 "Vector2i",
                 "Vector3",
                 "Vector3i",
-
                 "Vector4",
                 "Vector4i",
 
