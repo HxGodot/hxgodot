@@ -418,7 +418,7 @@ class ClassGenMacros {
 
                     // make sure we dont create a property if the getter or setter is blocked
                     if ((m.setter != null && methodForbiddenMap.exists(m.setter)) || methodForbiddenMap.exists(m.getter)) {
-                        log('Property ignored: setter/getter is forbidden, $cname:$mName.');
+                        log('Property ignored: setter/getter is forbidden, $cname:$mName. Type was $ $mType');
                         continue;
                     }
 
