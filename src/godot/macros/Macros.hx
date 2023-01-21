@@ -122,6 +122,9 @@ class Macros {
                     // add a compiler warning to make people aware                    
                     if (isStatic && !isEngineClass && _e != null) {
                         function _checkGodotType(_gt) {
+
+                            // TODO: go up the inheritance chain for the type to see if we hit an engine class. If yes, we need a static initializer
+                            
                             if (_gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(_gt.name)) {
                                 // TODO: keep this error around for
                                 //Context.fatalError('${field.name}:${_gt.name}: We don\'t support class level initialization of Godot classes yet!', Context.currentPos());
