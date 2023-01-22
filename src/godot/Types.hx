@@ -54,9 +54,9 @@ enum abstract GDExtensionVariantType(Int) from Int to Int {
     inline public static function fromString(_str:String):Int {
         return switch (_str) {
             case "Nil": NIL;
-            case "bool": BOOL;
-            case "int": INT;
-            case "float": FLOAT;
+            case "bool", "Bool": BOOL;
+            case "int", "Int": INT;
+            case "float", "Float": FLOAT;
             case "String", "GDString": STRING;
             case "Vector2": VECTOR2;
             case "Vector2i": VECTOR2I;
@@ -499,5 +499,11 @@ extern class GodotNativeInterface {
     @:native("godot::internal::gdn_interface->global_get_singleton")
     public static function global_get_singleton(_classname:GDExtensionStringNamePtr):GDExtensionObjectPtr;
 
+    // array functions
+    @:native("godot::internal::gdn_interface->packed_byte_array_operator_index")
+    public static function packed_byte_array_operator_index(_self:GDExtensionTypePtr, _index:godot.Types.GDExtensionInt):cpp.Star<cpp.UInt8>;
+
+    @:native("godot::internal::gdn_interface->packed_float32_array_operator_index")
+    public static function packed_float32_array_operator_index(_self:GDExtensionTypePtr, _index:godot.Types.GDExtensionInt):cpp.Star<cpp.Float32>;
 }
 #end

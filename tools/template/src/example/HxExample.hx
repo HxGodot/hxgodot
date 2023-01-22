@@ -4,16 +4,22 @@ import godot.GlobalConstants;
 import godot.core.GDUtils;
 import godot.variant.Vector3;
 import godot.variant.GDString;
+import godot.variant.StringName;
 import godot.variant.TypedSignal;
 import godot.variant.Signal;
+import godot.variant.PackedFloat32Array;
 
 class HxExample extends godot.Node {
 
     @:export
-    public var onHit:godot.variant.TypedSignal<()->Void>;
+    public var onHit:TypedSignal<(name:String, count:Int)->Void>;
 
     @:export
-    public var onTest:godot.variant.TypedSignal<(name:String, count:Int)->Void>;
+    public var onTest:TypedSignal<(name:String, count:Int)->Void>;
+
+    static var test_static_initialization:StringName = "no more crash";
+    static var test_static_initialization_of_this_node = new godot.Node();
+    var myInstanceVec = new godot.variant.Vector3(0,0,0);
 
     @:export
     @:hint(PropertyHint.PROPERTY_HINT_RANGE, "0,64,1")
@@ -29,6 +35,9 @@ class HxExample extends godot.Node {
     function set_hx_ImportantFloat(_v:Float):Float {
 
         var test = new HxExample();
+
+        //var crash:Array<StringName> = ["crash"];
+        //var crash2:Array<StringName> = [("crash":StringName)];
 
         // custom print functions out of godot.core.GDUtils. The cast to GDString is important!
         GDUtils.print(("print: This is a test":GDString));
@@ -123,16 +132,68 @@ class HxExample extends godot.Node {
         return _a + _b;
     }
 
-    ////@:export // TODO: use proper godot class bindings for string
-    public function simple_string(_str:String):String {
-        return _str + " hahaha";
-    }
-
     @:export
     public function simple_add_vector3(_v0:godot.variant.Vector3, _v1:godot.variant.Vector3):godot.variant.Vector3 {
         trace('simple_add_vector3 called ($_v0, $_v1)');
         return _v0 + _v1;
     }
+
+    @:export
+    public function test_array(_v:PackedFloat32Array):PackedFloat32Array {
+        trace("test_array:");
+
+        // use normal packedfloat32array index through api
+        trace(_v[0]);
+        trace(_v[1]);
+        trace(_v[2]);
+
+        // use raw data-ptr for fast access
+        _v.data()[0] = 99; // modify in place
+        trace(_v.data()[0]);
+
+        // use haxe's float32array, makes memcpy
+        var tmp:haxe.io.Float32Array = _v;
+        trace(tmp[0]);
+        trace(tmp[1] = 88);
+        _v = tmp;
+
+        return _v;
+    }
+
+    @:export
+    public function test_bytes(_v:godot.variant.PackedByteArray):godot.variant.PackedByteArray {
+        trace("test_bytes:");
+
+        trace(_v[0]);
+        trace(_v[1]);
+
+        _v.data()[1] = 44; // modify in place
+        trace(_v.data()[1]);
+
+        var tmp:haxe.io.Bytes = _v;
+        trace(tmp.get(0) + ", " + tmp.get(1));
+
+        trace(tmp.get(0));
+        tmp.set(0, 55);
+        trace(tmp.get(0));
+        trace(tmp.get(0) + ", " + tmp.get(1));
+        
+        _v = tmp;
+
+        return _v;
+    }
+
+    @:export
+    public function test_strings(_v:godot.variant.PackedStringArray):godot.variant.PackedStringArray {
+        trace("test_strings:");
+
+        // this uses managed types, dont do fancy pointer stuff here
+        trace(_v[0]);
+        trace(_v[1]);
+
+        return _v;
+    }
+    
 
     static var c = 0;
     override function _process(_delta:Float):Void {

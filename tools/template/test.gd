@@ -14,6 +14,18 @@ func _ready():
 	test_variant(res3)
 	print(hx_random_MyVector3)
 
+	var arr = PackedFloat32Array([33.0,22.0,11.0])
+	print(arr)
+
+	var arr2 = test_array(arr)
+	print(arr2)
+
+	var bytes = test_bytes(PackedByteArray([1,2]))
+	print(bytes)
+
+	var strings = test_strings(PackedStringArray(["was", "geht"]))
+	print(string)
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta):
 	#simple_add(69, _delta, true)

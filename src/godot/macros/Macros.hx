@@ -298,11 +298,13 @@ class Macros {
         function _mapHxTypeToGodot(_type) {
             return _type != null ? switch(_type) {
                 case TPath(_d):
+                    godot.Types.GDExtensionVariantType.fromString(_d.name);
+                    /* TODO: keep this a bit for testing / reviewing
                     switch(_d.name) {
                         case 'Bool': godot.Types.GDExtensionVariantType.BOOL;
-                        case 'Color': godot.Types.GDExtensionVariantType.COLOR;
                         case 'Int', 'Int64': godot.Types.GDExtensionVariantType.INT;
                         case 'Float': godot.Types.GDExtensionVariantType.FLOAT;
+                        case 'Color': godot.Types.GDExtensionVariantType.COLOR;
                         case 'Plane': godot.Types.GDExtensionVariantType.PLANE;
                         case 'Rect2': godot.Types.GDExtensionVariantType.RECT2;
                         case 'Rect2i': godot.Types.GDExtensionVariantType.RECT2I;
@@ -314,8 +316,11 @@ class Macros {
                         case 'Vector3i': godot.Types.GDExtensionVariantType.VECTOR3I;
                         case 'Vector4': godot.Types.GDExtensionVariantType.VECTOR4;
                         case 'Vector4i': godot.Types.GDExtensionVariantType.VECTOR4I;
+                        case 'PackedByteArray': godot.Types.GDExtensionVariantType.PACKED_BYTE_ARRAY;
+                        case 'PackedFloat32Array': godot.Types.GDExtensionVariantType.PACKED_FLOAT32_ARRAY;
                         default: godot.Types.GDExtensionVariantType.NIL;
                     }
+                    */
                 default: godot.Types.GDExtensionVariantType.NIL;
             } : godot.Types.GDExtensionVariantType.NIL;
         }

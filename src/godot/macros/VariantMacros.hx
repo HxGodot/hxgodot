@@ -108,6 +108,7 @@ class VariantMacros {
             // PackedByteArray
             @:from inline static function fromPackedByteArray(_x:godot.variant.PackedByteArray):Variant
                 return _buildVariant2(GDExtensionVariantType.PACKED_BYTE_ARRAY, _x.native_ptr());
+            @:to inline public function toPackedByteArray():godot.variant.PackedByteArray ${_convertTo(GDExtensionVariantType.PACKED_BYTE_ARRAY, macro : godot.variant.PackedByteArray, macro new godot.variant.PackedByteArray())}
 
             // PackedInt32Array
             @:from inline static function fromPackedInt32Array(_x:godot.variant.PackedInt32Array):Variant
@@ -129,6 +130,7 @@ class VariantMacros {
             // PackedStringArray
             @:from inline static function fromPackedStringArray(_x:godot.variant.PackedStringArray):Variant
                 return _buildVariant2(GDExtensionVariantType.PACKED_STRING_ARRAY, _x.native_ptr());
+            @:to inline public function toPackedStringArray():godot.variant.PackedStringArray ${_convertTo(GDExtensionVariantType.PACKED_STRING_ARRAY, macro : godot.variant.PackedStringArray, macro new godot.variant.PackedStringArray())}
 
             // PackedVector2Array
             @:from inline static function fromPackedVector2Array(_x:godot.variant.PackedVector2Array):Variant

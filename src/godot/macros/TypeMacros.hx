@@ -139,7 +139,7 @@ class TypeMacros {
 
                 //"PackedByteArray",
                 "PackedColorArray",
-                "PackedFloat32Array",
+                //"PackedFloat32Array",
                 "PackedFloat64Array",
                 "PackedInt32Array",
                 "PackedInt64Array",

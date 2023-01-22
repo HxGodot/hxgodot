@@ -92,7 +92,7 @@ class ArgumentMacros {
 
                     case 'PackedByteArray':
                         macro {
-                            var p = new PackedByteArray();
+                            var p = new godot.variant.PackedByteArray();
 
                             (untyped __cpp__(
                                 'memcpy({4}->opaque, (uint8_t *)(*((({0} **){1})+{2})+{3}), {5})',
@@ -101,14 +101,14 @@ class ArgumentMacros {
                                 $v{_index},
                                 $v{_offset},
                                 p,
-                                PackedByteArray.PACKEDBYTEARRAY_SIZE
+                                godot.variant.PackedByteArray.PACKEDBYTEARRAY_SIZE
                             ));
                             p;
                         }
 
                     case 'PackedStringArray':
                         macro {
-                            var p = new PackedStringArray();
+                            var p = new godot.variant.PackedStringArray();
 
                             (untyped __cpp__(
                                 'memcpy({4}->opaque, (uint8_t *)(*((({0} **){1})+{2})+{3}), {5})',
@@ -117,14 +117,14 @@ class ArgumentMacros {
                                 $v{_index},
                                 $v{_offset},
                                 p,
-                                PackedStringArray.PACKEDSTRINGARRAY_SIZE
+                                godot.variant.PackedStringArray.PACKEDSTRINGARRAY_SIZE
                             ));
                             p;
                         }
                         
                     case 'PackedFloat32Array':                        
                         macro {
-                            var p = new PackedFloat32Array();
+                            var p = new godot.variant.PackedFloat32Array();
 
                             (untyped __cpp__(
                                 'memcpy({4}->opaque, (uint8_t *)(*((({0} **){1})+{2})+{3}), {5})',
@@ -133,7 +133,7 @@ class ArgumentMacros {
                                 $v{_index},
                                 $v{_offset},
                                 p,
-                                PackedFloat32Array.PACKEDFLOAT32ARRAY_SIZE
+                                godot.variant.PackedFloat32Array.PACKEDFLOAT32ARRAY_SIZE
                             ));
                             p;
                         }
@@ -191,7 +191,9 @@ class ArgumentMacros {
                         };
                     case 'Int64': macro { (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}, $i{_src}):haxe.Int64); }
                     case 'Float': macro { (untyped __cpp__('*((double*){0}) = {1}', $i{_dest}, $i{_src}):Float); }
-                    //case 'GDString': macro { (untyped __cpp__('*((const char*){0}) = (const char*){1}->_native_ptr()', $i{_dest}, $i{_src}):String); }
+                    case 'GDString':macro {
+                            untyped __cpp__('memcpy((void*){0}, (void*){1}, {2})', $i{_dest}, $i{_src}.native_ptr(), godot.variant.GDString.STRING_SIZE);
+                        };
                     case 'Vector2':
                         macro {
                             untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
@@ -203,6 +205,18 @@ class ArgumentMacros {
                     case 'Vector3':
                         macro {
                             untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*3)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
+                        };
+                    case 'PackedByteArray': 
+                        macro {
+                            untyped __cpp__('memcpy((void*){0}, (void*){1}, {2})', $i{_dest}, $i{_src}.native_ptr(), godot.variant.PackedByteArray.PACKEDBYTEARRAY_SIZE);
+                        };
+                    case 'PackedStringArray': 
+                        macro {
+                            untyped __cpp__('memcpy((void*){0}, (void*){1}, {2})', $i{_dest}, $i{_src}.native_ptr(), godot.variant.PackedStringArray.PACKEDSTRINGARRAY_SIZE);
+                        };
+                    case 'PackedFloat32Array': 
+                        macro {
+                            untyped __cpp__('memcpy((void*){0}, (void*){1}, {2})', $i{_dest}, $i{_src}.native_ptr(), godot.variant.PackedFloat32Array.PACKEDFLOAT32ARRAY_SIZE);
                         };
                     default: _default();
                 }
