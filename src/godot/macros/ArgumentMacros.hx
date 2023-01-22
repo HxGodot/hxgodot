@@ -19,46 +19,29 @@ class ArgumentMacros {
     }
 
     public static function convertVariant(_index:Int, _args:String, _type:haxe.macro.ComplexType) {
-        return _convert(_index, 1, _args, _type);
-    }
-
-    public static function encode(_type:haxe.macro.ComplexType, _dest:String, _src:String) {
+        //return _convert(_index, 1, _args, _type);
+        
         function _default() {
-            var val = 'nullptr /* encode: $_type */';
-            return macro { untyped __cpp__($v{val}); };
+            return macro {
+                var variant = new godot.variant.Variant();
+                var ptr:godot.Types.GDExtensionVariantPtr = untyped __cpp__('(uint8_t *)(*((({0} **){1})+{2}))', 
+                    $i{ptrSize},
+                    $i{_args},
+                    $v{_index}
+                );
+                variant.set_native_ptr(ptr);
+                (variant:$_type);
+            };
         }
-        return _type != null ? switch(_type) {
+        return switch(_type) {
             case TPath(_d):
-                switch(_d.name) {
-                    case 'Bool': macro { (untyped __cpp__('*((bool*){0}) = {1}', $i{_dest}, $i{_src}):Bool); }
-                    case 'Int': macro {
-                        var tmp = haxe.Int64.ofInt($i{_src});
-                        (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}, tmp):Int); 
-                    }
-                    case 'Color':
-                        macro {
-                            untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*4)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
-                        };
-                    case 'Int64': macro { (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}, $i{_src}):haxe.Int64); }
-                    case 'Float': macro { (untyped __cpp__('*((double*){0}) = {1}', $i{_dest}, $i{_src}):Float); }
-                    //case 'GDString': macro { (untyped __cpp__('*((const char*){0}) = (const char*){1}->_native_ptr()', $i{_dest}, $i{_src}):String); }
-                    case 'Vector2':
-                        macro {
-                            untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
-                        };
-                    case 'Vector2i':
-                        macro {
-                            untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(int)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
-                        };
-                    case 'Vector3':
-                        macro {
-                            untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*3)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
-                        };
-                    default: _default();
-                }
+                if (TypeMacros.isACustomBuiltIn(_d.name))
+                    _convert(_index, 1, _args, _type);
+                else
+                    _default();                
             default: _default();
-        } : _default();
-    }
+        };
+    }    
 
     private static function _convert(_index:Int, _offset:Int, _args:String, _type:haxe.macro.ComplexType) {
         function _default() {
@@ -138,16 +121,9 @@ class ArgumentMacros {
                             ));
                             p;
                         }
-
                         
-                    case 'PackedFloat32Array':
-
-
-                        
+                    case 'PackedFloat32Array':                        
                         macro {
-                            var variant = godot.variant.Variant._buildVariant2(godot.Types.GDExtensionVariantType.PACKED_FLOAT32_ARRAY, $i{_args});
-                            (variant:PackedFloat32Array);
-                            /*
                             var p = new PackedFloat32Array();
 
                             (untyped __cpp__(
@@ -160,18 +136,13 @@ class ArgumentMacros {
                                 PackedFloat32Array.PACKEDFLOAT32ARRAY_SIZE
                             ));
                             p;
-                            */
                         }
-                        
-                        /**/
 
                     default: {
                         var isRefCounted = switch (Context.followWithAbstracts(haxe.macro.ComplexTypeTools.toType(_type))) {
                             case TInst(_classType, _): _classType.get().meta.has(":gdRefCounted");
                             default: false;
                         }
-
-                        trace(_d.name);
 
                         var identBindings = '&::godot::${_d.name}_obj::___binding_callbacks';
                         macro {
@@ -196,6 +167,44 @@ class ArgumentMacros {
                             instance;
                         }
                     }
+                }
+            default: _default();
+        } : _default();
+    }
+
+    public static function encode(_type:haxe.macro.ComplexType, _dest:String, _src:String) {
+        function _default() {
+            var val = 'nullptr /* encode: $_type */';
+            return macro { untyped __cpp__($v{val}); };
+        }
+        return _type != null ? switch(_type) {
+            case TPath(_d):
+                switch(_d.name) {
+                    case 'Bool': macro { (untyped __cpp__('*((bool*){0}) = {1}', $i{_dest}, $i{_src}):Bool); }
+                    case 'Int': macro {
+                        var tmp = haxe.Int64.ofInt($i{_src});
+                        (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}, tmp):Int); 
+                    }
+                    case 'Color':
+                        macro {
+                            untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*4)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
+                        };
+                    case 'Int64': macro { (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}, $i{_src}):haxe.Int64); }
+                    case 'Float': macro { (untyped __cpp__('*((double*){0}) = {1}', $i{_dest}, $i{_src}):Float); }
+                    //case 'GDString': macro { (untyped __cpp__('*((const char*){0}) = (const char*){1}->_native_ptr()', $i{_dest}, $i{_src}):String); }
+                    case 'Vector2':
+                        macro {
+                            untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
+                        };
+                    case 'Vector2i':
+                        macro {
+                            untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(int)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
+                        };
+                    case 'Vector3':
+                        macro {
+                            untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*3)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
+                        };
+                    default: _default();
                 }
             default: _default();
         } : _default();
