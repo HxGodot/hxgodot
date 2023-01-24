@@ -55,7 +55,8 @@ class HxGodot {
                 GodotNativeInterface.print_error(lines.join('\n'), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
             } else {
                 //GodotNativeInterface.print_warning(Std.string(v), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
-                GDUtils.print((Std.string(v):godot.variant.GDString));
+                var msg = infos.fileName+":"+infos.lineNumber+": "+ Std.string(v);
+                GDUtils.print((msg:godot.variant.GDString));
             }
         }
 
