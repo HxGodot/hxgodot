@@ -163,7 +163,7 @@ ${REGULAR_TEXT}Flags:
       var args = ['build-bindings.hxml', '-D', 'output="$bindingDir"'];
       if (options.exists('extension-api-json')) {
          args.push('-D');
-         args.push('EXT_API_JSON="${options.get('extension-api-json')}"');
+         args.push('EXT_API_JSON=${options.get('extension-api-json')}');
       }
       run("", "haxe", args);
       File.saveContent(Path.join([bindingDir, '.gdignore']), '');
