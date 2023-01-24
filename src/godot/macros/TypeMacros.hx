@@ -65,6 +65,9 @@ class TypeMacros {
 
                     ret = 'cpp.Star<${pack.join(".")}>';
                 }
+
+                ret = convertIfTypedArray(ret);
+
                 ret;
             }
         };
@@ -120,6 +123,13 @@ class TypeMacros {
         }
     }
 
+    public static function convertIfTypedArray(_type:String):String {
+        // convert the godot typedarray to GDArray
+        if (_type != null && StringTools.startsWith(_type, "typedarray"))
+            return "GDArray";
+        return _type;
+    }
+
     public static function isTypeAllowed(_type:String):Bool {
         // this function is a development helper
         return switch (_type) {
@@ -138,14 +148,14 @@ class TypeMacros {
                 // "Projection",
 
                 //"PackedByteArray",
-                "PackedColorArray",
+                //"PackedColorArray",
                 //"PackedFloat32Array",
-                "PackedFloat64Array",
-                "PackedInt32Array",
-                "PackedInt64Array",
+                //"PackedFloat64Array",
+                //"PackedInt32Array",
+                //"PackedInt64Array",
                 //"PackedStringArray",
-                "PackedVector2Array",
-                "PackedVector3Array",
+                //"PackedVector2Array",
+                //"PackedVector3Array",
 
                 "const uint8_t *" : false;  // TODO
                 //"AABB",
@@ -156,8 +166,9 @@ class TypeMacros {
                 //"Transform3D",
                 //"Vector3",
             default: {
-                if (_type != null)
-                    !StringTools.startsWith(_type, "typedarray") && !StringTools.contains(_type, ",")
+                if (_type != null) {
+                    !StringTools.contains(_type, ",");
+                }
                 else
                     true;
             }

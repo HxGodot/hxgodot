@@ -27,7 +27,10 @@ class ClassGenMacros {
             "Node:name",
             "PointLight2D:height",
             "DirectionalLight2D:height",
-            "PlaceholderTexture2D:size"
+            "PlaceholderTexture2D:size",
+            "FontFile:fallbacks",
+            "FontVariation:fallbacks",
+            "SystemFont:fallbacks"
         ];
     
     static var logBuf = new StringBuf();
@@ -241,8 +244,7 @@ class ClassGenMacros {
                                 if (defVal != null) {
                                     //defVal = defVal.replace("&", "");
                                     if (TypeMacros.isTypeNative(argType)) {
-                                        if (defVal.length == 0) // empty string, wtf
-                                            defVal = "\"\"";
+                                        defVal = ArgumentMacros.prepareArgumentDefaultValue(argType, defVal);
                                         defValExpr = Context.parse(defVal, Context.currentPos());
                                     }
                                 } 
@@ -261,10 +263,13 @@ class ClassGenMacros {
                         continue;
                     }
 
-                    if (!TypeMacros.isTypeAllowed(m.return_value.type)) {
-                        log('Method ignored: $cname.$caName\'s return type ${m.return_value.type} currently not allowed.');
-                        methodForbiddenMap.set(caName, true);
-                        continue;
+
+                    if (m.return_value != null) {
+                        if (!TypeMacros.isTypeAllowed(m.return_value.type)) {
+                            log('Method ignored: $cname.$caName\'s return type ${m.return_value.type} currently not allowed.');
+                            methodForbiddenMap.set(caName, true);
+                            continue;
+                        }
                     }
 
                     // what return type?
@@ -338,7 +343,6 @@ class ClassGenMacros {
             var signalMap = new Map<String, Dynamic>();
             if (c.signals != null) {
                 for (s in cast(c.signals, Array<Dynamic>)) {
-            
                     var isValid = 0;
                     var sname = 'on_${s.name}';
                     var gname = 'get_$sname';
@@ -346,12 +350,14 @@ class ClassGenMacros {
                     var sig = [];
                     if (s.arguments != null) {
                         for (a in cast(s.arguments, Array<Dynamic>)) {
-                            var t = TypeMacros.getTypePackage(a.type);
-                            if (!TypeMacros.isTypeAllowed(a.type)){
+                            var stype = TypeMacros.getTypeName(a.type);
+                            var pack = TypeMacros.getTypePackage(stype);
+
+                            if (!TypeMacros.isTypeAllowed(stype)) {
                                 isValid += 1;
-                                argTypeStr += '${a.type} ';
+                                argTypeStr += '${stype} ';
                             }
-                            sig.push(TNamed(a.name, TPath({name: TypeMacros.getTypeName(a.type), pack: t})));
+                            sig.push(TNamed(a.name, TPath({name: stype, pack: pack})));
                         }
                     }
                     var ret = TPath({name: 'Void', pack: []});
@@ -657,8 +663,7 @@ class ClassGenMacros {
                         if (defVal != null) {
                             //defVal = defVal.replace("&", "");
                             if (TypeMacros.isTypeNative(argType)) {
-                                if (defVal.length == 0) // empty string, wtf
-                                    defVal = "\"\"";
+                                defVal = ArgumentMacros.prepareArgumentDefaultValue(argType, defVal);
                                 defValExpr = Context.parse(defVal, Context.currentPos());
                             }
                         }
@@ -800,8 +805,7 @@ class ClassGenMacros {
                         if (defVal != null) {
                             //defVal = defVal.replace("&", "");
                             if (TypeMacros.isTypeNative(argType)) {
-                                if (defVal.length == 0) // empty string, wtf
-                                    defVal = "\"\"";
+                                defVal = ArgumentMacros.prepareArgumentDefaultValue(argType, defVal);
                                 defValExpr = Context.parse(defVal, Context.currentPos());
                             }
                         }

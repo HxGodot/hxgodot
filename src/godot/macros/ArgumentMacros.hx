@@ -226,6 +226,14 @@ class ArgumentMacros {
         } : _default();
     }
 
+    public static function prepareArgumentDefaultValue(_argType:String, _defVal:String):String {
+        if (_defVal.length == 0) // empty string, wtf
+            _defVal = "\"\"";
+        if (_argType == "cpp.Int64" && _defVal.length >= 10)
+            _defVal = 'cast ($_defVal)';
+        return _defVal;
+    }
+
     public static function guardAgainstKeywords(_str:String):String {
         return switch(_str) {
             case    "in",
