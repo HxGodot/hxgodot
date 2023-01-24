@@ -6,6 +6,13 @@ import haxe.io.Path;
 
 using StringTools;
 
+enum HostOS {
+   Linux;
+   Windows;
+   Mac;
+   Unknown;
+}
+
 class RunMain {
    static var projectDir:String;
    static var libDir:String;
@@ -15,6 +22,41 @@ class RunMain {
    static var setupProject = false;
    static var forceGeneration = false;
    static var confirmYes = false;
+
+   public static var host(get, never):HostOS;
+   public static var _host:Null<HostOS>;
+
+   public static function get_host():HostOS {
+      if (_host != null)
+         return _host;
+      return _host = switch (Sys.systemName()) {
+         case 'Windows':
+            Windows;
+         case 'Linux' | 'BSD':
+            Linux;
+         case 'Mac':
+            Mac;
+         default:
+            Unknown;
+      }
+   }
+
+   public static function resolvePath(path:String):String {
+      path = Path.normalize(path);
+
+      if (path.startsWith('~/')) {
+         if (host == Windows) {
+            return Path.join([Sys.getEnv('HOMEPATH'), path.substr(2)]);
+         }
+         return Path.join([Sys.getEnv('HOME'), path.substr(2)]);
+      }
+
+      if (!Path.isAbsolute(path)) {
+         return Path.join([projectDir, path]);
+      }
+
+      return path;
+   }
 
    // these only use widely supported colors and formatting codes. should work on all platforms.
    public static var RESET:String = '\x1b[0m';
@@ -123,6 +165,7 @@ class RunMain {
  ${COMMAND_TEXT}scons platform=<windows|linux|macos> target=<debug|release>
 
 ${REGULAR_TEXT}Afterwards, you can open it in Godot 4 - Have fun! :)');
+
             }
          case 'generate_bindings':
             // generate bindings
@@ -144,10 +187,22 @@ ${REGULAR_TEXT}Flags:
 
          #if debug
          case 'header':
-            // lets you do `hxgodot header <text>` to test the formatter function
+            // tests the header formatting function
+            // usage: haxelib run hxgodot header <text>
             args.shift(); // to remove the 'header' arg
             log(formatHeader(args.join(' ')));
+         case 'path':
+            // tests the resolve path function
+            // usage: haxelib run hxgodot path <whatever>
+            args.shift();
+            log(resolvePath(args.join(' ')));
+         case 'pathopt':
+            // tests the resolve path function, but gets the path to test from an option instead of arguments
+            // usage: haxelib run hxgodot pathopt --path=whatever
+            log(resolvePath(options.get('path')));
          #end
+         default:
+            log('${ERROR_TEXT}Unknown subcommand. ${REGULAR_TEXT}Use ${COMMAND_TEXT}haxelib run hxgodot help${REGULAR_TEXT} for help');
       }
    }
 
@@ -163,7 +218,7 @@ ${REGULAR_TEXT}Flags:
       var args = ['build-bindings.hxml', '-D', 'output="$bindingDir"'];
       if (options.exists('extension-api-json')) {
          args.push('-D');
-         args.push('EXT_API_JSON=${options.get('extension-api-json')}');
+         args.push('EXT_API_JSON=${resolvePath(options.get('extension-api-json'))}');
       }
       run("", "haxe", args);
       File.saveContent(Path.join([bindingDir, '.gdignore']), '');
@@ -174,13 +229,12 @@ ${REGULAR_TEXT}Flags:
 
    public static function prompt(text:String, onYes:Function, onNo:Function):Bool {
       while (true) {
-
          if (flags.contains('y')) {
-            //Sys.println('y');
+            // Sys.println('y');
             onYes();
             return true;
          }
-         
+
          Sys.print(text.trim() + ' $RESET[y/N] ');
 
          var thread = Thread.create(() -> {
