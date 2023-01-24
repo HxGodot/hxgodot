@@ -49,10 +49,12 @@ class VariantMacros {
             // ARRAY
             @:from inline static function fromGDArray(_x:godot.variant.GDArray):Variant
                 return _buildVariant2(GDExtensionVariantType.ARRAY, _x.native_ptr());
+            @:to inline public function toGDArray():godot.variant.GDArray ${_convertTo(GDExtensionVariantType.ARRAY, macro : godot.variant.GDArray, macro new godot.variant.GDArray())}
 
             // Vector2
             @:from inline static function fromVector2(_x:godot.variant.Vector2):Variant
                 return _buildVariant2(GDExtensionVariantType.VECTOR2, _x.native_ptr());
+            @:to inline public function toVector2():godot.variant.Vector2 ${_convertToCustom(GDExtensionVariantType.VECTOR2, macro : godot.variant.Vector2, macro new godot.variant.Vector2(), macro cpp.NativeArray.address(res, 0))}
             
             // Vector3
             @:from inline static function fromVector3(_x:godot.variant.Vector3):Variant
@@ -62,30 +64,37 @@ class VariantMacros {
             // Transform2D
             @:from inline static function fromTransform2D(_x:godot.variant.Transform2D):Variant
                 return _buildVariant2(GDExtensionVariantType.TRANSFORM2D, _x.native_ptr());
+            @:to inline public function toTransform2D():godot.variant.Transform2D ${_convertTo(GDExtensionVariantType.TRANSFORM2D, macro : godot.variant.Transform2D, macro new godot.variant.Transform2D())}
             
             // AABB
             @:from inline static function fromAABB(_x:godot.variant.AABB):Variant
                 return _buildVariant2(GDExtensionVariantType.AABB, _x.native_ptr());
+            @:to inline public function toAABB():godot.variant.AABB ${_convertTo(GDExtensionVariantType.AABB, macro : godot.variant.AABB, macro new godot.variant.AABB())}
             
             // Basis
             @:from inline static function fromBasis(_x:godot.variant.Basis):Variant
                 return _buildVariant2(GDExtensionVariantType.BASIS, _x.native_ptr());
+            @:to inline public function toBasis():godot.variant.Basis ${_convertTo(GDExtensionVariantType.BASIS, macro : godot.variant.Basis, macro new godot.variant.Basis())}
             
             // Transform3D
             @:from inline static function fromTransform3D(_x:godot.variant.Transform3D):Variant
                 return _buildVariant2(GDExtensionVariantType.TRANSFORM3D, _x.native_ptr());
+            @:to inline public function toTransform3D():godot.variant.Transform3D ${_convertTo(GDExtensionVariantType.TRANSFORM3D, macro : godot.variant.Transform3D, macro new godot.variant.Transform3D())}
             
             // StringName
             @:from inline static function fromStringName(_x:godot.variant.StringName):Variant
                 return _buildVariant2(GDExtensionVariantType.STRING_NAME, _x.native_ptr());
+            @:to inline public function toStringName():godot.variant.StringName ${_convertTo(GDExtensionVariantType.STRING_NAME, macro : godot.variant.StringName, macro new godot.variant.StringName())}
             
             // NodePath
             @:from inline static function fromNodePath(_x:godot.variant.NodePath):Variant
                 return _buildVariant2(GDExtensionVariantType.NODE_PATH, _x.native_ptr());
+            @:to inline public function toNodePath():godot.variant.NodePath ${_convertTo(GDExtensionVariantType.NODE_PATH, macro : godot.variant.NodePath, macro new godot.variant.NodePath())}
             
             // RID
             @:from inline static function fromRID(_x:godot.variant.RID):Variant
                 return _buildVariant2(GDExtensionVariantType.RID, _x.native_ptr());
+            @:to inline public function toRID():godot.variant.RID ${_convertTo(GDExtensionVariantType.RID, macro : godot.variant.RID, macro new godot.variant.RID())}
 
             // Object
             @:from inline static function fromObject(_x:godot.Object):Variant
@@ -100,10 +109,12 @@ class VariantMacros {
             // Signal
             @:from inline static function fromSignal(_x:godot.variant.Signal):Variant
                 return _buildVariant2(GDExtensionVariantType.SIGNAL, _x.native_ptr());
+            @:to inline public function toSignal():godot.variant.Signal ${_convertTo(GDExtensionVariantType.SIGNAL, macro : godot.variant.Signal, macro new godot.variant.Signal())}
 
             // Dictionary
             @:from inline static function fromDictionary(_x:godot.variant.Dictionary):Variant
                 return _buildVariant2(GDExtensionVariantType.DICTIONARY, _x.native_ptr());
+            @:to inline public function toDictionary():godot.variant.Dictionary ${_convertTo(GDExtensionVariantType.DICTIONARY, macro : godot.variant.Dictionary, macro new godot.variant.Dictionary())}
 
             // PackedByteArray
             @:from inline static function fromPackedByteArray(_x:godot.variant.PackedByteArray):Variant
@@ -113,10 +124,12 @@ class VariantMacros {
             // PackedInt32Array
             @:from inline static function fromPackedInt32Array(_x:godot.variant.PackedInt32Array):Variant
                 return _buildVariant2(GDExtensionVariantType.PACKED_INT32_ARRAY, _x.native_ptr());
+            @:to inline public function toPackedInt32Array():godot.variant.PackedInt32Array ${_convertTo(GDExtensionVariantType.PACKED_INT32_ARRAY, macro : godot.variant.PackedInt32Array, macro new godot.variant.PackedInt32Array())}
 
             // PackedInt64Array
             @:from inline static function fromPackedInt64Array(_x:godot.variant.PackedInt64Array):Variant
                 return _buildVariant2(GDExtensionVariantType.PACKED_INT64_ARRAY, _x.native_ptr());
+            @:to inline public function toPackedInt64Array():godot.variant.PackedInt64Array ${_convertTo(GDExtensionVariantType.PACKED_INT64_ARRAY, macro : godot.variant.PackedInt64Array, macro new godot.variant.PackedInt64Array())}
             
             // PackedFloat32Array
             @:from inline static function fromPackedFloat32Array(_x:godot.variant.PackedFloat32Array):Variant
@@ -126,6 +139,7 @@ class VariantMacros {
             // PackedFloat64Array
             @:from inline static function fromPackedFloat64Array(_x:godot.variant.PackedFloat64Array):Variant
                 return _buildVariant2(GDExtensionVariantType.PACKED_FLOAT64_ARRAY, _x.native_ptr());
+            @:to inline public function toPackedFloat64Array():godot.variant.PackedFloat64Array ${_convertTo(GDExtensionVariantType.PACKED_FLOAT64_ARRAY, macro : godot.variant.PackedFloat64Array, macro new godot.variant.PackedFloat64Array())}
 
             // PackedStringArray
             @:from inline static function fromPackedStringArray(_x:godot.variant.PackedStringArray):Variant
@@ -135,14 +149,17 @@ class VariantMacros {
             // PackedVector2Array
             @:from inline static function fromPackedVector2Array(_x:godot.variant.PackedVector2Array):Variant
                 return _buildVariant2(GDExtensionVariantType.PACKED_VECTOR2_ARRAY, _x.native_ptr());
+            @:to inline public function toPackedVector2Array():godot.variant.PackedVector2Array ${_convertTo(GDExtensionVariantType.PACKED_VECTOR2_ARRAY, macro : godot.variant.PackedVector2Array, macro new godot.variant.PackedVector2Array())}
 
             // PackedVector3Array
             @:from inline static function fromPackedVector3Array(_x:godot.variant.PackedVector3Array):Variant
                 return _buildVariant2(GDExtensionVariantType.PACKED_VECTOR3_ARRAY, _x.native_ptr());
+            @:to inline public function toPackedVector3Array():godot.variant.PackedVector3Array ${_convertTo(GDExtensionVariantType.PACKED_VECTOR3_ARRAY, macro : godot.variant.PackedVector3Array, macro new godot.variant.PackedVector3Array())}
 
             // PackedColorArray
             @:from inline static function fromPackedColorArray(_x:godot.variant.PackedColorArray):Variant
                 return _buildVariant2(GDExtensionVariantType.PACKED_COLOR_ARRAY, _x.native_ptr());
+            @:to inline public function toPackedColorArray():godot.variant.PackedColorArray ${_convertTo(GDExtensionVariantType.PACKED_COLOR_ARRAY, macro : godot.variant.PackedColorArray, macro new godot.variant.PackedColorArray())}
         };
         fields = fields.concat(cls.fields);
         return fields;

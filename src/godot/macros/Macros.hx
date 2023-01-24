@@ -333,8 +333,21 @@ class Macros {
         for (field in _extensionProperties) {
             switch(field.kind) {
                 case FProp(_g, _s, _type, _expr): {
-                    //trace("////////////////////////////////////////////////////////////////////////////////");
+                    // trace("////////////////////////////////////////////////////////////////////////////////");
                     // trace('// FProp: ${field.name}');
+                    // trace('// FProp: ${field}');
+
+                    // make sure we deal with missing types on the declaration and grab it from the expr.
+                    if (_type == null) {
+                        if (_expr == null) 
+                            Context.fatalError('Error: ${_className}.${field.name}: Your property needs to specify either a type or have an assignment!', Context.currentPos());
+                        // unwrap StdTypes
+                        _type =  TypeTools.toComplexType(Context.typeof(_expr));
+                        _type = switch (_type) {
+                            case TPath(_t): _t.name == "StdTypes" ? TPath({name: _t.sub, params:[], pack: []}) : _type;
+                            default: _type;
+                        }
+                    }
                     
                     var argType = _mapHxTypeToGodot(_type);
                     var hint = macro $v{godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE};
