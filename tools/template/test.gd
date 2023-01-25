@@ -24,7 +24,7 @@ func _ready():
 	print(bytes)
 
 	var strings = test_strings(PackedStringArray(["was", "geht"]))
-	print(string)
+	print(strings)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta):
