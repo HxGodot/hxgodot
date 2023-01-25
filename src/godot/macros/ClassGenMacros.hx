@@ -257,6 +257,17 @@ class ClassGenMacros {
                         }
                     }
 
+                    // deal with varargs
+                    var hasVarArg = false;
+                    if (m.is_vararg != null && m.is_vararg == true) {
+                        args.push({
+                            name: "vararg",
+                            type: {name:"Rest", params:[TPType(macro : godot.variant.Variant)], pack:["haxe"]},
+                            isVarArg: true
+                        });
+                        hasVarArg = true;
+                    }
+
                     if (!isAllowed) {
                         log('Method ignored: one of $cname.$caName\'s argument types currently not allowed.');
                         methodForbiddenMap.set(caName, true);
@@ -311,6 +322,7 @@ class ClassGenMacros {
                             returnType: {name:retType , pack:retPack},
                             access: access,
                             arguments: args,
+                            hasVarArg: hasVarArg,
                             macros: {
                                 field: null,
                                 fieldSetter: null
@@ -325,6 +337,7 @@ class ClassGenMacros {
                             returnType: {name:retType , pack:retPack},
                             access: access,
                             arguments: args,
+                            hasVarArg: hasVarArg,
                             macros: {
                                 field: (macro class {@:noCompletion public static var $mname:godot.Types.GDExtensionPtrBuiltInMethod;}).fields[0],
                                 fieldSetter: [
@@ -823,7 +836,7 @@ class ClassGenMacros {
                 if (m.is_vararg != null && m.is_vararg == true) {
                     args.push({
                         name: "vararg",
-                        type: {name:"Rest", params:[TPType(macro : Dynamic)], pack:["haxe"]},
+                        type: {name:"Rest", params:[TPType(macro : godot.variant.Variant)], pack:["haxe"]},
                         isVarArg: true
                     });
                     hasVarArg = true;
@@ -1155,7 +1168,7 @@ class ClassGenMacros {
             if (m.is_vararg != null && m.is_vararg == true) {
                 args.push({
                     name: "vararg",
-                    type: {name:"Rest", params:[TPType(macro : Dynamic)], pack:["haxe"]},
+                    type: {name:"Rest", params:[TPType(macro : godot.variant.Variant)], pack:["haxe"]},
                     isVarArg: true
                 });
                 hasVarArg = true;

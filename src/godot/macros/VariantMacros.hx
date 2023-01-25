@@ -23,6 +23,8 @@ class VariantMacros {
             @:to inline public function toBool():Bool ${_convertToNative(GDExtensionVariantType.BOOL, macro : Bool, macro false)}
 
             // INT
+            @:from inline public static function fromCppInt64(_x:cpp.Int64):Variant
+                return _buildVariant(GDExtensionVariantType.INT, _x);
             @:from inline public static function fromInt64(_x:haxe.Int64):Variant
                 return _buildVariant(GDExtensionVariantType.INT, _x);
             @:from inline public static function fromInt(_x:Int):Variant {

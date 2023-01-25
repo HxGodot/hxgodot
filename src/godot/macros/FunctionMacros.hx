@@ -674,15 +674,41 @@ class FunctionMacros {
                     case FunctionBindType.VIRTUAL_METHOD: {}
                     case FunctionBindType.STATIC_METHOD: {
                         exprs = exprs.concat(vArgs.argBody);
-                        exprs.push(macro {
-                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, (GDExtensionConstTypePtr*)call_args.data(), nullptr)', $i{mname});
-                        });
+                        if (_bind.hasVarArg) // use variant call
+                            exprs.push(macro {
+                                var err = new godot.Types.GDExtensionCallError();
+                                godot.Types.GodotNativeInterface.object_method_bind_call(
+                                    $i{mname},
+                                    untyped __cpp__('nullptr'),
+                                    untyped __cpp__("(GDExtensionConstVariantPtr*)call_args.data()"),
+                                    untyped __cpp__("call_args.size()"),
+                                    _hx__ret,
+                                    err
+                                );
+                            });
+                        else
+                            exprs.push(macro {
+                                untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, (GDExtensionConstTypePtr*)call_args.data(), nullptr)', $i{mname});
+                            });
                     }
-                    default: {
+                    default: { // normal method
                         exprs = exprs.concat(vArgs.argBody);
-                        exprs.push(macro {
-                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, (GDExtensionConstTypePtr*)call_args.data(), nullptr)', $i{mname}, this.native_ptr());
-                        });
+                        if (_bind.hasVarArg) // use variant call
+                            exprs.push(macro {
+                                var err = new godot.Types.GDExtensionCallError();
+                                godot.Types.GodotNativeInterface.object_method_bind_call(
+                                    $i{mname},
+                                    this.native_ptr(),
+                                    untyped __cpp__("(GDExtensionConstVariantPtr*)call_args.data()"),
+                                    untyped __cpp__("call_args.size()"),
+                                    _hx__ret,
+                                    err
+                                );
+                            });
+                        else
+                            exprs.push(macro {
+                                untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, (GDExtensionConstTypePtr*)call_args.data(), nullptr)', $i{mname}, this.native_ptr());
+                            });
                     }
                 }                
             } else {
@@ -700,9 +726,16 @@ class FunctionMacros {
                     }
                 }
             }
-            body = macro {
-                $b{exprs};
-            };
+            if (_bind.hasVarArg) // use variant call
+                body = macro {
+                    var ret2 = new godot.variant.Variant();
+                    var _hx__ret = ret2.native_ptr();
+                    $b{exprs};
+                };
+            else 
+                body = macro {
+                    $b{exprs};
+                };
         } else {            
             var typePath = TPath(_bind.returnType);
             var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
@@ -710,27 +743,53 @@ class FunctionMacros {
             if (vArgs.argCount > 0) {
                 switch (_bind.type) {
                     case FunctionBindType.VIRTUAL_METHOD: {}
-              case FunctionBindType.STATIC_METHOD: {
-                exprs = exprs.concat(vArgs.argBody);
-                  exprs.push(macro {
-                           untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, (GDExtensionConstTypePtr*)call_args.data(), {1})', $i{mname}, _hx__ret);
-                        });
-              }
+                    case FunctionBindType.STATIC_METHOD: {
+                        exprs = exprs.concat(vArgs.argBody);
+                        if (_bind.hasVarArg) // use variant call
+                            exprs.push(macro {
+                                var err = new godot.Types.GDExtensionCallError();
+                                godot.Types.GodotNativeInterface.object_method_bind_call(
+                                    $i{mname},
+                                    untyped __cpp__('nullptr'),
+                                    untyped __cpp__("(GDExtensionConstVariantPtr*)call_args.data()"),
+                                    untyped __cpp__("call_args.size()"),
+                                    _hx__ret,
+                                    err
+                                );
+                            });
+                        else
+                            exprs.push(macro {
+                               untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, (GDExtensionConstTypePtr*)call_args.data(), {1})', $i{mname}, _hx__ret);
+                            });
+                    }
                     default: {
                         exprs = exprs.concat(vArgs.argBody);
-                        exprs.push(macro {
-                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, (GDExtensionConstTypePtr*)call_args.data(), {2})', $i{mname}, this.native_ptr(), _hx__ret);
-                        });
+                        if (_bind.hasVarArg) // use variant call
+                            exprs.push(macro {
+                                var err = new godot.Types.GDExtensionCallError();
+                                godot.Types.GodotNativeInterface.object_method_bind_call(
+                                    $i{mname},
+                                    this.native_ptr(),
+                                    untyped __cpp__("(GDExtensionConstVariantPtr*)call_args.data()"),
+                                    untyped __cpp__("call_args.size()"),
+                                    _hx__ret,
+                                    err
+                                );
+                            });
+                        else
+                            exprs.push(macro {
+                                untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, (GDExtensionConstTypePtr*)call_args.data(), {2})', $i{mname}, this.native_ptr(), _hx__ret);
+                            });
                     }
                 }
             } else {
                 switch (_bind.type) {
                     case FunctionBindType.VIRTUAL_METHOD: {}
-              case FunctionBindType.STATIC_METHOD: {
-                  exprs.push(macro {
+                    case FunctionBindType.STATIC_METHOD: {
+                        exprs.push(macro {
                             untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, nullptr, {1})', $i{mname}, _hx__ret);
                         });
-              }
+                    }
                     default: {
                         exprs.push(macro {
                             untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', $i{mname}, this.native_ptr(), _hx__ret);
@@ -752,18 +811,27 @@ class FunctionMacros {
                     };
                 }
             } else {
-                if (TypeMacros.isTypeNative(_bind.returnType.name)) {
-                    // a native return type
+                if (_bind.hasVarArg) // use variant call
                     body = macro {
-                        var ret2:$typePath = $v{defaultValue};
-                        var _hx__ret = cpp.Native.addressOf(ret2);
+                        var ret2 = new godot.variant.Variant();
+                        var _hx__ret = ret2.native_ptr();
                         $b{exprs};
-                        return ret2;
+                        return (ret2:$typePath);
                     };
-                } else {
-                    // // we have a managed return type, create it properly
-                    body = _assembleReturn(_bind, exprs);
-                }
+                else {
+                    if (TypeMacros.isTypeNative(_bind.returnType.name)) {
+                        // a native return type
+                        body = macro {
+                            var ret2:$typePath = $v{defaultValue};
+                            var _hx__ret = cpp.Native.addressOf(ret2);
+                            $b{exprs};
+                            return ret2;
+                        };
+                    } else {
+                        // // we have a managed return type, create it properly
+                        body = _assembleReturn(_bind, exprs);
+                    }    
+                }                
             }
         }
         _fields.push({
@@ -931,19 +999,19 @@ class FunctionMacros {
                     continue;
                 }
 
-                if (TypeMacros.isTypeNative(a.type.name))
-                    conCallArgs.push(macro {untyped __cpp__('call_args.push_back((GDExtensionTypePtr)&{0})', ($i{argName}:$argType));});
-                else
-                    conCallArgs.push(macro {untyped __cpp__('call_args.push_back((GDExtensionTypePtr){0})', ($i{argName}:$argType).native_ptr());});
+                conCallArgs.push(macro {
+                    var va:godot.variant.Variant = $i{argName};
+                    untyped __cpp__('call_args.push_back((GDExtensionVariantPtr){0})', va.native_ptr());
+                });
             }
 
             var tmp = [
-                macro untyped __cpp__("std::vector<GDExtensionTypePtr> call_args"),
+                macro untyped __cpp__("std::vector<GDExtensionVariantPtr> call_args"),
                 macro $b{conCallArgs},
                 macro {
                     for (va in $i{rest}) {
                         var variant:godot.variant.Variant = va;
-                        untyped __cpp__('call_args.push_back((GDExtensionTypePtr){0})', variant.native_ptr());
+                        untyped __cpp__('call_args.push_back((GDExtensionVariantPtr){0})', variant.native_ptr());
                     }
                 }
             ];

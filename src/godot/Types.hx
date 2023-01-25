@@ -402,8 +402,11 @@ extern class GodotNativeInterface {
     @:native("(void*)godot::internal::gdn_interface->classdb_get_method_bind")
     public static function classdb_get_method_bind(_obj:GDExtensionStringNamePtr, _method:GDExtensionStringNamePtr, _hash:GDExtensionInt):VoidPtr;
 
+    @:native("godot::internal::gdn_interface->object_method_bind_call")
+    public static function object_method_bind_call(_method:GDExtensionMethodBindPtr, _owner:GDExtensionObjectPtr, _args:cpp.ConstStar<GDExtensionVariantPtr>, _argCount:GDExtensionInt, _ret:GDExtensionVariantPtr, _error:cpp.Star<GDExtensionCallError>):Void;
+
     @:native("godot::internal::gdn_interface->object_method_bind_ptrcall")
-    public static function object_method_bind_ptrcall(_method:GDExtensionMethodBindPtr, _owner:GDExtensionObjectPtr, _args:cpp.ConstStar<GDExtensionTypePtr>, _ret:GDExtensionTypePtr):Void;
+    public static function object_method_bind_ptrcall(_method:GDExtensionMethodBindPtr, _owner:GDExtensionObjectPtr, _args:cpp.ConstStar<GDExtensionVariantPtr>, _ret:GDExtensionTypePtr):Void;        
 
     @:native("godot::internal::gdn_interface->classdb_register_extension_class")
     public static function classdb_register_extension_class(
