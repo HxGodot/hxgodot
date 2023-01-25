@@ -174,7 +174,7 @@ ${REGULAR_TEXT}Afterwards, you can open it in Godot 4 - Have fun! :)');
             });
          case 'help' | 'usage':
             log('\n${REGULAR_TEXT}Usage:
- ${COMMAND_TEXT}haxelib run hxgodot init
+ ${COMMAND_TEXT}haxelib run hxgodot init ${ALT_COMMAND_TEXT}[--extension-api-json=<path>]
   ${REGULAR_TEXT}1. Setup a sample project in the current working directory.
   2. Generate Godot 4 bindings in the current working directory.
 
