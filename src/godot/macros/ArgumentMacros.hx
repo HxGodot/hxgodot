@@ -90,7 +90,7 @@ class ArgumentMacros {
                             cpp.Native.memcpy(
                                 d,
                                 (untyped __cpp__('(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}, $v{_index}, $v{_offset}):cpp.Star<godot.Types.GDExtensionFloat>),
-                                untyped __cpp__('sizeof(float)*3')
+                                untyped __cpp__('sizeof(float)*2')
                             );
                             v;
                         };
@@ -105,7 +105,17 @@ class ArgumentMacros {
                             );
                             v;
                         };
-
+                    case 'Color':
+                        macro { 
+                            var v:Array<godot.Types.GDExtensionFloat> = cpp.NativeArray.create(4);
+                            var d = cpp.NativeArray.address(v, 0);
+                            cpp.Native.memcpy(
+                                d,
+                                (untyped __cpp__('(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}, $v{_index}, $v{_offset}):cpp.Star<godot.Types.GDExtensionFloat>),
+                                untyped __cpp__('sizeof(float)*4')
+                            );
+                            v;
+                        };
                     case 'AABB': _create(macro new godot.variant.AABB(), macro godot.variant.AABB.AABB_SIZE);
                     case 'Basis': _create(macro new godot.variant.Basis(), macro godot.variant.Basis.BASIS_SIZE);
                     case 'Callable': _create(macro new godot.variant.Callable(), macro godot.variant.Callable.CALLABLE_SIZE);
@@ -113,15 +123,14 @@ class ArgumentMacros {
                     case 'GDArray': _create(macro new godot.variant.GDArray(), macro godot.variant.GDArray.ARRAY_SIZE);
                     case 'NodePath': _create(macro new godot.variant.NodePath(), macro godot.variant.NodePath.NODEPATH_SIZE);
                     case 'PackedByteArray': _create(macro new godot.variant.PackedByteArray(), macro godot.variant.PackedByteArray.PACKEDBYTEARRAY_SIZE);
-                    // TODO: PACKED ARRAYS!
-                    //case 'PackedColorArray': _create(macro new godot.variant.PackedColorArray(), macro godot.variant.PackedColorArray.PACKEDCOLORARRAY_SIZE);
+                    case 'PackedColorArray': _create(macro new godot.variant.PackedColorArray(), macro godot.variant.PackedColorArray.PACKEDCOLORARRAY_SIZE);
                     case 'PackedFloat32Array': _create(macro new godot.variant.PackedFloat32Array(), macro godot.variant.PackedFloat32Array.PACKEDFLOAT32ARRAY_SIZE);
-                    //case 'PackedFloat64Array': _create(macro new godot.variant.PackedFloat64Array(), macro godot.variant.PackedFloat64Array.PACKEDFLOAT64ARRAY_SIZE);
-                    //case 'PackedInt32Array': _create(macro new godot.variant.PackedInt32Array(), macro godot.variant.PackedInt32Array.PACKEDINT32ARRAY_SIZE);
-                    //case 'PackedInt64Array': _create(macro new godot.variant.PackedInt64Array(), macro godot.variant.PackedInt64Array.PACKEDINT64ARRAY_SIZE);
+                    case 'PackedFloat64Array': _create(macro new godot.variant.PackedFloat64Array(), macro godot.variant.PackedFloat64Array.PACKEDFLOAT64ARRAY_SIZE);
+                    case 'PackedInt32Array': _create(macro new godot.variant.PackedInt32Array(), macro godot.variant.PackedInt32Array.PACKEDINT32ARRAY_SIZE);
+                    case 'PackedInt64Array': _create(macro new godot.variant.PackedInt64Array(), macro godot.variant.PackedInt64Array.PACKEDINT64ARRAY_SIZE);
                     case 'PackedStringArray': _create(macro new godot.variant.PackedStringArray(), macro godot.variant.PackedStringArray.PACKEDSTRINGARRAY_SIZE);
-                    //case 'PackedVector2Array': _create(macro new godot.variant.PackedVector2Array(), macro godot.variant.PackedVector2Array.PACKEDVECTOR2ARRAY_SIZE);
-                    //case 'PackedVector3Array': _create(macro new godot.variant.PackedVector3Array(), macro godot.variant.PackedVector3Array.PACKEDVECTOR3ARRAY_SIZE);
+                    case 'PackedVector2Array': _create(macro new godot.variant.PackedVector2Array(), macro godot.variant.PackedVector2Array.PACKEDVECTOR2ARRAY_SIZE);
+                    case 'PackedVector3Array': _create(macro new godot.variant.PackedVector3Array(), macro godot.variant.PackedVector3Array.PACKEDVECTOR3ARRAY_SIZE);
                     case 'Projection': _create(macro new godot.variant.Projection(), macro godot.variant.Projection.PROJECTION_SIZE);
                     case 'RID': _create(macro new godot.variant.RID(), macro godot.variant.RID.RID_SIZE);
                     case 'Signal': _create(macro new godot.variant.Signal(), macro godot.variant.Signal.SIGNAL_SIZE);
@@ -191,14 +200,13 @@ class ArgumentMacros {
                         var tmp = haxe.Int64.ofInt($i{_src});
                         (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}, tmp):Int); 
                     }
-                    case 'Color': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*4)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
                     case 'Int64': macro (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}, $i{_src}):haxe.Int64);
                     case 'Float': macro (untyped __cpp__('*((double*){0}) = {1}', $i{_dest}, $i{_src}):Float);
                     case 'GDString': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, {2})', $i{_dest}, $i{_src}.native_ptr(), godot.variant.GDString.STRING_SIZE);
+                    case 'Color': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*4)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
                     case 'Vector2': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
                     case 'Vector2i': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(int)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
                     case 'Vector3': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*3)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
-
                     case "AABB": _encode(macro godot.variant.AABB.AABB_SIZE);
                     case "Basis": _encode(macro godot.variant.Basis.BASIS_SIZE);
                     case "Callable": _encode(macro godot.variant.Callable.CALLABLE_SIZE);
@@ -206,14 +214,14 @@ class ArgumentMacros {
                     case "GDArray": _encode(macro godot.variant.GDArray.ARRAY_SIZE);
                     case "NodePath": _encode(macro godot.variant.NodePath.NODEPATH_SIZE);
                     case "PackedByteArray": _encode(macro godot.variant.PackedByteArray.PACKEDBYTEARRAY_SIZE);
-                    // case "PackedColorArray": _encode(macro godot.variant.PackedColorArray.PACKEDCOLORARRAY_SIZE);
+                    case "PackedColorArray": _encode(macro godot.variant.PackedColorArray.PACKEDCOLORARRAY_SIZE);
                     case "PackedFloat32Array": _encode(macro godot.variant.PackedFloat32Array.PACKEDFLOAT32ARRAY_SIZE);
-                    // case "PackedFloat64Array": _encode(macro godot.variant.PackedFloat64Array.PACKEDFLOAT64ARRAY_SIZE);
-                    // case "PackedInt32Array": _encode(macro godot.variant.PackedInt32Array.PACKEDINT32ARRAY_SIZE);
-                    // case "PackedInt64Array": _encode(macro godot.variant.PackedInt64Array.PACKEDINT64ARRAY_SIZE);
+                    case "PackedFloat64Array": _encode(macro godot.variant.PackedFloat64Array.PACKEDFLOAT64ARRAY_SIZE);
+                    case "PackedInt32Array": _encode(macro godot.variant.PackedInt32Array.PACKEDINT32ARRAY_SIZE);
+                    case "PackedInt64Array": _encode(macro godot.variant.PackedInt64Array.PACKEDINT64ARRAY_SIZE);
                     case "PackedStringArray": _encode(macro godot.variant.PackedStringArray.PACKEDSTRINGARRAY_SIZE);
-                    // case "PackedVector2Array": _encode(macro godot.variant.PackedVector2Array.PACKEDVECTOR2ARRAY_SIZE);
-                    // case "PackedVector3Array": _encode(macro godot.variant.PackedVector3Array.PACKEDVECTOR3ARRAY_SIZE);
+                    case "PackedVector2Array": _encode(macro godot.variant.PackedVector2Array.PACKEDVECTOR2ARRAY_SIZE);
+                    case "PackedVector3Array": _encode(macro godot.variant.PackedVector3Array.PACKEDVECTOR3ARRAY_SIZE);
                     case "Projection": _encode(macro godot.variant.Projection.PROJECTION_SIZE);
                     case "RID": _encode(macro godot.variant.RID.RID_SIZE);
                     case "Signal": _encode(macro godot.variant.Signal.SIGNAL_SIZE);
