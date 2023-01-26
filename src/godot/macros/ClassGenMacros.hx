@@ -224,36 +224,29 @@ class ClassGenMacros {
                                 isAllowed = false;
                                 break;
                             }
+                            var defValExpr = null;
+                            var argType = TypeMacros.getTypeName(a.type);
+                            var argPack = TypeMacros.getTypePackage(argType);
+
                             if (TypeMacros.isEnumOrBitfield(a.type)) {
                                 var tokens = a.type.split(".");
-                                var argType = "cpp.Int32";
-                                var argPack = [];
-                                args.push({
-                                    name: ArgumentMacros.guardAgainstKeywords(a.name),
-                                    type: {name:argType , pack:argPack}
-                                }); 
-                            } else {
+                                argType = "cpp.Int32";
+                                argPack = [];
+                            }
 
-                                //var argType = TypeMacros.getTypeName(a.meta != null ? a.meta : a.type);
-                                var argType = TypeMacros.getTypeName(a.type);
-                                var argPack = TypeMacros.getTypePackage(argType);
-
-                                // deal with the proper default value and parse it into an expression
-                                var defVal:String = a.default_value;
-                                var defValExpr = null;
-                                if (defVal != null) {
-                                    //defVal = defVal.replace("&", "");
-                                    if (TypeMacros.isTypeNative(argType)) {
-                                        defVal = ArgumentMacros.prepareArgumentDefaultValue(argType, defVal);
-                                        defValExpr = Context.parse(defVal, Context.currentPos());
-                                    }
-                                } 
-                                args.push({
-                                    name: ArgumentMacros.guardAgainstKeywords(a.name),
-                                    type: {name:argType , pack:argPack},
-                                    defaultValue: defValExpr
-                                });    
-                            }                        
+                            // deal with the proper default value and parse it into an expression
+                            var defVal:String = a.default_value;
+                            if (defVal != null) {
+                                if (TypeMacros.isTypeNative(argType)) {
+                                    defVal = ArgumentMacros.prepareArgumentDefaultValue(argType, defVal);
+                                    defValExpr = Context.parse(defVal, Context.currentPos());
+                                }
+                            } 
+                            args.push({
+                                name: ArgumentMacros.guardAgainstKeywords(a.name),
+                                type: {name:argType , pack:argPack},
+                                defaultValue: defValExpr
+                            }); 
                         }
                     }
 
