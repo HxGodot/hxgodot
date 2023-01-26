@@ -83,7 +83,7 @@ class ArgumentMacros {
                         ));
                         str;
                     }
-                    case 'Vector2':
+                    case 'Vector2', 'Point2':
                         macro { 
                             var v:Array<godot.Types.GDExtensionFloat> = cpp.NativeArray.create(2);
                             var d = cpp.NativeArray.address(v, 0);
@@ -105,7 +105,7 @@ class ArgumentMacros {
                             );
                             v;
                         };
-                    case 'Color':
+                    case 'Color', 'Quaternion':
                         macro { 
                             var v:Array<godot.Types.GDExtensionFloat> = cpp.NativeArray.create(4);
                             var d = cpp.NativeArray.address(v, 0);
@@ -117,6 +117,8 @@ class ArgumentMacros {
                             v;
                         };
                     case 'AABB': _create(macro new godot.variant.AABB(), macro godot.variant.AABB.AABB_SIZE);
+                    case 'Rect2': _create(macro new godot.variant.Rect2(), macro godot.variant.Rect2.RECT2_SIZE);
+                    case 'Rect2i': _create(macro new godot.variant.Rect2i(), macro godot.variant.Rect2i.RECT2I_SIZE);
                     case 'Basis': _create(macro new godot.variant.Basis(), macro godot.variant.Basis.BASIS_SIZE);
                     case 'Callable': _create(macro new godot.variant.Callable(), macro godot.variant.Callable.CALLABLE_SIZE);
                     case 'Dictionary': _create(macro new godot.variant.Dictionary(), macro godot.variant.Dictionary.DICTIONARY_SIZE);
@@ -203,10 +205,12 @@ class ArgumentMacros {
                     case 'Int64': macro (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}, $i{_src}):haxe.Int64);
                     case 'Float': macro (untyped __cpp__('*((double*){0}) = {1}', $i{_dest}, $i{_src}):Float);
                     case 'GDString': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, {2})', $i{_dest}, $i{_src}.native_ptr(), godot.variant.GDString.STRING_SIZE);
-                    case 'Color': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*4)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
+                    case 'Color', 'Quaternion': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*4)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
                     case 'Vector2': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
                     case 'Vector2i': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(int)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
                     case 'Vector3': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*3)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
+                    case "Rect2": _encode(macro godot.variant.Rect2.RECT2_SIZE);
+                    case "Rect2i": _encode(macro godot.variant.Rect2i.RECT2I_SIZE);
                     case "AABB": _encode(macro godot.variant.AABB.AABB_SIZE);
                     case "Basis": _encode(macro godot.variant.Basis.BASIS_SIZE);
                     case "Callable": _encode(macro godot.variant.Callable.CALLABLE_SIZE);
