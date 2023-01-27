@@ -93,8 +93,7 @@ class ArgumentMacros {
                                 untyped __cpp__('sizeof(float)*2')
                             );
                             v;
-                        };
-                    // TODO: Vector2i, Point2i, Vector4i, Vector3i
+                        }; 
                     case 'Vector3':
                         macro { 
                             var v:Array<godot.Types.GDExtensionFloat> = cpp.NativeArray.create(3);
@@ -117,6 +116,39 @@ class ArgumentMacros {
                             );
                             v;
                         };
+                    case 'Vector2i':
+                        macro { 
+                            var v:Array<Int> = cpp.NativeArray.create(2);
+                            var d = cpp.NativeArray.address(v, 0);
+                            cpp.Native.memcpy(
+                                d,
+                                (untyped __cpp__('(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}, $v{_index}, $v{_offset}):cpp.Star<Int>),
+                                untyped __cpp__('sizeof(int)*2')
+                            );
+                            v;
+                        };
+                    case 'Vector3i':
+                        macro { 
+                            var v:Array<Int> = cpp.NativeArray.create(3);
+                            var d = cpp.NativeArray.address(v, 0);
+                            cpp.Native.memcpy(
+                                d,
+                                (untyped __cpp__('(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}, $v{_index}, $v{_offset}):cpp.Star<Int>),
+                                untyped __cpp__('sizeof(int)*3')
+                            );
+                            v;
+                        };
+                    case 'Vector4i':
+                        macro { 
+                            var v:Array<Int> = cpp.NativeArray.create(4);
+                            var d = cpp.NativeArray.address(v, 0);
+                            cpp.Native.memcpy(
+                                d,
+                                (untyped __cpp__('(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}, $v{_index}, $v{_offset}):cpp.Star<Int>),
+                                untyped __cpp__('sizeof(int)*4')
+                            );
+                            v;
+                        }; 
                     case 'AABB': _create(macro new godot.variant.AABB(), macro godot.variant.AABB.AABB_SIZE);
                     case 'Rect2': _create(macro new godot.variant.Rect2(), macro godot.variant.Rect2.RECT2_SIZE);
                     case 'Rect2i': _create(macro new godot.variant.Rect2i(), macro godot.variant.Rect2i.RECT2I_SIZE);
@@ -208,9 +240,10 @@ class ArgumentMacros {
                     case 'GDString': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, {2})', $i{_dest}, $i{_src}.native_ptr(), godot.variant.GDString.STRING_SIZE);
                     case 'Color', 'Quaternion', 'Vector4': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*4)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
                     case 'Vector2': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
-                    // TODO: Vector2i, Point2i, Vector4i, Vector3i
-                    //case 'Vector2i': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(int)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
                     case 'Vector3': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*3)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
+                    case 'Vector2i': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(int)*2)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
+                    case 'Vector3i': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(int)*3)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
+                    case 'Vector4i': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(int)*4)', $i{_dest}, cpp.NativeArray.address($i{_src}, 0));
                     case "Rect2": _encode(macro godot.variant.Rect2.RECT2_SIZE);
                     case "Rect2i": _encode(macro godot.variant.Rect2i.RECT2I_SIZE);
                     case "AABB": _encode(macro godot.variant.AABB.AABB_SIZE);

@@ -57,11 +57,31 @@ class VariantMacros {
             @:from inline static function fromVector2(_x:godot.variant.Vector2):Variant
                 return _buildVariant2(GDExtensionVariantType.VECTOR2, _x.native_ptr());
             @:to inline public function toVector2():godot.variant.Vector2 ${_convertToCustom(GDExtensionVariantType.VECTOR2, macro : godot.variant.Vector2, macro new godot.variant.Vector2(), macro cpp.NativeArray.address(res, 0))}
+
+            // Vector2i
+            @:from inline static function fromVector2i(_x:godot.variant.Vector2i):Variant
+                return _buildVariant2(GDExtensionVariantType.VECTOR2I, _x.native_ptr());
+            @:to inline public function toVector2i():godot.variant.Vector2i ${_convertToCustom(GDExtensionVariantType.VECTOR2I, macro : godot.variant.Vector2i, macro new godot.variant.Vector2i(), macro cpp.NativeArray.address(res, 0))}
             
             // Vector3
             @:from inline static function fromVector3(_x:godot.variant.Vector3):Variant
                 return _buildVariant2(GDExtensionVariantType.VECTOR3, _x.native_ptr());
             @:to inline public function toVector3():godot.variant.Vector3 ${_convertToCustom(GDExtensionVariantType.VECTOR3, macro : godot.variant.Vector3, macro new godot.variant.Vector3(), macro cpp.NativeArray.address(res, 0))}
+
+            // Vector3i
+            @:from inline static function fromVector3i(_x:godot.variant.Vector3i):Variant
+                return _buildVariant2(GDExtensionVariantType.VECTOR3I, _x.native_ptr());
+            @:to inline public function toVector3i():godot.variant.Vector3i ${_convertToCustom(GDExtensionVariantType.VECTOR3I, macro : godot.variant.Vector3i, macro new godot.variant.Vector3i(), macro cpp.NativeArray.address(res, 0))}
+
+            // Vector4
+            @:from inline static function fromVector4(_x:godot.variant.Vector4):Variant
+                return _buildVariant2(GDExtensionVariantType.VECTOR4, _x.native_ptr());
+            @:to inline public function toVector4():godot.variant.Vector4 ${_convertToCustom(GDExtensionVariantType.VECTOR4, macro : godot.variant.Vector4, macro new godot.variant.Vector4(), macro cpp.NativeArray.address(res, 0))}
+
+            // Vector4i
+            @:from inline static function fromVector4i(_x:godot.variant.Vector4i):Variant
+                return _buildVariant2(GDExtensionVariantType.VECTOR4I, _x.native_ptr());
+            @:to inline public function toVector4i():godot.variant.Vector4i ${_convertToCustom(GDExtensionVariantType.VECTOR4I, macro : godot.variant.Vector4i, macro new godot.variant.Vector4i(), macro cpp.NativeArray.address(res, 0))}
 
             // Transform2D
             @:from inline static function fromTransform2D(_x:godot.variant.Transform2D):Variant
