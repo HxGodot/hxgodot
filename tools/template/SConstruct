@@ -47,7 +47,7 @@ if env['platform'] == "windows":
     env.Tool("mslib")
     env.Tool("mslink")
 
-    env.Append(LIBS=['user32.lib'])
+    env.Append(LIBS=['user32.lib', 'Ws2_32.lib', 'Crypt32.lib', 'Advapi32.lib'])
     env.Append(CPPDEFINES=["WIN32", "_WIN32", "_WINDOWS", "_CRT_SECURE_NO_WARNINGS"])
 
     env.Append(CCFLAGS = ['-EHs', '-FS', '-GR', '-GS-', '-MT', '-nologo', '-Oy-', '-wd4996', '/fp:precise', '/WX-'])
