@@ -25,9 +25,8 @@ class ClassGenExtraMacros {
 
                     @:to inline public function toString():String {
                         var size = godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDExtensionStringPtr){0}', this.native_ptr()), null, 0);
-                        var chars:Array<cpp.UInt8> = cpp.NativeArray.create(size+1);
-                        godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDExtensionStringPtr){0}', this.native_ptr()), cpp.NativeArray.getBase(chars).getBase(), size+1);
-                        chars[size] = 0;
+                        var chars:Array<cpp.UInt8> = cpp.NativeArray.create(size);
+                        godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDExtensionStringPtr){0}', this.native_ptr()), cpp.NativeArray.getBase(chars).getBase(), size);
                         return haxe.io.Bytes.ofData(chars).toString();
                     }
                 }
@@ -54,7 +53,19 @@ class ClassGenExtraMacros {
                     @:to inline public function toString():String {
                         return (GDString.fromStringName(this):String);
                     }
+
+                    @:op(A == B)
+                    inline static public function operator_EQUAL_HXSTRING(_lhs:godot.variant.StringName, _rhs:String):Bool {
+                        return godot.variant.StringName.operator_EQUAL_StringName(_lhs, (_rhs:StringName));
+                    }
+
+                    @:op(A != B)
+                    inline static public function operator_NOT_EQUAL_HXSTRING(_lhs:godot.variant.StringName, _rhs:String):Bool {
+                        return godot.variant.StringName.operator_NOT_EQUAL_StringName(_lhs, (_rhs:StringName));
+                    }
                 }
+
+                
                 ops = ops.concat(tmp.fields);
             }
             case "Callable": {

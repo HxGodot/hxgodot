@@ -1092,8 +1092,8 @@ class ClassGenMacros {
                 inline public static var $sizeName = $v{sizeValue};
             };
             abstrct.kind = TDAbstract(typePathComplex, [typePathComplex], [typePathComplex]);
-            abstrct.fields = abstrct.fields.concat(abstractFields);
             abstrct.fields = abstrct.fields.concat(ClassGenExtraMacros.getHaxeOperators(abstractName));
+            abstrct.fields = abstrct.fields.concat(abstractFields);
             abstrct.meta = [{
                 name: ":forward",
                 params: [],
