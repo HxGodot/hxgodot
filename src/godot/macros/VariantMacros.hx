@@ -123,6 +123,10 @@ class VariantMacros {
                 return _buildVariant2(GDExtensionVariantType.OBJECT, _x.native_ptr());
             @:to inline public function toObject():godot.Object ${_convertTo(GDExtensionVariantType.OBJECT, macro : godot.Object, macro Type.createEmptyInstance(godot.Object))}
 
+            @:from inline static function fromWrapped(_x:godot.Wrapped):Variant
+                return _buildVariant2(GDExtensionVariantType.OBJECT, _x.native_ptr());
+            @:to inline public function toWrapped():godot.Wrapped ${_convertTo(GDExtensionVariantType.OBJECT, macro : godot.Object, macro Type.createEmptyInstance(godot.Object))}
+
             // Callable
             @:from inline static function fromCallable(_x:godot.variant.Callable):Variant
                 return _buildVariant2(GDExtensionVariantType.CALLABLE, _x.native_ptr());

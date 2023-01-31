@@ -8,6 +8,7 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.MacroStringTools;
 import haxe.macro.TypeTools;
+import haxe.macro.ComplexTypeTools;
 
 using haxe.macro.ExprTools;
 
@@ -19,9 +20,9 @@ class ArgumentMacros {
     }
 
     public static function convertVariant(_index:Int, _args:String, _type:haxe.macro.ComplexType) {
-        //return _convert(_index, 1, _args, _type);
-        
         function _default() {
+            var isWrappedGodotClass = Context.unify(ComplexTypeTools.toType(_type), Context.getType("godot.Wrapped"));
+            var ret = isWrappedGodotClass ? macro cast(variant, $_type) : macro (variant:$_type);
             return macro {
                 var variant = new godot.variant.Variant();
                 var ptr:godot.Types.GDExtensionVariantPtr = untyped __cpp__('(uint8_t *)(*((({0} **){1})+{2}))', 
@@ -30,7 +31,7 @@ class ArgumentMacros {
                     $v{_index}
                 );
                 variant.set_native_ptr(ptr);
-                (variant:$_type);
+                $ret;
             };
         }
         return switch(_type) {
@@ -174,18 +175,18 @@ class ArgumentMacros {
                     case 'Transform3D': _create(macro new godot.variant.Transform3D(), macro godot.variant.Transform3D.TRANSFORM3D_SIZE);
 
                     default: {
-                        var isRefCounted = switch (Context.followWithAbstracts(haxe.macro.ComplexTypeTools.toType(_type))) {
+                        var ctType = Context.followWithAbstracts(haxe.macro.ComplexTypeTools.toType(_type));
+                        var isRefCounted = switch (ctType) {
                             case TInst(_classType, _): _classType.get().meta.has(":gdRefCounted");
                             default: false;
                         }
 
                         // extract package from the type
-                        var resolvedType = Context.followWithAbstracts(Context.getType(_d.name));
                         var tClassName = "";
-                        var path = switch(resolvedType) {
+                        var path = switch(ctType) {
                             case TInst(_t, _): tClassName = _t.get().name; _t.get().pack;
                             case TAbstract(_t, _): tClassName = _t.get().name; _t.get().pack;
-                            default: Context.fatalError('Error: ${resolvedType} is not dealt with in ArgumentMacros. Please report this type so we can fix!', Context.currentPos()); null;
+                            default: Context.fatalError('Error: ${ctType} is not dealt with in ArgumentMacros. Please report this type so we can fix!', Context.currentPos()); null;
                         }
                         path.push(tClassName);
 
