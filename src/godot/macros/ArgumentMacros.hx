@@ -20,18 +20,45 @@ class ArgumentMacros {
     }
 
     public static function convertVariant(_index:Int, _args:String, _type:haxe.macro.ComplexType) {
+        var isWrappedGodotClass = Context.unify(ComplexTypeTools.toType(_type), Context.getType("godot.Wrapped"));
+        
         function _default() {
-            var isWrappedGodotClass = Context.unify(ComplexTypeTools.toType(_type), Context.getType("godot.Wrapped"));
-            var ret = isWrappedGodotClass ? macro cast(variant, $_type) : macro (variant:$_type);
+            var identBindings = '&::godot::Object_obj::___binding_callbacks';
+
+            var ret = isWrappedGodotClass ? macro {
+                    var constructor = godot.variant.Variant.__Variant.to_type_constructor.get(godot.Types.GDExtensionVariantType.OBJECT);
+                    var retOriginal:godot.Types.VoidPtr = untyped __cpp__('nullptr');
+                    var _hx__ret:godot.Types.VoidPtr = untyped __cpp__('&{0}', retOriginal);
+                    untyped __cpp__('((GDExtensionTypeFromVariantConstructorFunc){0})({1}, {2});',
+                        constructor,
+                        _hx__ret,
+                        variant.native_ptr()
+                    );
+                    var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
+                        retOriginal, 
+                        untyped __cpp__("godot::internal::token"), 
+                        untyped __cpp__($v{identBindings})
+                    );
+                    res = untyped __cpp__(
+                        $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
+                        obj
+                    );
+                } : 
+                    macro res = (variant:$_type);
+
             return macro {
-                var variant = new godot.variant.Variant();
-                var ptr:godot.Types.GDExtensionVariantPtr = untyped __cpp__('(uint8_t *)(*((({0} **){1})+{2}))', 
-                    $i{ptrSize},
-                    $i{_args},
-                    $v{_index}
-                );
-                variant.set_native_ptr(ptr);
-                $ret;
+                var res:Dynamic = null;
+                if ($i{_args} != null) {
+                    var variant = new godot.variant.Variant();
+                    var ptr:godot.Types.GDExtensionVariantPtr = untyped __cpp__('(uint8_t *)(*((({0} **){1})+{2}))', 
+                        $i{ptrSize},
+                        $i{_args},
+                        $v{_index}
+                    );
+                    variant.set_native_ptr(ptr);
+                    $ret;
+                } else
+                    res;
             };
         }
         return switch(_type) {
@@ -45,14 +72,18 @@ class ArgumentMacros {
     }    
 
     private static function _convert(_index:Int, _offset:Int, _args:String, _type:haxe.macro.ComplexType) {
+        var typePath = switch(_type) {
+            case TPath(_d): _d.name;
+            default: "";
+        };
+
         function _default() {
             var val = 'nullptr /* _convert: $_type */';
             return macro { untyped __cpp__($v{val}); };
         }
         inline function _create(_inst, _size) {
-            return  macro {
+            return macro {
                 var p = $_inst;
-
                 (untyped __cpp__(
                     'memcpy({4}->opaque, (uint8_t *)(*((({0} **){1})+{2})+{3}), {5})',
                     $i{ptrSize},
@@ -65,6 +96,20 @@ class ArgumentMacros {
                 p;
             };
         }
+
+        inline function _createObject(_inst, _size) {
+            var identBindings = '&${typePath}_obj::___binding_callbacks';
+            return macro {
+                var retOriginal:godot.Types.VoidPtr = untyped __cpp__('nullptr');
+                var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
+                    retOriginal, 
+                    untyped __cpp__("godot::internal::token"), 
+                    untyped __cpp__($v{identBindings})
+                );
+                retOriginal;
+            };
+        }
+
         return _type != null ? switch(_type) {
             case TPath(_d):
                 switch(_d.name) {
@@ -169,6 +214,7 @@ class ArgumentMacros {
                     case 'PackedVector3Array': _create(macro new godot.variant.PackedVector3Array(), macro godot.variant.PackedVector3Array.PACKEDVECTOR3ARRAY_SIZE);
                     case 'Projection': _create(macro new godot.variant.Projection(), macro godot.variant.Projection.PROJECTION_SIZE);
                     case 'RID': _create(macro new godot.variant.RID(), macro godot.variant.RID.RID_SIZE);
+                    case 'Object': _createObject(macro new godot.variant.Object(), macro godot.variant.OBJECT.OBJECT_SIZE);
                     case 'Signal': _create(macro new godot.variant.Signal(), macro godot.variant.Signal.SIGNAL_SIZE);
                     case 'StringName': _create(macro new godot.variant.StringName(), macro godot.variant.StringName.STRINGNAME_SIZE);
                     case 'Transform2D': _create(macro new godot.variant.Transform2D(), macro godot.variant.Transform2D.TRANSFORM2D_SIZE);
@@ -264,6 +310,7 @@ class ArgumentMacros {
                     case "PackedVector3Array": _encode(macro godot.variant.PackedVector3Array.PACKEDVECTOR3ARRAY_SIZE);
                     case "Projection": _encode(macro godot.variant.Projection.PROJECTION_SIZE);
                     case "RID": _encode(macro godot.variant.RID.RID_SIZE);
+                    case "Object": _encode(macro godot.variant.OBJECT.OBJECT_SIZE);
                     case "Signal": _encode(macro godot.variant.Signal.SIGNAL_SIZE);
                     case "StringName": _encode(macro godot.variant.StringName.STRINGNAME_SIZE);
                     case "Transform2D": _encode(macro godot.variant.Transform2D.TRANSFORM2D_SIZE);

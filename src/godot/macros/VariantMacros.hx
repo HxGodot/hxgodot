@@ -120,12 +120,8 @@ class VariantMacros {
 
             // Object
             @:from inline static function fromObject(_x:godot.Object):Variant
-                return _buildVariant2(GDExtensionVariantType.OBJECT, _x.native_ptr());
-            @:to inline public function toObject():godot.Object ${_convertTo(GDExtensionVariantType.OBJECT, macro : godot.Object, macro Type.createEmptyInstance(godot.Object))}
-
-            @:from inline static function fromWrapped(_x:godot.Wrapped):Variant
-                return _buildVariant2(GDExtensionVariantType.OBJECT, _x.native_ptr());
-            @:to inline public function toWrapped():godot.Wrapped ${_convertTo(GDExtensionVariantType.OBJECT, macro : godot.Object, macro Type.createEmptyInstance(godot.Object))}
+                return _buildVariantObject(GDExtensionVariantType.OBJECT, _x.native_ptr());
+            @:to inline public function toObject():godot.Object ${_convertToObject(GDExtensionVariantType.OBJECT, macro : godot.Object, macro new godot.Object())}
 
             // Callable
             @:from inline static function fromCallable(_x:godot.variant.Callable):Variant
@@ -243,6 +239,38 @@ class VariantMacros {
                     resPtr,
                     this.native_ptr()
                 );
+            } else  {
+                trace("Cannot cast "+ __Variant.getGDExtensionVariantTypeString(type) + " to " + __Variant.getGDExtensionVariantTypeString($v{_extType}), true);
+            }
+            return res;
+        };
+    }
+
+    static function _convertToObject(_extType, _type, _defaultValue) {
+        var identBindings = '&::godot::Object_obj::___binding_callbacks';
+        return macro {
+            var type = this.getVariantType();
+            var res = null;
+            if (__Variant._canConvert(type, $v{_extType})) {
+                var constructor = __Variant.to_type_constructor.get($v{_extType});
+                var retOriginal:godot.Types.VoidPtr = untyped __cpp__('nullptr');
+                var _hx__ret:godot.Types.VoidPtr = untyped __cpp__('&{0}', retOriginal);
+
+                untyped __cpp__('((GDExtensionTypeFromVariantConstructorFunc){0})({1}, {2});',
+                    constructor,
+                    _hx__ret,
+                    this.native_ptr()
+                );
+
+                var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
+                    retOriginal, 
+                    untyped __cpp__("godot::internal::token"), 
+                    untyped __cpp__($v{identBindings})
+                );
+                res = untyped __cpp__(
+                    $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
+                    obj
+                );                
             } else  {
                 trace("Cannot cast "+ __Variant.getGDExtensionVariantTypeString(type) + " to " + __Variant.getGDExtensionVariantTypeString($v{_extType}), true);
             }

@@ -3,6 +3,9 @@ package godot.macros;
 #if macro
 
 import godot.Types;
+import haxe.macro.ComplexTypeTools;
+import haxe.macro.Context;
+import haxe.macro.Expr;
 
 using StringTools;
 
@@ -77,7 +80,8 @@ class TypeMacros {
         var res = [];
         var type = GDExtensionVariantType.fromString(_type);
         if (!TypeMacros.isTypeNative(_type)) {
-            if (type == GDExtensionVariantType.OBJECT && _type != "Variant") {                
+            if ((type == GDExtensionVariantType.NIL || type == GDExtensionVariantType.OBJECT) && 
+                _type != "Variant") {                
                 if (!StringTools.startsWith(_type, "cpp"))
                     res = ["godot"];
                 else
@@ -119,7 +123,7 @@ class TypeMacros {
             case "Float", "cpp.Float32", "cpp.Float64": 0.0;
             case "cpp.Int64", "cpp.Int32", "cpp.Int16", "cpp.Int8", 
                 "cpp.UInt64", "cpp.UInt32", "cpp.UInt16", "cpp.UInt8": 0;
-            default: false; // make the compiler complain here!
+            default: null; // make the compiler complain here!
         }
     }
 
