@@ -688,7 +688,7 @@ class FunctionMacros {
                             });
                         else
                             exprs.push(macro {
-                                untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, (GDExtensionConstTypePtr*)call_args.data(), nullptr)', $i{mname});
+                                untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, nullptr, (GDExtensionConstTypePtr*)call_args.data(), nullptr)', $i{mname});
                             });
                     }
                     default: { // normal method
@@ -707,7 +707,7 @@ class FunctionMacros {
                             });
                         else
                             exprs.push(macro {
-                                untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, (GDExtensionConstTypePtr*)call_args.data(), nullptr)', $i{mname}, this.native_ptr());
+                                untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, {1}, (GDExtensionConstTypePtr*)call_args.data(), nullptr)', $i{mname}, this.native_ptr());
                             });
                     }
                 }                
@@ -716,12 +716,12 @@ class FunctionMacros {
                     case FunctionBindType.VIRTUAL_METHOD: {}
                     case FunctionBindType.STATIC_METHOD: {
                         exprs.push(macro {
-                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, nullptr, nullptr)', $i{mname});
+                            untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, nullptr, nullptr, nullptr)', $i{mname});
                         });
                     }
                     default: {
                         exprs.push(macro {
-                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, nullptr)', $i{mname}, this.native_ptr());
+                            untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, {1}, nullptr, nullptr)', $i{mname}, this.native_ptr());
                         });
                     }
                 }
@@ -759,7 +759,7 @@ class FunctionMacros {
                             });
                         else
                             exprs.push(macro {
-                               untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, (GDExtensionConstTypePtr*)call_args.data(), {1})', $i{mname}, _hx__ret);
+                               untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, nullptr, (GDExtensionConstTypePtr*)call_args.data(), {1})', $i{mname}, _hx__ret);
                             });
                     }
                     default: {
@@ -778,7 +778,7 @@ class FunctionMacros {
                             });
                         else
                             exprs.push(macro {
-                                untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, (GDExtensionConstTypePtr*)call_args.data(), {2})', $i{mname}, this.native_ptr(), _hx__ret);
+                                untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, {1}, (GDExtensionConstTypePtr*)call_args.data(), {2})', $i{mname}, this.native_ptr(), _hx__ret);
                             });
                     }
                 }
@@ -787,12 +787,12 @@ class FunctionMacros {
                     case FunctionBindType.VIRTUAL_METHOD: {}
                     case FunctionBindType.STATIC_METHOD: {
                         exprs.push(macro {
-                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, nullptr, nullptr, {1})', $i{mname}, _hx__ret);
+                            untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, nullptr, nullptr, {1})', $i{mname}, _hx__ret);
                         });
                     }
                     default: {
                         exprs.push(macro {
-                            untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', $i{mname}, this.native_ptr(), _hx__ret);
+                            untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', $i{mname}, this.native_ptr(), _hx__ret);
                         });
                     }
                 }

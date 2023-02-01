@@ -61,7 +61,7 @@ class PostInitMacros {
                     var instance:godot.Types.VoidPtr = untyped __cpp__('(void*)((::godot::Wrapped_obj*)(((cpp::utils::RootedObject*){0})->getObject()))', root);
                     var owner:godot.Types.VoidPtr = untyped __cpp__('((::godot::Wrapped_obj*){0})->native_ptr()', instance);
 
-                    untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, owner, ret);
+                    untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, owner, ret);
 
                     if (!_reference && refCount == 1)
                         untyped __cpp__('((::godot::Wrapped_obj*){0})->prepareRemoveGCRoot()', instance);
@@ -114,7 +114,7 @@ class PostInitMacros {
                 if (_w.__owner != null) {
                     var isQueued:Bool = false;
                     var ret = cpp.Native.addressOf(isQueued);
-                    untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.Object._method_is_queued_for_deletion, _w.native_ptr(), ret);
+                    untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.Object._method_is_queued_for_deletion, _w.native_ptr(), ret);
 
                     if (!isQueued)
                         godot.Types.GodotNativeInterface.object_destroy(_w.__owner);
@@ -129,11 +129,11 @@ class PostInitMacros {
 
                     var refCount:cpp.Int64 = 0;
                     var ret = cpp.Native.addressOf(refCount);
-                    untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, _v.native_ptr(), ret);
+                    untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, _v.native_ptr(), ret);
 
                     var die:Bool = false;
                     var ret = cpp.Native.addressOf(die);
-                    untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_unreference, _v.native_ptr(), ret);
+                    untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_unreference, _v.native_ptr(), ret);
 
                     if (die) {
                         godot.Types.GodotNativeInterface.object_destroy(_v.__owner);
@@ -211,7 +211,7 @@ class PostInitMacros {
                 if (_w.__owner != null) {
                     var isQueued:Bool = false;
                     var ret = cpp.Native.addressOf(isQueued);
-                    untyped __cpp__('godot::internal::gdn_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.Object._method_is_queued_for_deletion, _w.native_ptr(), ret);
+                    untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.Object._method_is_queued_for_deletion, _w.native_ptr(), ret);
 
                     if (!isQueued)
                         godot.Types.GodotNativeInterface.object_destroy(_w.__owner);
