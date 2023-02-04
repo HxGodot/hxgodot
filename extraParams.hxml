@@ -1,5 +1,3 @@
--D HXCPP_M64
-
 #--macro include('godot', false)
 --macro include('godot.variant', true)
 -cpp bin/
