@@ -65,10 +65,13 @@ In cases where hxgodot was updated you dont need to recreate your existing proje
 1.  Update hxgodot via git
 
     `haxelib git hxgodot https://github.com/HxGodot/hxgodot.git`:
-2. Generate a new set of bindings (usually updates come with improvements)
+2. Update your projects `SConstruct` file. This can be necessary when there have been changes/updates in the build pipeline
+
+    `haxelib run hxgodot copy_buildfiles`
+3. Generate a new set of bindings (usually updates come with improvements)
     
     `haxelib run hxgodot generate_bindings`
-3. Rebuild your project's extension
+4. Rebuild your project's extension
 
     `scons platform=<windows|linux|macos> target=<debug|release>`
 
