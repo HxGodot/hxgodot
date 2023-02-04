@@ -6,7 +6,7 @@ from SCons.Variables import *
 
 default_platform = "windows"
 platforms = ("windows", "linux", "macos")
-architecture_array = ["x86_64"]
+architecture_array = ["x86_64", "x86_32"]
 
 opts = Variables([], ARGUMENTS)
 env = Environment(tools=["default"], PLATFORM="")
@@ -34,6 +34,8 @@ static_lib_name = f'libHxGodot{libTargetString}'
 shared_lib_name = f"hxgodot.{env['target']}.{env['arch']}"
 
 # platform specifics
+link_flags = []
+cc_flags = []
 if env['platform'] == "windows":
     static_lib_name += '.lib'
     shared_lib_name = 'lib' + shared_lib_name + '.dll'
@@ -41,6 +43,10 @@ if env['platform'] == "windows":
 
     if env["arch"] == "x86_64":
         env["TARGET_ARCH"] = "amd64"
+        link_flags.append("-machine:x64")
+    elif env["arch"] == "x86_32":
+        env["TARGET_ARCH"] = 'x86'
+        link_flags.append("-machine:x86")
     env["is_msvc"] = True
 
     msvc.generate(env)
@@ -50,42 +56,59 @@ if env['platform'] == "windows":
     env.Append(LIBS=['user32.lib', 'Ws2_32.lib', 'Crypt32.lib', 'Advapi32.lib'])
     env.Append(CPPDEFINES=["WIN32", "_WIN32", "_WINDOWS", "_CRT_SECURE_NO_WARNINGS"])
 
-    env.Append(CCFLAGS = ['-EHs', '-FS', '-GR', '-GS-', '-MT', '-nologo', '-Oy-', '-wd4996', '/fp:precise', '/WX-'])
+    cc_flags = cc_flags + ['-EHs', '-FS', '-GR', '-GS-', '-MT', '-nologo', '-Oy-', '-wd4996', '/fp:precise', '/WX-']
     if env['target'] == 'debug':
-        env.Append(CCFLAGS = ['-Od'])
-        env.Append(LINKFLAGS=['-debug:full'])
+        cc_flags.append('-Od')
+        link_flags.append('-debug:full')
     else:
-        env.Append(CCFLAGS = ['-O2'])
+        cc_flags.append('-O2')
 
 elif env['platform'] == "linux":
     static_lib_name += '.a'
     shared_lib_name += '.dso'
     env.Append(ENV = os.environ)
 
-    env.Append(CPPDEFINES=["_CRT_SECURE_NO_DEPRECATE"])
-    env.Append(CCFLAGS = ['-m64', '-fpic', '-fPIC', '-frtti', '-fvisibility=hidden', '-std=c++11', '-Wno-invalid-offsetof', '-Wno-overflow', '-x', 'c++'])
-    if env['target'] == 'debug':
-        env.Append(CCFLAGS = ['-g'])
+    if env["arch"] == "x86_64":
+        cc_flags.append('-m64')
     else:
-        env.Append(CCFLAGS = ['-O2'])
+        cc_flags.append('-m32')
+
+    env.Append(CPPDEFINES=["_CRT_SECURE_NO_DEPRECATE"])
+    cc_flags = cc_flags + ['-fpic', '-fPIC', '-frtti', '-fvisibility=hidden', '-std=c++11', '-Wno-invalid-offsetof', '-Wno-overflow', '-x', 'c++']
+
+    if env['target'] == 'debug':
+        cc_flags.append('-g')
+    else:
+        cc_flags.append('-O2')
 
 elif env['platform'] == "macos":
     static_lib_name += '.a'
     shared_lib_name += '.dylib'
     env.Append(ENV = os.environ)
 
-    env.Append(CPPDEFINES=["_CRT_SECURE_NO_DEPRECATE"])
-    env.Append(CCFLAGS = ['-m64', '-frtti', '-fvisibility=hidden', '-std=c++11', '-Wno-invalid-offsetof', '-Wno-overflow', '-x', 'c++'])
-    if env['target'] == 'debug':
-        env.Append(CCFLAGS = ['-g'])
+    if env["arch"] == "x86_64":
+        cc_flags.append('-m64')
     else:
-        env.Append(CCFLAGS = ['-O2'])
+        cc_flags.append('-m32')
+
+    env.Append(CPPDEFINES=["_CRT_SECURE_NO_DEPRECATE"])
+    cc_flags = cc_flags + ['-frtti', '-fvisibility=hidden', '-std=c++11', '-Wno-invalid-offsetof', '-Wno-overflow', '-x', 'c++']
+    if env['target'] == 'debug':
+        cc_flags.append('-g')
+    else:
+        cc_flags.append('-O2')
+
+env.Append(LINKFLAGS = link_flags)
+env.Append(CCFLAGS = cc_flags)
 
 # build shared objs here
 env.VariantDir('bin/obj', f'{hxgodotPath}src/', duplicate=0)
 
 # run haxe compile
-hxlib = env.Command('bin/'+static_lib_name, [], f'haxe build.hxml {libTargetString}')
+hxCmd = f'haxe build.hxml {libTargetString}'
+if env["arch"] == "x86_64":
+    hxCmd = hxCmd + ' -D HXCPP_M64'
+hxlib = env.Command('bin/'+static_lib_name, [], hxCmd)
 env.AlwaysBuild(hxlib)
 
 # build our lib

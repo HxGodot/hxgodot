@@ -140,6 +140,11 @@ class RunMain {
          return;
       }
 
+      var arch = '64bit';
+      if (options.exists('arch'))
+         if (options.get('arch') == '32')
+            arch = '32bit';
+
       log('${REGULAR_TEXT}HxGodot (${libInfo.version})');
 
       switch (args[0]) {
@@ -154,7 +159,7 @@ class RunMain {
                });
             if (!confirmed)
                return;
-            var madeBindings = prompt('${REGULAR_TEXT}Do you want to generate Godot 4 bindings to use with the sample project?', doGenerateBindings, () -> {
+            var madeBindings = prompt('${REGULAR_TEXT}Do you want to generate Godot 4 $arch bindings to use with the sample project?', doGenerateBindings, () -> {
                log('${ERROR_TEXT}${BOLD}Did not generate bindings.');
                log('${REGULAR_TEXT}Your project has been setup successfully, ${ERROR_TEXT}but you lack the Godot 4 bindings${RESET}${BOLD}.');
                log('${REGULAR_TEXT}You can generate them manually with `${COMMAND_TEXT}haxelib run hxgodot generate_bindings${RESET}${BOLD}`');
@@ -169,17 +174,25 @@ ${REGULAR_TEXT}Afterwards, you can open it in Godot 4 - Have fun! :)');
             }
          case 'generate_bindings':
             // generate bindings
-            prompt('${REGULAR_TEXT}Do you want to generate Godot 4 bindings in the current directory? ${RESET}($projectDir)', doGenerateBindings, () -> {
+            prompt('${REGULAR_TEXT}Do you want to generate Godot 4 $arch bindings in the current directory? ${RESET}($projectDir)', doGenerateBindings, () -> {
+               log('${ERROR_TEXT}${BOLD}No action taken.');
+            });
+         case 'copy_buildfiles':
+            // just copy the build files
+            prompt('${REGULAR_TEXT}Do you want to copy HxGodot\'s latest SConstruct file to the current directory? ${RESET}($projectDir)', doCopyBuildFiles, () -> {
                log('${ERROR_TEXT}${BOLD}No action taken.');
             });
          case 'help' | 'usage':
             log('\n${REGULAR_TEXT}Usage:
- ${COMMAND_TEXT}haxelib run hxgodot init ${ALT_COMMAND_TEXT}[--extension-api-json=<path>]
+ ${COMMAND_TEXT}haxelib run hxgodot init ${ALT_COMMAND_TEXT}[--arch=<32|64>] [--extension-api-json=<path>]
   ${REGULAR_TEXT}1. Setup a sample project in the current working directory.
   2. Generate Godot 4 bindings in the current working directory.
 
- ${COMMAND_TEXT}haxelib run hxgodot generate_bindings ${ALT_COMMAND_TEXT}[--extension-api-json=<path>]
+ ${COMMAND_TEXT}haxelib run hxgodot generate_bindings ${ALT_COMMAND_TEXT}[--arch=<32|64>] [--extension-api-json=<path>]
   ${REGULAR_TEXT}1. Generate Godot 4 bindings in the current working directory.
+
+ ${COMMAND_TEXT}haxelib run hxgodot copy_buildfiles ${ALT_COMMAND_TEXT}
+  ${REGULAR_TEXT}1. Copy HxGodot\'s latest SConstruct file to the current working directory.
   
 ${REGULAR_TEXT}Flags:
  ${COMMAND_TEXT}-y${REGULAR_TEXT}: Automatically confirm any yes/no prompts.
@@ -209,7 +222,7 @@ ${REGULAR_TEXT}Flags:
    public static function doSetupProject() {
       log('${STATUS_TEXT}Populating project folder...');
       templateDir = Path.join([libDir, "tools", "template"]);
-      _recursiveLoop(templateDir);
+      _recursiveLoopCopy(templateDir);
       log('${SUCCESS_TEXT}Done.\n');
    }
 
@@ -220,9 +233,25 @@ ${REGULAR_TEXT}Flags:
          args.push('-D');
          args.push('EXT_API_JSON=${resolvePath(options.get('extension-api-json'))}');
       }
+      if (options.exists('arch')) {
+         if (options.get('arch') != '32') {
+            args.push('-D');
+            args.push('HXCPP_M64');
+         }
+      } else { // default to 64
+         args.push('-D');
+         args.push('HXCPP_M64');
+      }
       run("", "haxe", args);
       File.saveContent(Path.join([bindingDir, '.gdignore']), '');
       log('${SUCCESS_TEXT}Done.');
+   }
+
+   public static function doCopyBuildFiles() {
+      log('${STATUS_TEXT}Populating project folder...');
+      templateDir = Path.join([libDir, "tools", "template"]);
+      _copyFileToProjectDir(Path.join([templateDir, "SConstruct"]));
+      log('${SUCCESS_TEXT}Done.\n');
    }
 
    public static inline final PROMPT_TIMEOUT_DURATION:Float = 30;
@@ -271,15 +300,15 @@ ${REGULAR_TEXT}Flags:
       return false;
    }
 
-   static function _recursiveLoop(directory:String) {
+   static function _recursiveLoopCopy(directory:String) {
       if (FileSystem.exists(directory)) {
          for (file in FileSystem.readDirectory(directory)) {
             var path = Path.join([directory, file]);
             if (!FileSystem.isDirectory(path)) {
-               _copyFile(path);
+               _copyFileToProjectDir(path);
             } else {
                var directory = Path.addTrailingSlash(path);
-               _recursiveLoop(directory);
+               _recursiveLoopCopy(directory);
             }
          }
       } else {
@@ -287,7 +316,7 @@ ${REGULAR_TEXT}Flags:
       }
    }
 
-   static function _copyFile(_path:String) {
+   static function _copyFileToProjectDir(_path:String) {
       var rel = _path.substr(templateDir.length);
       var abs = Path.join([projectDir, rel]);
       log(abs);
