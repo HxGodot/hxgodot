@@ -93,6 +93,7 @@ class FunctionMacros {
 
         // add static factory function to class
         var tpath = _bind.clazz.typePath;
+        var ctPath = TPath(tpath);
         var destr = _bind.clazz.hasDestructor ? 
             macro cpp.vm.Gc.setFinalizer(inst, cpp.Callable.fromStaticFunction(_destruct)) : macro {};
         _fields.push({
@@ -103,7 +104,7 @@ class FunctionMacros {
             kind: FFun({
                 args: vArgs.argExprs,
                 expr: macro {
-                    var inst = new $tpath();
+                    var inst:$ctPath = new $tpath();
                     $destr;
 
                     $b{exprs};
@@ -1046,13 +1047,16 @@ class FunctionMacros {
                     conCallArgs.push({
                         type: '(GDExtensionTypePtr)&', 
                         name: '_hxwrap__$argName',
-                        decl: 'var _hxwrap__$argName:$argType = ($argName:${argType});'
+                        decl: [ 'var _hxwrap__$argName:$argType = ($argName:${argType});' ]
                     });
                 else
                     conCallArgs.push({
                         type: '(GDExtensionTypePtr)',
                         name: '_hxwrap__$argName',
-                        decl: 'var _hxwrap__$argName = ($argName:${argType}).native_ptr();'
+                        decl: [ 
+                            'var _hxwrap__$argName:godot.Types.VoidPtr = null;',
+                            'if (untyped __cpp__("{0}.mPtr != nullptr",$argName)) _hxwrap__$argName = $argName.native_ptr();'
+                        ]
                     });
             }
 
@@ -1064,7 +1068,8 @@ class FunctionMacros {
             for (i in 0...conCallArgs.length) {
                 tmp.push('${conCallArgs[i].type}{$i}');
                 vals.push('${conCallArgs[i].name}');
-                argBody.push(Context.parse(conCallArgs[i].decl, Context.currentPos()));
+                for (a in cast(conCallArgs[i].decl, Array<Dynamic>))
+                    argBody.push(Context.parse(a, Context.currentPos()));
             }
 
             var sArgs = 'std::array<GDExtensionConstTypePtr, ${_bind.arguments.length}> call_args = { ${tmp.join(",")} }';

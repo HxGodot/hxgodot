@@ -879,6 +879,9 @@ class ClassGenMacros {
 
             // operators
             if (b.operators != null) {
+                // make sure we add variant operators last! so collect them here and add the last
+                var variantOperatorBinds = [];
+
                 for (o in cast(b.operators, Array<Dynamic>)) {
                     if (!TypeMacros.isTypeAllowed(o.return_type))
                         continue;
@@ -920,7 +923,7 @@ class ClassGenMacros {
                     }
 
                     var oname = '_operator_${opName}_${o.right_type}';
-                    binds.push({
+                    var bind:FunctionBind = {
                         clazz: clazz,
                         name: 'operator_${opName}_${o.right_type}',
                         type: FunctionBindType.OPERATOR,
@@ -934,8 +937,15 @@ class ClassGenMacros {
                             ],
                             extra: TypeMacros.getOpHaxe(opType)
                         }
-                    });
+                    };
+
+                    if (o.right_type == "Variant")
+                        variantOperatorBinds.push(bind);
+                    else
+                        binds.push(bind);
                 }
+
+                binds = binds.concat(variantOperatorBinds);
             }
 
             // indexing

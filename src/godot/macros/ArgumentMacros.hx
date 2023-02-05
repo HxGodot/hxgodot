@@ -20,10 +20,12 @@ class ArgumentMacros {
     }
 
     public static function convertVariant(_index:Int, _args:String, _type:haxe.macro.ComplexType) {
-        var isWrappedGodotClass = Context.unify(ComplexTypeTools.toType(_type), Context.getType("godot.Wrapped"));
+        var type = ComplexTypeTools.toType(_type);
+        var isWrappedGodotClass = Context.unify(type, Context.getType("godot.Wrapped"));
         
         function _default() {
-            var identBindings = '&::godot::Object_obj::___binding_callbacks';
+
+            var identBindings = getIdentBindingCallbacks(type);
 
             var ret = isWrappedGodotClass ? macro {
                     var constructor = godot.variant.Variant.__Variant.to_type_constructor.get(godot.Types.GDExtensionVariantType.OBJECT);
@@ -227,16 +229,7 @@ class ArgumentMacros {
                             default: false;
                         }
 
-                        // extract package from the type
-                        var tClassName = "";
-                        var path = switch(ctType) {
-                            case TInst(_t, _): tClassName = _t.get().name; _t.get().pack;
-                            case TAbstract(_t, _): tClassName = _t.get().name; _t.get().pack;
-                            default: Context.fatalError('Error: ${ctType} is not dealt with in ArgumentMacros. Please report this type so we can fix!', Context.currentPos()); null;
-                        }
-                        path.push(tClassName);
-
-                        var identBindings = '&::${path.join("::")}_obj::___binding_callbacks';
+                        var identBindings = getIdentBindingCallbacks(ctType);
                         macro {
                             // managed types need a pointer indirection
                             var retOriginal:godot.Types.VoidPtr = 
@@ -319,6 +312,19 @@ class ArgumentMacros {
                 }
             default: _default();
         } : _default();
+    }
+
+    inline public static function getIdentBindingCallbacks(_ctType:haxe.macro.Type):String {
+        // assemble the cpp type for the identbinding so a proper typed instance can be created / mapped
+        var tClassName = "";
+        var path = switch(_ctType) {
+            case TInst(_t, _): tClassName = _t.get().name; _t.get().pack;
+            case TAbstract(_t, _): tClassName = _t.get().name; _t.get().pack;
+            default: Context.fatalError('Error: ${_ctType} is not dealt with in ArgumentMacros. Please report this type so we can fix!', Context.currentPos()); null;
+        }
+        path.push(tClassName);
+
+        return '&::${path.join("::")}_obj::___binding_callbacks';
     }
 
     public static function prepareArgumentDefaultValue(_argType:String, _defVal:String):String {
