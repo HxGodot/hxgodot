@@ -1144,6 +1144,9 @@ class ClassGenMacros {
         var binds = new Array<FunctionBind>();
         for (m in cast(_api.utility_functions, Array<Dynamic>)) {
 
+            // TODO: instance_from_id function is broken, provide a custom implementation for it
+            if (m.name == "instance_from_id") continue;
+
             var caName = ArgumentMacros.guardAgainstKeywords(m.name);
 
             var isAllowed = true;
@@ -1246,6 +1249,17 @@ class ClassGenMacros {
             @:noCompletion
             static function __init_builtin_bindings() {
                 $b{pointerInits};
+            }
+
+            // TODO: instance_from_id function is broken, provide a custom implementation for it
+            public static function instance_from_id(_id:godot.Types.GDObjectInstanceID):godot.Object {
+                var ret = null;
+                var obj = godot.Types.GodotNativeInterface.object_get_instance_from_id(_id);
+                if (obj != null) {
+                    ret = cast Type.createEmptyInstance(godot.Object);
+                    ret.__owner = obj;
+                }
+                return ret;
             }
         }
         cls.fields = cls.fields.concat(inits.fields);

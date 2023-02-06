@@ -351,7 +351,7 @@ typedef GDExtensionPropertyInfoPtr = cpp.Star<GDExtensionPropertyInfo>;
 typedef GDExtensionInt = cpp.Int64;
 typedef GDExtensionBool = cpp.UInt8;
 typedef GDExtensionFloat = cpp.Float32; // TODO: take into account if godot was compiled for doubles
-typedef GDObjectInstanceID = cpp.Int64;
+typedef GDObjectInstanceID = cpp.UInt64;
 
 // simple extern to work with the static functions of the native interface and proper typing
 @:include("godot_cpp/godot.hpp")
@@ -498,6 +498,12 @@ extern class GodotNativeInterface {
 
     @:native("godot::internal::gde_interface->object_cast_to")
     public static function object_cast_to(_obj:GDExtensionObjectPtr, _tag:VoidPtr):GDExtensionObjectPtr;
+
+    @:native("godot::internal::gde_interface->object_get_instance_from_id")
+    public static function object_get_instance_from_id(_id:GDObjectInstanceID):GDExtensionObjectPtr;
+
+    @:native("godot::internal::gde_interface->object_get_instance_id")
+    public static function object_get_instance_id(_obj:GDExtensionObjectPtr):GDObjectInstanceID;
 
     @:native("godot::internal::gde_interface->global_get_singleton")
     public static function global_get_singleton(_classname:GDExtensionStringNamePtr):GDExtensionObjectPtr;
