@@ -138,8 +138,7 @@ class ClassGenExtraMacros {
                     }
 
                     @:to inline public function toFloat32Array():haxe.io.Float32Array {
-                        var len = this.size();
-                        var bLen= len*4;
+                        var bLen = (this.size():Int) * 4;
                         var ptr:cpp.Star<cpp.UInt8> = untyped __cpp__('(uint8_t*){0}', godot.Types.GodotNativeInterface.packed_float32_array_operator_index(this.native_ptr(), 0));
                         var bytes = haxe.io.Bytes.alloc(bLen);
                         cpp.Native.memcpy(cpp.NativeArray.getBase(bytes.getData()).getBase(), ptr, bLen);

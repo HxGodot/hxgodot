@@ -52,7 +52,7 @@ class HxGodot {
                 lines.reverse();
                 lines.pop();
                 lines.unshift(Std.string(v));
-                GodotNativeInterface.print_error(lines.join('\n'), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
+                GodotNativeInterface.print_error(lines.join('\n'), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber, true);
             } else {
                 //GodotNativeInterface.print_warning(Std.string(v), infos.className+":"+infos.methodName, infos.fileName, infos.lineNumber);
                 var msg = infos.fileName+":"+infos.lineNumber+": "+ Std.string(v);

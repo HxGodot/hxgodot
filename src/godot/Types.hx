@@ -361,10 +361,10 @@ extern class GodotNativeInterface {
     public static function mem_free(_ptr:VoidPtr):Void;
 
     @:native("godot::internal::gde_interface->print_error")
-    public static function print_error(_m:String, _function:String, _file:String, _line:Int):Void;
+    public static function print_error(_m:String, _function:String, _file:String, _line:Int, _editor_notify:Bool):Void;
 
     @:native("godot::internal::gde_interface->print_warning")
-    public static function print_warning(_m:String, _function:String, _file:String, _line:Int):Void;
+    public static function print_warning(_m:String, _function:String, _file:String, _line:Int, _editor_notify:Bool):Void;
     
     @:native("godot::internal::gde_interface->classdb_construct_object")
     public static function classdb_construct_object(_class:GDExtensionStringNamePtr):GDExtensionObjectPtr;
