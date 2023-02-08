@@ -874,7 +874,7 @@ class ClassGenMacros {
                         ]
                     }
                 });
-                propertyType.set(clazz+':'+${caName}, retType);
+                propertyType.set(clazz+':'+caName, retType);
             }
 
             // operators
