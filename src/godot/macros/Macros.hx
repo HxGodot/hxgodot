@@ -819,7 +819,12 @@ class Macros {
 
             var virtClass = macro class {
                 private function $vname(_args:godot.Types.VoidPtr, _ret:godot.Types.VoidPtr) {
-                    ${virtCall};
+                    try {
+                        ${virtCall};
+                    } catch (_e) {
+                        trace(_e, true);
+                        throw _e;
+                    }
                 }
             };
 
@@ -984,12 +989,17 @@ class Macros {
                 _ret:godot.Types.VoidPtr,
                 _error:godot.Types.VoidPtr) 
             {
-                var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData);
-                var instance:$ctType = untyped __cpp__(
-                        $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                        _instance
-                    );
-                $b{bindCalls};
+                try {
+                    var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData);
+                    var instance:$ctType = untyped __cpp__(
+                            $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
+                            _instance
+                        );
+                    $b{bindCalls};
+                } catch (_e) {
+                    trace(_e, true);
+                    throw _e;
+                }
             }
 
             static function __bindCallPtr(
@@ -998,12 +1008,17 @@ class Macros {
                 _args:godot.Types.VoidPtr,
                 _ret:godot.Types.VoidPtr) 
             {
-                var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData);
-                var instance:$ctType = untyped __cpp__(
-                        $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                        _instance
-                    );
-                $b{bindCallPtrs};   
+                try {
+                    var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData);
+                    var instance:$ctType = untyped __cpp__(
+                            $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
+                            _instance
+                        );
+                    $b{bindCallPtrs};
+                } catch (_e) {
+                    trace(_e, true);
+                    throw _e;
+                }
             }
         }
         return _fields.concat(fieldBindingsClass.fields.concat(virtualFuncImpls));

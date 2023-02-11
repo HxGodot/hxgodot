@@ -64,7 +64,6 @@ class ClassGenExtraMacros {
                         return godot.variant.StringName.operator_NOT_EQUAL_StringName(_lhs, (_rhs:StringName));
                     }
                 }
-
                 
                 ops = ops.concat(tmp.fields);
             }
