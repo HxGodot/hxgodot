@@ -27,6 +27,19 @@ class HxGodot {
         return ran;
     }
 
+    public static function getExceptionStackString(_e:Dynamic) {
+        var msg = [_e.value];
+        for (s in cast(_e.__nativeStack, Array<Dynamic>)) {
+            var tokens = s.split("::");
+            var cls = tokens[0];
+            var func = tokens[1];
+            var file = tokens[2];
+            var line = tokens[3];
+            msg.push('Called from $cls.$func ($file:$line)');
+        }
+        return msg.join("\n");
+    }
+
     static function main() {
         // setup constructors
         __Variant.__initBindings();

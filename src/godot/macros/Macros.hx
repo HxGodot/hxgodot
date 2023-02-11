@@ -822,7 +822,7 @@ class Macros {
                     try {
                         ${virtCall};
                     } catch (_e) {
-                        trace(_e, true);
+                        trace(HxGodot.getExceptionStackString(_e), true);
                         throw _e;
                     }
                 }
@@ -997,7 +997,7 @@ class Macros {
                         );
                     $b{bindCalls};
                 } catch (_e) {
-                    trace(_e, true);
+                    trace(HxGodot.getExceptionStackString(_e), true);
                     throw _e;
                 }
             }
@@ -1016,7 +1016,7 @@ class Macros {
                         );
                     $b{bindCallPtrs};
                 } catch (_e) {
-                    trace(_e, true);
+                    trace(HxGodot.getExceptionStackString(_e), true);
                     throw _e;
                 }
             }
