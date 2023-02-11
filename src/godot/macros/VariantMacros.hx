@@ -295,7 +295,9 @@ class VariantMacros {
                     resPtr,
                     this.native_ptr()
                 );
-            } else  {
+            } else if ($v{_extType} == GDExtensionVariantType.STRING) {
+                godot.Types.GodotNativeInterface.variant_stringify(this.native_ptr(), resPtr);
+            } else {
                 trace("Cannot cast "+ __Variant.getGDExtensionVariantTypeString(type) + " to " + __Variant.getGDExtensionVariantTypeString($v{_extType}), true);
             }
             return res;
@@ -318,16 +320,18 @@ class VariantMacros {
                     this.native_ptr()
                 );
 
-                var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
-                    retOriginal, 
-                    untyped __cpp__("godot::internal::token"), 
-                    untyped __cpp__($v{identBindings})
-                );
-                res = untyped __cpp__(
-                    $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                    obj
-                );                
-            } else  {
+                if (retOriginal != null) { // a variant with type Object can be NIL
+                    var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
+                        retOriginal, 
+                        untyped __cpp__("godot::internal::token"), 
+                        untyped __cpp__($v{identBindings})
+                    );
+                    res = untyped __cpp__(
+                        $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
+                        obj
+                    );
+                }
+            } else {
                 trace("Cannot cast "+ __Variant.getGDExtensionVariantTypeString(type) + " to " + __Variant.getGDExtensionVariantTypeString($v{_extType}), true);
             }
             return res;

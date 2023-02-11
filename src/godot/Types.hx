@@ -484,6 +484,10 @@ extern class GodotNativeInterface {
         return untyped __cpp__('godot::internal::gde_interface->variant_can_convert_strict((GDExtensionVariantType){0}, (GDExtensionVariantType){1})', _from, _to);
     }
 
+    inline public static function variant_stringify(_self:GDExtensionVariantPtr, _ret:GDExtensionStringPtr):Bool {
+        return untyped __cpp__('godot::internal::gde_interface->variant_stringify({0}, {1})', _self, _ret);
+    }
+
     @:native("godot::internal::gde_interface->variant_get_type")
     public static function variant_get_type(_ptr0:GDExtensionVariantPtr):GDExtensionVariantType;
 
