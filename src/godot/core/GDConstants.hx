@@ -2,7 +2,6 @@ package godot.core;
 
 import godot.Types;
 import godot.variant.Color;
-import godot.variant.Vector2;
 
 typedef NamedColor = {
     var name:String;

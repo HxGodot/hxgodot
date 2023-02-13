@@ -17,8 +17,7 @@ class HxGodot {
     static var gcCycle = 0.0;
     public static function runGc(_dt:Float) {
         var ran = false;
-        if (gcCycle > 1) {
-            
+        if (gcCycle > 1) {            
             cpp.NativeGc.run(true);
             gcCycle = 0;
             ran = true;
