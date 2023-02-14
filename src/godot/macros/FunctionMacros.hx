@@ -78,14 +78,14 @@ class FunctionMacros {
             exprs = exprs.concat(vArgs.argBody);
             exprs.push(macro {
                 untyped __cpp__('((GDExtensionPtrConstructor){0})({1}, (GDExtensionConstTypePtr*)call_args.data());', 
-                    $i{"_"+_bind.name},
+                    $i{"_"+_bind.name}.ptr,
                     inst.native_ptr()
                 );
             });
         } else {
             exprs.push(macro {
                 untyped __cpp__('((GDExtensionPtrConstructor){0})({1}, nullptr);', 
-                    $i{"_"+_bind.name},
+                    $i{"_"+_bind.name}.ptr,
                     inst.native_ptr()
                 );
             });
@@ -173,7 +173,7 @@ class FunctionMacros {
             kind: FFun({
                 args: [{name: '_this', type: TPath(_bind.clazz.typePath)}],
                 expr: macro { 
-                    untyped __cpp__('((GDExtensionPtrDestructor){0})({1})', _destructor, _this.native_ptr());
+                    untyped __cpp__('((GDExtensionPtrDestructor){0})({1})', _destructor.ptr, _this.native_ptr());
                 },
                 params: [],
                 ret: TPath(_bind.returnType)
@@ -224,7 +224,7 @@ class FunctionMacros {
                 else
                     exprs.push(macro {
                         untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})({1}, (GDExtensionConstTypePtr*)call_args.data(), (GDExtensionTypePtr){2}, {3});', 
-                            $i{mname},
+                            $i{mname}.ptr,
                             this.native_ptr(),
                             _hx__ret,
                             $v{vArgs.argCount}
@@ -233,7 +233,7 @@ class FunctionMacros {
             } else {
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})({1}, nullptr, (GDExtensionTypePtr){2}, 0);', 
-                        $i{mname},
+                        $i{mname}.ptr,
                         this.native_ptr(),
                         _hx__ret
                     );
@@ -267,7 +267,7 @@ class FunctionMacros {
                 else
                     exprs.push(macro {
                         untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})({1}, (GDExtensionConstTypePtr*)call_args.data(), (GDExtensionTypePtr){2}, {3});', 
-                            $i{mname},
+                            $i{mname}.ptr,
                             this.native_ptr(),
                             _hx__ret,
                             $v{vArgs.argCount}
@@ -276,7 +276,7 @@ class FunctionMacros {
             } else {
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})({1}, nullptr, (GDExtensionTypePtr){2}, 0);', 
-                        $i{mname},
+                        $i{mname}.ptr,
                         this.native_ptr(),
                         _hx__ret
                     );
@@ -330,14 +330,14 @@ class FunctionMacros {
                 exprs = exprs.concat(vArgs.argBody);
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})(nullptr, (GDExtensionConstTypePtr*)call_args.data(), nullptr, {1});', 
-                        $i{mname},
+                        $i{mname}.ptr,
                         $v{vArgs.argCount}
                     );
                 });
             } else {
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})(nullptr, nullptr, nullptr, 0);', 
-                        $i{mname}
+                        $i{mname}.ptr
                     );
                 });
             }
@@ -352,7 +352,7 @@ class FunctionMacros {
                 exprs = exprs.concat(vArgs.argBody);
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})(nullptr, (GDExtensionConstTypePtr*)call_args.data(), (GDExtensionTypePtr){1}, {2});', 
-                        $i{mname},
+                        $i{mname}.ptr,
                         _hx__ret,
                         $v{vArgs.argCount}
                     );
@@ -360,7 +360,7 @@ class FunctionMacros {
             } else {
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrBuiltInMethod){0})(nullptr, nullptr, (GDExtensionTypePtr){1}, 0);', 
-                        $i{mname},
+                        $i{mname}.ptr,
                         _hx__ret
                     );
                 });
@@ -432,7 +432,7 @@ class FunctionMacros {
         if (_bind.type == FunctionBindType.PROPERTY_GET) { // Getter
             var exprs = [macro {
                 untyped __cpp__('((GDExtensionPtrGetter){0})({1}, (GDExtensionTypePtr){2});', 
-                    $i{mname},
+                    $i{mname}.ptr,
                     this.native_ptr(),
                     _hx__ret
                 );
@@ -460,7 +460,7 @@ class FunctionMacros {
             var aName = _bind.arguments[0].name;
             var exprs = [macro {
                 untyped __cpp__('((GDExtensionPtrSetter){0})({1}, (GDExtensionTypePtr){2});', 
-                    $i{mname},
+                    $i{mname}.ptr,
                     this.native_ptr(),
                     arg
                 );
@@ -527,7 +527,7 @@ class FunctionMacros {
 
         var exprs = [macro {
             untyped __cpp__('((GDExtensionPtrOperatorEvaluator){0})({1}, {2}, {3});', 
-                $i{oname},
+                ($i{oname}:godot.Types.StarVoidPtr),
                 $left,
                 $right,
                 _hx__ret
@@ -589,7 +589,7 @@ class FunctionMacros {
             var index = _bind.arguments[0].name;
             var exprs = [macro {
                 untyped __cpp__('((GDExtensionPtrIndexedGetter){0})({1}, {2}, (GDExtensionTypePtr){3});', 
-                    $i{mname},
+                    $i{mname}.ptr,
                     this.native_ptr(),
                     $i{index},
                     _hx__ret
@@ -619,7 +619,7 @@ class FunctionMacros {
             var aName = _bind.arguments[1].name;
             var exprs = [macro {
                 untyped __cpp__('((GDExtensionPtrIndexedSetter){0})({1}, {2}, (GDExtensionConstTypePtr){3});', 
-                    $i{mname},
+                    $i{mname}.ptr,
                     this.native_ptr(),
                     $i{index},
                     arg
@@ -913,14 +913,14 @@ class FunctionMacros {
                 exprs = exprs.concat(vArgs.argBody);
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrUtilityFunction){0})(nullptr, (GDExtensionConstTypePtr*)call_args.data(), {1});', 
-                        $i{mname},
+                        $i{mname}.ptr,
                         $v{vArgs.argCount}
                     );
                 });
             } else {
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrUtilityFunction){0})(nullptr, nullptr, 0);', 
-                        $i{mname}
+                        $i{mname}.ptr
                     );
                 });
             }
@@ -935,7 +935,7 @@ class FunctionMacros {
                 exprs = exprs.concat(vArgs.argBody);
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrUtilityFunction){0})((GDExtensionTypePtr){1}, (GDExtensionConstTypePtr*)call_args.data(), {2});', 
-                        $i{mname},
+                        $i{mname}.ptr,
                         _hx__ret,
                         $v{vArgs.argCount}
                     );
@@ -943,7 +943,7 @@ class FunctionMacros {
             } else {
                 exprs.push(macro {
                     untyped __cpp__('((GDExtensionPtrUtilityFunction){0})((GDExtensionTypePtr){1}, nullptr, 0);', 
-                        $i{mname},
+                        $i{mname}.ptr,
                         _hx__ret
                     );
                 });
@@ -1094,8 +1094,8 @@ class FunctionMacros {
         if (typePath.pack.length == 1 && typePath.pack[0] == "godot") {
             body = macro {
                 // managed types need a pointer indirection
-                var retOriginal:godot.Types.VoidPtr = untyped __cpp__('nullptr');
-                var _hx__ret:godot.Types.VoidPtr = untyped __cpp__('&{0}', retOriginal);
+                var retOriginal:godot.Types.StarVoidPtr = untyped __cpp__('nullptr');
+                var _hx__ret:godot.Types.StarVoidPtr = untyped __cpp__('&{0}', retOriginal);
                 
                 $b{_exprs};
 
@@ -1108,7 +1108,7 @@ class FunctionMacros {
 
                     var instance:$ctType = untyped __cpp__(
                             $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                            obj
+                            obj.ptr
                         );
 
                     return cast instance;

@@ -1055,11 +1055,14 @@ class ClassGenMacros {
                 inline public function set_native_ptr(_ptr:godot.Types.GDExtensionTypePtr):Void {
                     if ($v{isAllowed} == true) { // TODO: remove this hack!
                         if ($v{has_destructor} == true) // we need to release first if we got a destructor
-                            untyped __cpp__('((GDExtensionPtrDestructor){0})({1})', _destructor, this.native_ptr());
+                            untyped __cpp__('((GDExtensionPtrDestructor){0})({1})', _destructor.ptr, this.native_ptr());
 
                         // now use copy constructor, otherwise we leak like shit
                         untyped __cpp__("std::array<GDExtensionConstTypePtr, 1> call_args = { (GDExtensionTypePtr){0} }", _ptr);
-                        untyped __cpp__('((GDExtensionPtrConstructor){0})({1}, (GDExtensionConstTypePtr*)call_args.data());', _constructor_1, this.native_ptr());
+                        untyped __cpp__('((GDExtensionPtrConstructor){0})({1}, (GDExtensionConstTypePtr*)call_args.data());', 
+                            _constructor_1.ptr, 
+                            this.native_ptr()
+                        );
                     }
                 }
             };

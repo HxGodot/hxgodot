@@ -251,7 +251,7 @@ class VariantMacros {
             if (__Variant._canConvert(type, $v{_extType})) {
                 var constructor = __Variant.to_type_constructor.get($v{_extType});
                 untyped __cpp__('((GDExtensionTypeFromVariantConstructorFunc){0})({1}, {2});',
-                    constructor,
+                    (constructor:godot.Types.StarVoidPtr),
                     cpp.Native.addressOf(res),
                     this.native_ptr()
                 );
@@ -271,7 +271,7 @@ class VariantMacros {
             if (__Variant._canConvert(type, $v{_extType})) {
                 var constructor = __Variant.to_type_constructor.get($v{_extType});
                 untyped __cpp__('((GDExtensionTypeFromVariantConstructorFunc){0})({1}, {2});',
-                    constructor,
+                    (constructor:godot.Types.StarVoidPtr),
                     resPtr,
                     this.native_ptr()
                 );
@@ -291,7 +291,7 @@ class VariantMacros {
             if (__Variant._canConvert(type, $v{_extType})) {
                 var constructor = __Variant.to_type_constructor.get($v{_extType});
                 untyped __cpp__('((GDExtensionTypeFromVariantConstructorFunc){0})({1}, {2});',
-                    constructor,
+                    (constructor:godot.Types.StarVoidPtr),
                     resPtr,
                     this.native_ptr()
                 );
@@ -311,8 +311,8 @@ class VariantMacros {
             var res = null;
             if (__Variant._canConvert(type, $v{_extType})) {
                 var constructor = __Variant.to_type_constructor.get($v{_extType});
-                var retOriginal:godot.Types.VoidPtr = untyped __cpp__('nullptr');
-                var _hx__ret:godot.Types.VoidPtr = untyped __cpp__('&{0}', retOriginal);
+                var retOriginal:godot.Types.StarVoidPtr = untyped __cpp__('nullptr');
+                var _hx__ret:godot.Types.StarVoidPtr = untyped __cpp__('&{0}', retOriginal);
 
                 untyped __cpp__('((GDExtensionTypeFromVariantConstructorFunc){0})({1}, {2});',
                     constructor,
@@ -328,7 +328,7 @@ class VariantMacros {
                     );
                     res = untyped __cpp__(
                         $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                        obj
+                        obj.ptr
                     );
                 }
             } else {

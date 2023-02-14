@@ -37,13 +37,13 @@ class PostInitMacros {
             }
             static function ___binding_free_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr):Void {
 
-                if (untyped __cpp__('((cpp::utils::RootedObject*){0})->getObjectPtr() == nullptr', _binding)) {
-                    untyped __cpp__('delete ((cpp::utils::RootedObject*){0})', _binding);
+                if (untyped __cpp__('((cpp::utils::RootedObject*){0})->getObjectPtr() == nullptr', _binding.ptr)) {
+                    untyped __cpp__('delete ((cpp::utils::RootedObject*){0})', _binding.ptr);
                 } else {
 
                     var instance:$ctType = untyped __cpp__(
                             $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                            _binding
+                            _binding.ptr
                         );
                     //if ($v{_isRefCounted==false})
                         //instance.__owner = null;
@@ -52,13 +52,13 @@ class PostInitMacros {
             }
             static function ___binding_reference_callback(_token:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr, _reference:Bool):Bool {
                 if ($v{_isRefCounted==true}) {
-                    if (untyped __cpp__('((cpp::utils::RootedObject*){0})->getObjectPtr() == nullptr', _binding))
+                    if (untyped __cpp__('((cpp::utils::RootedObject*){0})->getObjectPtr() == nullptr', _binding.ptr))
                         return true;
 
                     var refCount:cpp.Int64 = 0;
                     var ret = cpp.Native.addressOf(refCount);
-                    var root:godot.Types.VoidPtr = untyped __cpp__('(void*)((cpp::utils::RootedObject*){0})', _binding);
-                    var instance:godot.Types.VoidPtr = untyped __cpp__('(void*)((::godot::Wrapped_obj*)(((cpp::utils::RootedObject*){0})->getObject()))', root);
+                    var root:godot.Types.StarVoidPtr = untyped __cpp__('(void*)((cpp::utils::RootedObject*){0})', _binding.ptr);
+                    var instance:godot.Types.StarVoidPtr = untyped __cpp__('(void*)((::godot::Wrapped_obj*)(((cpp::utils::RootedObject*){0})->getObject()))', root);
                     var owner:godot.Types.VoidPtr = untyped __cpp__('((::godot::Wrapped_obj*){0})->native_ptr()', instance);
 
                     untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, owner, ret);
@@ -90,17 +90,17 @@ class PostInitMacros {
                 
                 if ($v{className != _godotBaseclass}) { // deadcode elimination will get rid of this
                     godot.Types.GodotNativeInterface.object_set_instance(
-                        __owner, 
+                        __owner.ptr, 
                         __class_name.native_ptr(), 
-                        cast this.__root
+                        this.__root.ptr
                     );
                 }
                 
                 // register the callbacks, do we need this?
                 godot.Types.GodotNativeInterface.object_set_instance_binding(
-                    __owner, 
+                    __owner.ptr, 
                     untyped __cpp__("godot::internal::token"), 
-                    cast this.__root, 
+                    this.__root.ptr,
                     untyped __cpp__($v{identBindings})
                 );
             }
@@ -186,17 +186,17 @@ class PostInitMacros {
                 
                 if ($v{className != _godotBaseclass}) { // deadcode elimination will get rid of this
                     godot.Types.GodotNativeInterface.object_set_instance(
-                        __owner, 
+                        __owner.ptr, 
                         __class_name.native_ptr(), 
-                        cast this.__root
+                        this.__root.ptr
                     );
                 }
                 
                 // register the callbacks, do we need this?
                 godot.Types.GodotNativeInterface.object_set_instance_binding(
-                    __owner, 
+                    __owner.ptr, 
                     untyped __cpp__("godot::internal::token"), 
-                    cast this.__root, 
+                    this.__root.ptr, 
                     untyped __cpp__($v{identBindings})
                 );
             }

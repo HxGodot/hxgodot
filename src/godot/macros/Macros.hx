@@ -60,20 +60,20 @@ class Macros {
                 static void *___binding_create_callback(void *p_token, void *p_instance) {
                     int base = 99;
                     hx::SetTopOfStack(&base,true);
-                    void *res = _hx____binding_create_callback(p_token, p_instance);
+                    void *res = _hx____binding_create_callback(p_token, cpp::Pointer<void>(p_instance));
                     hx::SetTopOfStack((int*)0,true);
                     return res;
                 }
                 static void ___binding_free_callback(void *p_token, void *p_instance, void *p_binding) {
                     int base = 99;
                     hx::SetTopOfStack(&base,true);
-                    _hx____binding_free_callback(p_token, p_instance, p_binding);
+                    _hx____binding_free_callback(p_token, cpp::Pointer<void>(p_instance), cpp::Pointer<void>(p_binding));
                     hx::SetTopOfStack((int*)0,true);
                 }
                 static GDExtensionBool ___binding_reference_callback(void *p_token, void *p_instance, GDExtensionBool p_reference) { 
                     int base = 99;
                     hx::SetTopOfStack(&base,true);
-                    GDExtensionBool res = _hx____binding_reference_callback(p_token, p_instance, p_reference);
+                    GDExtensionBool res = _hx____binding_reference_callback(p_token, cpp::Pointer<void>(p_instance), p_reference);
                     hx::SetTopOfStack((int*)0,true);
                     return res;
                 }
@@ -851,7 +851,7 @@ class Macros {
             static GDExtensionClassCallVirtual __onGetVirtualFunc(void *p_userdata, const GDExtensionStringNamePtr p_name) {
                 int base = 99;
                 hx::SetTopOfStack(&base,true);
-                GDExtensionClassCallVirtual res = (GDExtensionClassCallVirtual)${_cppClassName}_obj::_hx___getVirtualFunc(p_userdata, p_name);
+                GDExtensionClassCallVirtual res = (GDExtensionClassCallVirtual)${_cppClassName}_obj::_hx___getVirtualFunc(p_userdata, p_name).ptr;
                 hx::SetTopOfStack((int*)0,true);
                 return res;
             }
@@ -908,7 +908,7 @@ class Macros {
             private static function __free(_data:godot.Types.VoidPtr, _ptr:godot.Types.GDExtensionObjectPtr) {
                 var n:$ctType = untyped __cpp__(
                         $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                        _ptr
+                        _ptr.ptr
                     );
                 
                 n.prepareRemoveGCRoot();
@@ -990,10 +990,10 @@ class Macros {
                 _error:godot.Types.VoidPtr) 
             {
                 try {
-                    var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData);
+                    var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData.ptr);
                     var instance:$ctType = untyped __cpp__(
                             $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                            _instance
+                            _instance.ptr
                         );
                     $b{bindCalls};
                 } catch (_e) {
@@ -1009,10 +1009,10 @@ class Macros {
                 _ret:godot.Types.VoidPtr) 
             {
                 try {
-                    var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData);
+                    var methodId = untyped __cpp__('(int)(size_t){0}', _methodUserData.ptr);
                     var instance:$ctType = untyped __cpp__(
                             $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                            _instance
+                            _instance.ptr
                         );
                     $b{bindCallPtrs};
                 } catch (_e) {

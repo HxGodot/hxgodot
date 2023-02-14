@@ -47,13 +47,13 @@ class Wrapped {
 
     public function prepareRemoveGCRoot() {
         if (__root != null) {
-            untyped __cpp__('((cpp::utils::RootedObject*){0})->prepareRemoval()', __root);
+            untyped __cpp__('((cpp::utils::RootedObject*){0})->prepareRemoval()', __root.ptr);
         }
     }
 
     public function removeGCRoot() {
         if (__root != null) {
-            untyped __cpp__('delete ((cpp::utils::RootedObject*){0})', __root);
+            untyped __cpp__('delete ((cpp::utils::RootedObject*){0})', __root.ptr);
             __root = null;
         }
     }

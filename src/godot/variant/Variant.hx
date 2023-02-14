@@ -33,8 +33,11 @@ class __Variant {
 
     static function __initBindings() {
         for (i in 1...GDExtensionVariantType.MAXIMUM) {
-            from_type_constructor[i] = GodotNativeInterface.get_variant_from_type_constructor(i);
-            to_type_constructor[i] = GodotNativeInterface.get_variant_to_type_constructor(i);
+            // from_type_constructor[i] = (GodotNativeInterface.get_variant_from_type_constructor(i): godot.Types.StarVoidPtr);
+            // to_type_constructor[i] = (GodotNativeInterface.get_variant_to_type_constructor(i): godot.Types.StarVoidPtr);
+
+            from_type_constructor[i] = untyped __cpp__('(void *)godot::internal::gde_interface->get_variant_from_type_constructor((GDExtensionVariantType){0})', i);
+            to_type_constructor[i] = untyped __cpp__('(void *)godot::internal::gde_interface->get_variant_to_type_constructor((GDExtensionVariantType){0})', i);
         }
     }
 
@@ -105,7 +108,7 @@ abstract Variant(__Variant) from __Variant to __Variant {
         untyped __cpp__('
             ((GDExtensionVariantFromTypeConstructorFunc){0})({1}, {2});
             ', 
-            constructor, 
+            (constructor:godot.Types.StarVoidPtr),
             res.native_ptr(), 
             tmp
         );
@@ -120,7 +123,7 @@ abstract Variant(__Variant) from __Variant to __Variant {
         untyped __cpp__('
             ((GDExtensionVariantFromTypeConstructorFunc){0})({1}, {2});
             ', 
-            constructor, 
+            (constructor:godot.Types.StarVoidPtr), 
             res.native_ptr(), 
             _y
         );
@@ -135,7 +138,7 @@ abstract Variant(__Variant) from __Variant to __Variant {
         untyped __cpp__('
             ((GDExtensionVariantFromTypeConstructorFunc){0})({1}, {2});
             ', 
-            constructor, 
+            (constructor:godot.Types.StarVoidPtr), 
             res.native_ptr(),
             untyped __cpp__('&{0}', _y)
         );
