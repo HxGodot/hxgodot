@@ -72,11 +72,16 @@ class HxGodot {
                 Reflect.field(t, "__static_init")();
         }
 
-        //trace(CompileTime.buildGitCommitSha());
-        GDUtils.print_rich('
-[b][color=FFA500]Hx[/color][color=6495ED]Godot[/color] (${GDUtils.HXGODOT_VERSION})[/b]
-${builtins.length} builtins / ${tmp.length} classes available
-');
+        // print a fancy banner message
+        var bannerMsg = new StringBuf();
+        bannerMsg.add('[b][color=FFA500]Hx[/color][color=6495ED]Godot[/color] (${GDUtils.HXGODOT_VERSION})[/b]\n');
+        bannerMsg.add('${builtins.length} builtins / ${tmp.length} classes available\n');
+        #if scriptable
+        bannerMsg.add('(CPPIA host-mode enabled)\n');
+        #end
+        bannerMsg.add('\n');
+        GDUtils.print_rich(bannerMsg.toString());
+
         #if scriptable
         cpp.cppia.Host.runFile("bin/hxgodot.cppia");
         #end
