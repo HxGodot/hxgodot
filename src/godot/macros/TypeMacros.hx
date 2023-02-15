@@ -66,7 +66,8 @@ class TypeMacros {
                     var tmp = getTypeName(_t.substring(0, _t.length-1).trim());
                     var pack = getTypePackage(tmp).concat([tmp]);
 
-                    ret = 'cpp.Star<${pack.join(".")}>';
+                    // TODO: does this work with native pointers? indirection?
+                    ret = 'cpp.Pointer<${pack.join(".")}>';
                 }
 
                 ret = convertIfTypedArray(ret);

@@ -1047,7 +1047,7 @@ class ClassGenMacros {
                 private function new() {}
 
                 @:noCompletion
-                inline public function native_ptr():godot.Types.GDExtensionTypePtr {
+                public function native_ptr():godot.Types.GDExtensionTypePtr {
                     return untyped __cpp__('{0}->_native_ptr()', this);
                 }
 

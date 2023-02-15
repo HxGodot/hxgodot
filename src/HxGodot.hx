@@ -14,31 +14,6 @@ import godot.variant.Variant;
         <file name='${haxelib:hxgodot}/src/hxcpp_ext/hxgodot_api.cpp'/>
     </files>")
 class HxGodot {
-    static var gcCycle = 0.0;
-    public static function runGc(_dt:Float) {
-        var ran = false;
-        if (gcCycle > 1) {            
-            cpp.NativeGc.run(true);
-            gcCycle = 0;
-            ran = true;
-        }
-        gcCycle += _dt;
-        return ran;
-    }
-
-    public static function getExceptionStackString(_e:Dynamic) {
-        var msg = [_e.value];
-        for (s in cast(_e.__nativeStack, Array<Dynamic>)) {
-            var tokens = s.split("::");
-            var cls = tokens[0];
-            var func = tokens[1];
-            var file = tokens[2];
-            var line = tokens[3];
-            msg.push('Called from $cls.$func ($file:$line)');
-        }
-        return msg.join("\n");
-    }
-
     static function main() {
         // setup constructors
         __Variant.__initBindings();
@@ -102,6 +77,9 @@ class HxGodot {
 [b][color=FFA500]Hx[/color][color=6495ED]Godot[/color] (${GDUtils.HXGODOT_VERSION})[/b]
 ${builtins.length} builtins / ${tmp.length} classes available
 ');
+        #if scriptable
+        cpp.cppia.Host.runFile("bin/hxgodot.cppia");
+        #end
     }
 
     public static function shutdown() {
@@ -135,5 +113,37 @@ ${builtins.length} builtins / ${tmp.length} classes available
 
         // tear down GC and cleanup active objects
         cpp.NativeGc.run(true);
-    } 
+    }
+
+    // utilities
+    static var gcCycle = 0.0;
+    public static function runGc(_dt:Float) {
+        var ran = false;
+        if (gcCycle > 1) {            
+            cpp.NativeGc.run(true);
+            gcCycle = 0;
+            ran = true;
+        }
+        gcCycle += _dt;
+        return ran;
+    }
+
+    inline public static function setFinalizer(_inst:Any, _cb:cpp.Callable<Dynamic->Void>) {
+        #if !cppia
+        cpp.vm.Gc.setFinalizer(_inst, _cb);
+        #end
+    }
+
+    public static function getExceptionStackString(_e:Dynamic) {
+        var msg = [_e.value];
+        for (s in cast(_e.__nativeStack, Array<Dynamic>)) {
+            var tokens = s.split("::");
+            var cls = tokens[0];
+            var func = tokens[1];
+            var file = tokens[2];
+            var line = tokens[3];
+            msg.push('Called from $cls.$func ($file:$line)');
+        }
+        return msg.join("\n");
+    }
 }
