@@ -79,6 +79,13 @@ class PostInitMacros {
                 godot.Wrapped.classTags.set(__class_name, $classIdentifier);
             }
 
+            static function __deinit_constant_bindings() {
+                godot.Wrapped.classTags.remove(__class_name);
+                __class_name = null;
+                __parent_class_name = null;
+                __class_tag = null;
+            }
+
             override function __postInit(?_finalize = true) {
                 if (_finalize) {
                     var gdBaseClass:godot.variant.StringName = $v{_godotBaseclass};
@@ -175,6 +182,13 @@ class PostInitMacros {
                 __class_name = $v{className};
                 __parent_class_name = $v{_parent_class_name};
                 godot.Wrapped.classTags.set(__class_name, $classIdentifier);
+            }
+
+            static function __deinit_constant_bindings() {
+                godot.Wrapped.classTags.remove(__class_name);
+                __class_name = null;
+                __parent_class_name = null;
+                __class_tag = null;
             }
 
             override function __postInit(?_finalize = true) {

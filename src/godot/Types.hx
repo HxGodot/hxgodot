@@ -417,6 +417,9 @@ extern class GodotNativeInterface {
         _classname:GDExtensionStringNamePtr,
         _parentClass:GDExtensionStringNamePtr,      
         _extension_funcs:cpp.Star<GDExtensionClassCreationInfo>):VoidPtr;
+
+    @:native("godot::internal::gde_interface->classdb_unregister_extension_class")
+    public static function classdb_unregister_extension_class(_library:VoidPtr, _classname:GDExtensionStringNamePtr):Void;
     
     // variant
     @:native("godot::internal::gde_interface->variant_destroy")
