@@ -16,6 +16,7 @@ class ClassGenExtraMacros {
         var ops = [];
         switch (_type) {
             case "GDString": {
+                // TODO: these inlined string calls are a problem!
                 var tmp = macro class {
                     @:from inline public static function fromString(_v:String):GDString {
                         var s = new GDString();

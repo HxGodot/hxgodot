@@ -28,9 +28,9 @@ class PostInitMacros {
                 tmp.__owner = _instance;
 
                 if ($v{_isRefCounted==true}) 
-                    cpp.vm.Gc.setFinalizer(tmp, cpp.Callable.fromStaticFunction(__unRef));
+                    HxGodot.setFinalizer(tmp, cpp.Callable.fromStaticFunction(__unRef));
                 else
-                    cpp.vm.Gc.setFinalizer(tmp, cpp.Callable.fromStaticFunction(__static_cleanUp));
+                    HxGodot.setFinalizer(tmp, cpp.Callable.fromStaticFunction(__static_cleanUp));
 
                 tmp.addGCRoot();
                 return tmp.__root;
@@ -83,7 +83,7 @@ class PostInitMacros {
                 if (_finalize) {
                     var gdBaseClass:godot.variant.StringName = $v{_godotBaseclass};
                     __owner = godot.Types.GodotNativeInterface.classdb_construct_object(gdBaseClass.native_ptr());
-                    cpp.vm.Gc.setFinalizer(this, cpp.Callable.fromStaticFunction(__static_cleanUp));
+                    HxGodot.setFinalizer(this, cpp.Callable.fromStaticFunction(__static_cleanUp));
                 }
 
                 this.addGCRoot(); // TODO: not sure we need this?
@@ -180,7 +180,6 @@ class PostInitMacros {
             override function __postInit(?_finalize = true) {
                 var gdBaseClass:godot.variant.StringName = $v{_godotBaseclass};
                 __owner = godot.Types.GodotNativeInterface.classdb_construct_object(gdBaseClass.native_ptr());
-                //cpp.vm.Gc.setFinalizer(this, cpp.Callable.fromStaticFunction(__static_cleanUp));
 
                 this.addGCRoot(); // TODO: not sure we need this?
                 
