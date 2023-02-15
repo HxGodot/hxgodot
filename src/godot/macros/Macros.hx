@@ -92,6 +92,7 @@ class Macros {
         //var extensionIntegerConstants = [];
         var extensionProperties = [];
         var staticInits = [];
+        var staticDeinits = [];
         var staticsToRewriteForInit = [];
         var virtualFields = new Map<String, haxe.macro.Field>();   
 
@@ -129,6 +130,7 @@ class Macros {
                                 // TODO: keep this error around for
                                 //Context.fatalError('${field.name}:${_gt.name}: We don\'t support class level initialization of Godot classes yet!', Context.currentPos());
                                 staticInits.push(macro $i{field.name} = $_e);
+                                staticDeinits.push(macro $i{field.name} = null);
                                 staticsToRewriteForInit.push(field);
                             }
                         }
@@ -195,7 +197,7 @@ class Macros {
             }
         }
 
-        // rewrite the static godt vars and add the expr to the classes __static_init() function
+        // rewrite the static godot vars and add the expr to the classes __static_init() function
         for (f in staticsToRewriteForInit) {
             var res = fields.remove(f);
             if (res != null) {
@@ -263,7 +265,8 @@ class Macros {
                 engineVirtuals,
                 classNameCpp,
                 extensionProperties,
-                staticInits
+                staticInits,
+                staticDeinits
             );
 
             // properly bootstrap this class
@@ -289,7 +292,8 @@ class Macros {
         _virtualFields:Array<Dynamic>,
         _cppClassName:String, 
         _extensionProperties:Array<haxe.macro.Field>,
-        _staticInits:Array<haxe.macro.Expr>) 
+        _staticInits:Array<haxe.macro.Expr>,
+        _staticDeinits:Array<haxe.macro.Expr>) 
     {
         var pos = Context.currentPos();
         var ctType = TPath(_typePath);
@@ -299,28 +303,6 @@ class Macros {
             return _type != null ? switch(_type) {
                 case TPath(_d):
                     godot.Types.GDExtensionVariantType.fromString(_d.name);
-                    /* TODO: keep this a bit for testing / reviewing
-                    switch(_d.name) {
-                        case 'Bool': godot.Types.GDExtensionVariantType.BOOL;
-                        case 'Int', 'Int64': godot.Types.GDExtensionVariantType.INT;
-                        case 'Float': godot.Types.GDExtensionVariantType.FLOAT;
-                        case 'Color': godot.Types.GDExtensionVariantType.COLOR;
-                        case 'Plane': godot.Types.GDExtensionVariantType.PLANE;
-                        case 'Rect2': godot.Types.GDExtensionVariantType.RECT2;
-                        case 'Rect2i': godot.Types.GDExtensionVariantType.RECT2I;
-                        case 'Quaternion': godot.Types.GDExtensionVariantType.QUATERNION;
-                        case 'String', 'GDString': godot.Types.GDExtensionVariantType.STRING;
-                        case 'Vector2': godot.Types.GDExtensionVariantType.VECTOR2;
-                        case 'Vector2i': godot.Types.GDExtensionVariantType.VECTOR2I;
-                        case 'Vector3': godot.Types.GDExtensionVariantType.VECTOR3;
-                        case 'Vector3i': godot.Types.GDExtensionVariantType.VECTOR3I;
-                        case 'Vector4': godot.Types.GDExtensionVariantType.VECTOR4;
-                        case 'Vector4i': godot.Types.GDExtensionVariantType.VECTOR4I;
-                        case 'PackedByteArray': godot.Types.GDExtensionVariantType.PACKED_BYTE_ARRAY;
-                        case 'PackedFloat32Array': godot.Types.GDExtensionVariantType.PACKED_FLOAT32_ARRAY;
-                        default: godot.Types.GDExtensionVariantType.NIL;
-                    }
-                    */
                 default: godot.Types.GDExtensionVariantType.NIL;
             } : godot.Types.GDExtensionVariantType.NIL;
         }
@@ -979,6 +961,10 @@ class Macros {
 
             static function __static_init() {
                 $b{_staticInits};
+            }
+
+            static function __static_deinit() {
+                $b{_staticDeinits};
             }
 
             static function __bindCall(
