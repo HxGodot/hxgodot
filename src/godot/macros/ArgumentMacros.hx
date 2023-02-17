@@ -37,9 +37,9 @@ class ArgumentMacros {
                         variant.native_ptr()
                     );
                     var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
-                        retOriginal,
-                        untyped __cpp__("godot::internal::token"), 
-                        untyped __cpp__($v{identBindings})
+                        cpp.Pointer.fromStar(retOriginal),
+                        cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")), 
+                        cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
                     );
                     res = untyped __cpp__(
                         $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
@@ -104,9 +104,9 @@ class ArgumentMacros {
             return macro {
                 var retOriginal:godot.Types.StarVoidPtr = untyped __cpp__('nullptr');
                 var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
-                    retOriginal, 
-                    untyped __cpp__("godot::internal::token"), 
-                    untyped __cpp__($v{identBindings})
+                    cpp.Pointer.fromStar(retOriginal), 
+                    cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")),
+                    cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
                 );
                 retOriginal;
             };
@@ -236,9 +236,9 @@ class ArgumentMacros {
                                 untyped __cpp__('(const GDExtensionObjectPtr)*(({0}**){1})[{2}]', $i{ptrSize}, $i{_args}.ptr, $v{_index});
 
                             var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
-                                retOriginal, 
-                                untyped __cpp__("godot::internal::token"), 
-                                untyped __cpp__($v{identBindings})
+                                cpp.Pointer.fromStar(retOriginal), 
+                                cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")),
+                                cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
                             );
 
                             var instance:$_type = untyped __cpp__(
@@ -324,7 +324,7 @@ class ArgumentMacros {
         }
         path.push(tClassName);
 
-        return '&::${path.join("::")}_obj::___binding_callbacks';
+        return '(void*)&::${path.join("::")}_obj::___binding_callbacks';
     }
 
     public static function prepareArgumentDefaultValue(_argType:String, _defVal:String):String {

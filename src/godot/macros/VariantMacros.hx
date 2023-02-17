@@ -305,7 +305,7 @@ class VariantMacros {
     }
 
     static function _convertToObject(_extType, _type, _defaultValue) {
-        var identBindings = '&::godot::Object_obj::___binding_callbacks';
+        var identBindings = '(void*)&::godot::Object_obj::___binding_callbacks';
         return macro {
             var type = this.getVariantType();
             var res = null;
@@ -322,9 +322,9 @@ class VariantMacros {
 
                 if (retOriginal != null) { // a variant with type Object can be NIL
                     var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
-                        retOriginal, 
-                        untyped __cpp__("godot::internal::token"), 
-                        untyped __cpp__($v{identBindings})
+                        cpp.Pointer.fromStar(retOriginal),
+                        cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")),
+                        cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
                     );
                     res = untyped __cpp__(
                         $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!

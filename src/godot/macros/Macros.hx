@@ -444,7 +444,7 @@ class Macros {
                         godot.Types.GodotNativeInterface.classdb_register_extension_class_property(
                             library, 
                             clNamePtr, 
-                            propInfo,
+                            cpp.Pointer.addressOf(propInfo),
                             setter.native_ptr(),
                             getter.native_ptr()
                         );
@@ -716,7 +716,7 @@ class Macros {
                             $v{i},
                             godot.Types.GDExtensionClassMethodFlags.DEFAULT,
                             $v{hasReturnValue},
-                            (return_value_info:godot.Types.GDExtensionPropertyInfoPtr),
+                            cpp.Pointer.addressOf(return_value_info),
                             return_value_metadata,
                             $v{_f.args.length}
                         );
@@ -725,7 +725,7 @@ class Macros {
                         godot.Types.GodotNativeInterface.classdb_register_extension_class_method(
                             library, 
                             _cl, 
-                            method_info
+                            cpp.Pointer.addressOf(method_info)
                         );
                     });
                 }
@@ -940,7 +940,7 @@ class Macros {
                     untyped __cpp__("godot::internal::library"), 
                     __class_name.native_ptr(), 
                     __parent_class_name.native_ptr(), 
-                    class_info
+                    cpp.Pointer.addressOf(class_info)
                 );
 
                 __registerMethods();
@@ -950,7 +950,7 @@ class Macros {
             }
 
             static function __registerMethods() {
-                var library = untyped __cpp__("godot::internal::library");
+                var library = cpp.Pointer.fromStar(untyped __cpp__("godot::internal::library"));
                 
                 // register all methods
                 $b{regOut};

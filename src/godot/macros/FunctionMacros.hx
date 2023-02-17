@@ -215,10 +215,10 @@ class FunctionMacros {
                         godot.Types.GodotNativeInterface.variant_call(
                             (this:godot.variant.Variant).native_ptr(),
                             cast ($v{_bind.name}:godot.variant.StringName).native_ptr(),
-                            untyped __cpp__("call_args.data()"),
+                            cpp.Pointer.fromStar(untyped __cpp__("call_args.data()")),
                             untyped __cpp__("call_args.size()"),
                             _hx__ret,
-                            err
+                            cpp.Pointer.addressOf(err)
                         );
                     });
                 else
@@ -258,10 +258,10 @@ class FunctionMacros {
                         godot.Types.GodotNativeInterface.variant_call(
                             (this:godot.variant.Variant).native_ptr(),
                             cast ($v{_bind.name}:godot.variant.StringName).native_ptr(),
-                            untyped __cpp__("call_args.data()"),
+                            cpp.Pointer.fromStar(untyped __cpp__("call_args.data()")),
                             untyped __cpp__("call_args.size()"),
                             _hx__ret,
-                            err
+                            cpp.Pointer.addressOf(err)
                         );
                     });
                 else
@@ -684,7 +684,7 @@ class FunctionMacros {
                                     untyped __cpp__("(GDExtensionConstVariantPtr*)call_args.data()"),
                                     untyped __cpp__("call_args.size()"),
                                     _hx__ret,
-                                    err
+                                    cpp.Pointer.addressOf(err)
                                 );
                             });
                         else
@@ -703,7 +703,7 @@ class FunctionMacros {
                                     untyped __cpp__("(GDExtensionConstVariantPtr*)call_args.data()"),
                                     untyped __cpp__("call_args.size()"),
                                     _hx__ret,
-                                    err
+                                    cpp.Pointer.addressOf(err)
                                 );
                             });
                         else
@@ -755,7 +755,7 @@ class FunctionMacros {
                                     untyped __cpp__("(GDExtensionConstVariantPtr*)call_args.data()"),
                                     untyped __cpp__("call_args.size()"),
                                     _hx__ret,
-                                    err
+                                    cpp.Pointer.addressOf(err)
                                 );
                             });
                         else
@@ -774,7 +774,7 @@ class FunctionMacros {
                                     untyped __cpp__("(GDExtensionConstVariantPtr*)call_args.data()"),
                                     untyped __cpp__("call_args.size()"),
                                     _hx__ret,
-                                    err
+                                    cpp.Pointer.addressOf(err)
                                 );
                             });
                         else
@@ -1088,7 +1088,7 @@ class FunctionMacros {
         // // we have a managed return type, create it properly
         var typePath = _bind.returnType;        
         var body = null;
-        var identBindings = '&${typePath.name}_obj::___binding_callbacks';
+        var identBindings = '(void*)&${typePath.name}_obj::___binding_callbacks';
         var ctType = TPath(typePath);
         
         if (typePath.pack.length == 1 && typePath.pack[0] == "godot") {
@@ -1101,9 +1101,9 @@ class FunctionMacros {
 
                 if (retOriginal != null) {
                     var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
-                        retOriginal, 
-                        untyped __cpp__("godot::internal::token"), 
-                        untyped __cpp__($v{identBindings})
+                        cpp.Pointer.fromStar(retOriginal),
+                        cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")),
+                        cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
                     );
 
                     var instance:$ctType = untyped __cpp__(
