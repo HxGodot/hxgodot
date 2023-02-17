@@ -7,6 +7,7 @@ from SCons.Variables import *
 default_platform = "windows"
 platforms = ("windows", "linux", "macos")
 architecture_array = ["x86_64", "x86_32"]
+haxe_target_array = ['cpp', 'cppia']
 
 opts = Variables([], ARGUMENTS)
 env = Environment(tools=["default"], PLATFORM="")
@@ -22,6 +23,8 @@ opts.Add(
     )
 )
 opts.Add(EnumVariable("arch", "CPU architecture", architecture_array[0], architecture_array))
+opts.Add(BoolVariable("scriptable", "Compile your cpp-code with cppia context extensions", False))
+opts.Add(EnumVariable('haxe_target', 'Haxe Target', haxe_target_array[0], haxe_target_array))
 opts.Update(env)
 
 # hxgodot haxelib folder
@@ -105,9 +108,17 @@ env.Append(CCFLAGS = cc_flags)
 env.VariantDir('bin/obj', f'{hxgodotPath}src/', duplicate=0)
 
 # run haxe compile
-hxCmd = f'haxe build.hxml {libTargetString}'
-if env["arch"] == "x86_64":
-    hxCmd = hxCmd + ' -D HXCPP_M64'
+
+if env['haxe_target'] == 'cppia':
+    hxCmd = f'haxe script.hxml {libTargetString}'
+else:
+    hxCmd = f'haxe build.hxml {libTargetString}'
+    hxCmd = hxCmd + ' -D HXCPP_GC_GENERATIONAL -D HXCPP_CPP11 -D static_link -cpp bin/ -cp bindings'
+    if env["arch"] == "x86_64":
+        hxCmd = hxCmd + ' -D HXCPP_M64'
+    if env["scriptable"] == True:
+        hxCmd = hxCmd + ' -D scriptable'
+
 hxlib = env.Command('bin/'+static_lib_name, [], hxCmd)
 env.AlwaysBuild(hxlib)
 

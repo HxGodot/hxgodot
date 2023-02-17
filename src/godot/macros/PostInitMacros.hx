@@ -14,7 +14,7 @@ class PostInitMacros {
         var clsId = '${_typePath.pack.join(".")}.${_typePath.name}';
         var inst = Context.parse('Type.createEmptyInstance($clsId)', Context.currentPos());
 
-        var identBindings = '&${_cppClassName}_obj::___binding_callbacks';
+        var identBindings = '(void*)&${_cppClassName}_obj::___binding_callbacks';
         var classIdentifier = Context.parse('${_typePath.pack.join(".")}.${_typePath.name}', Context.currentPos());
 
         var postInitClass = macro class {
@@ -97,18 +97,18 @@ class PostInitMacros {
                 
                 if ($v{className != _godotBaseclass}) { // deadcode elimination will get rid of this
                     godot.Types.GodotNativeInterface.object_set_instance(
-                        __owner.ptr, 
-                        __class_name.native_ptr(), 
-                        this.__root.ptr
+                        __owner, 
+                        __class_name.native_ptr(),
+                        this.__root
                     );
                 }
                 
                 // register the callbacks, do we need this?
                 godot.Types.GodotNativeInterface.object_set_instance_binding(
-                    __owner.ptr, 
-                    untyped __cpp__("godot::internal::token"), 
-                    this.__root.ptr,
-                    untyped __cpp__($v{identBindings})
+                    __owner, 
+                    cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")), 
+                    this.__root,
+                    cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
                 );
             }
 
@@ -159,7 +159,7 @@ class PostInitMacros {
         var clsId = '${_typePath.pack.join(".")}.${_typePath.name}';
         var inst = Context.parse('Type.createEmptyInstance($clsId)', Context.currentPos());
 
-        var identBindings = '&${_cppClassName}_obj::___binding_callbacks';
+        var identBindings = '(void*)&${_cppClassName}_obj::___binding_callbacks';
         var classIdentifier = Context.parse('${_typePath.pack.join(".")}.${_typePath.name}', Context.currentPos());
 
         var postInitClass = macro class {
@@ -199,18 +199,18 @@ class PostInitMacros {
                 
                 if ($v{className != _godotBaseclass}) { // deadcode elimination will get rid of this
                     godot.Types.GodotNativeInterface.object_set_instance(
-                        __owner.ptr, 
-                        __class_name.native_ptr(), 
-                        this.__root.ptr
+                        __owner, 
+                        __class_name.native_ptr(),
+                        this.__root
                     );
                 }
                 
                 // register the callbacks, do we need this?
                 godot.Types.GodotNativeInterface.object_set_instance_binding(
-                    __owner.ptr, 
-                    untyped __cpp__("godot::internal::token"), 
-                    this.__root.ptr, 
-                    untyped __cpp__($v{identBindings})
+                    __owner, 
+                    cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")), 
+                    this.__root,
+                    cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
                 );
             }
 

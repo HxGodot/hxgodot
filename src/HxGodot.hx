@@ -74,21 +74,19 @@ class HxGodot {
 
         // print a fancy banner message
         var bannerMsg = new StringBuf();
-        bannerMsg.add('[b][color=FFA500]Hx[/color][color=6495ED]Godot[/color] (${GDUtils.HXGODOT_VERSION})[/b]\n');
+        bannerMsg.add('\n[b][color=FFA500]Hx[/color][color=6495ED]Godot[/color] (${GDUtils.HXGODOT_VERSION})[/b]\n');
         bannerMsg.add('${builtins.length} builtins / ${tmp.length} classes available\n');
         #if scriptable
         bannerMsg.add('(CPPIA host-mode enabled)\n');
         #end
-        bannerMsg.add('\n');
         GDUtils.print_rich(bannerMsg.toString());
 
         #if scriptable
-        cpp.cppia.Host.runFile("bin/hxgodot.cppia");
+        //cpp.cppia.Host.runFile("bin/hxgodot.cppia");
         #end
     }
 
     public static function shutdown() {
-
         // sort all classes depending on their inheritance depth, highest first
         var tmp = Lambda.array(CompileTime.getAllClasses(godot.Wrapped));
         haxe.ds.ArraySort.sort(tmp, function(_a:Dynamic, _b:Dynamic) {

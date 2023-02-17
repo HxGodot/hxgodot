@@ -20,15 +20,16 @@ class ClassGenExtraMacros {
                 var tmp = macro class {
                     @:from inline public static function fromString(_v:String):GDString {
                         var s = new GDString();
-                        godot.Types.GodotNativeInterface.string_new_with_utf8_chars(untyped __cpp__('(GDExtensionStringPtr){0}', s.native_ptr()), _v);
+                        godot.Types.GodotNativeInterface.string_new_with_utf8_chars(s.native_ptr(), cast cpp.NativeString.c_str(_v));
                         return s;
                     }
 
                     @:to inline public function toString():String {
                         var size = godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDExtensionStringPtr){0}', this.native_ptr()), null, 0);
-                        var chars:Array<cpp.UInt8> = cpp.NativeArray.create(size);
-                        godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDExtensionStringPtr){0}', this.native_ptr()), cpp.NativeArray.getBase(chars).getBase(), size);
-                        return haxe.io.Bytes.ofData(chars).toString();
+                        var chars:Array<cpp.Char> = cpp.NativeArray.create(size);
+                        var ptr = cpp.NativeArray.address(chars, 0);
+                        godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDExtensionStringPtr){0}', this.native_ptr()), ptr, size);
+                        return cpp.NativeString.fromPointerLen(ptr, size);
                     }
                 }
                 ops = ops.concat(tmp.fields);
@@ -91,7 +92,7 @@ class ClassGenExtraMacros {
                     // Fast acces to the unamanged array!
                     inline public function data():haxe.io.BytesData {
                         var len = this.size();
-                        var ptr = cpp.Pointer.fromStar(godot.Types.GodotNativeInterface.packed_byte_array_operator_index(this.native_ptr(), 0));
+                        var ptr = godot.Types.GodotNativeInterface.packed_byte_array_operator_index(this.native_ptr(), 0);
                         var arr = [];
                         cpp.NativeArray.setUnmanagedData(arr, ptr, len);
                         return arr;
@@ -100,7 +101,7 @@ class ClassGenExtraMacros {
                     @:from inline public static function fromBytes(_v:haxe.io.Bytes):godot.variant.PackedByteArray {
                         var res = new godot.variant.PackedByteArray();
                         res.resize(_v.length);
-                        var ptr = cpp.Pointer.fromStar(godot.Types.GodotNativeInterface.packed_byte_array_operator_index(res.native_ptr(), 0));
+                        var ptr = godot.Types.GodotNativeInterface.packed_byte_array_operator_index(res.native_ptr(), 0);
                         var src = cpp.NativeArray.getBase(_v.getData()).getBase();
                         cpp.Native.memcpy(ptr, src, _v.length);
                         return res;
@@ -108,7 +109,7 @@ class ClassGenExtraMacros {
 
                     @:to inline public function toBytes():haxe.io.Bytes {
                         var len = this.size();
-                        var ptr:cpp.Star<cpp.UInt8> = godot.Types.GodotNativeInterface.packed_byte_array_operator_index(this.native_ptr(), 0);
+                        var ptr = godot.Types.GodotNativeInterface.packed_byte_array_operator_index(this.native_ptr(), 0);
                         var bytes = haxe.io.Bytes.alloc(len);
                         cpp.Native.memcpy(cpp.NativeArray.getBase(bytes.getData()).getBase(), ptr, len);
                         return bytes;
@@ -122,7 +123,7 @@ class ClassGenExtraMacros {
                     // Fast acces to the unamanged array!
                     inline public function data():Array<cpp.Float32> {
                         var len = this.size();
-                        var ptr = cpp.Pointer.fromStar(godot.Types.GodotNativeInterface.packed_float32_array_operator_index(this.native_ptr(), 0));
+                        var ptr = godot.Types.GodotNativeInterface.packed_float32_array_operator_index(this.native_ptr(), 0);
                         var arr = [];
                         cpp.NativeArray.setUnmanagedData(arr, ptr, len);
                         return arr;
@@ -131,7 +132,7 @@ class ClassGenExtraMacros {
                     @:from inline public static function fromFloat32Array(_v:haxe.io.Float32Array):godot.variant.PackedFloat32Array {
                         var res = new godot.variant.PackedFloat32Array();
                         res.resize(_v.length);
-                        var ptr = cpp.Pointer.fromStar(godot.Types.GodotNativeInterface.packed_float32_array_operator_index(res.native_ptr(), 0));
+                        var ptr = godot.Types.GodotNativeInterface.packed_float32_array_operator_index(res.native_ptr(), 0);
                         var src = cpp.NativeArray.getBase(_v.view.buffer.getData()).getBase();
                         cpp.Native.memcpy(ptr, src, _v.view.byteLength);
                         return res;
@@ -139,7 +140,8 @@ class ClassGenExtraMacros {
 
                     @:to inline public function toFloat32Array():haxe.io.Float32Array {
                         var bLen = (this.size():Int) * 4;
-                        var ptr:cpp.Star<cpp.UInt8> = untyped __cpp__('(uint8_t*){0}', godot.Types.GodotNativeInterface.packed_float32_array_operator_index(this.native_ptr(), 0));
+                        var tmp = godot.Types.GodotNativeInterface.packed_float32_array_operator_index(this.native_ptr(), 0).ptr;
+                        var ptr:cpp.Star<cpp.UInt8> = untyped __cpp__('(uint8_t*){0}', tmp);
                         var bytes = haxe.io.Bytes.alloc(bLen);
                         cpp.Native.memcpy(cpp.NativeArray.getBase(bytes.getData()).getBase(), ptr, bLen);
                         return haxe.io.Float32Array.fromBytes(bytes);
