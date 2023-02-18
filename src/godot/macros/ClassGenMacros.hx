@@ -950,43 +950,80 @@ class ClassGenMacros {
 
             // indexing
             if (b.indexing_return_type != null) {
-                // this class can be indexed into
+                // this class can be keyed/indexed into
                 if (TypeMacros.isTypeAllowed(b.indexing_return_type)) {
                     var retType = TypeMacros.getTypeName(b.indexing_return_type);
                     var retPack = TypeMacros.getTypePackage(retType);
                     var ret = {name:retType , pack:retPack};
 
-                    var iname = '_index_get';
-                    binds.push({
-                        clazz: clazz,
-                        name: 'index_get',
-                        type: FunctionBindType.INDEX_GET,
-                        returnType: ret,
-                        access: [APublic],
-                        arguments: [{name: "_index", type: {name:"Int" , pack:[]}}],
-                        macros: {
-                            field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrIndexedGetter;}).fields[0],
-                            fieldSetter: [
-                                '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_getter(${type})'
-                            ]
-                        }
-                    });
+                    if (b.is_keyed == true) {
+                        // we need to check for is_keyed and use the appropiate functions and operators
+                        
+                        var iname = '_keyed_get';
+                        binds.push({
+                            clazz: clazz,
+                            name: 'keyed_get',
+                            type: FunctionBindType.KEYED_GET,
+                            returnType: ret,
+                            access: [APublic],
+                            arguments: [{name: "_key", type: {name:"Variant" , pack:["godot", "variant"]}}],
+                            macros: {
+                                field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrKeyedGetter;}).fields[0],
+                                fieldSetter: [
+                                    '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_keyed_getter(${type})'
+                                ]
+                            }
+                        });
 
-                    var iname = '_index_set';
-                    binds.push({
-                        clazz: clazz,
-                        name: 'index_set',
-                        type: FunctionBindType.INDEX_SET,
-                        returnType: ret,
-                        access: [APublic],
-                        arguments: [{name: "_index", type: {name:"Int" , pack:[]}}, {name: "_value", type: ret}],
-                        macros: {
-                            field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrIndexedSetter;}).fields[0],
-                            fieldSetter: [
-                                '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_setter(${type})'
-                            ]
-                        }
-                    });
+                        var iname = '_keyed_set';
+                        binds.push({
+                            clazz: clazz,
+                            name: 'keyed_set',
+                            type: FunctionBindType.KEYED_SET,
+                            returnType: ret,
+                            access: [APublic],
+                            arguments: [{name: "_key", type: {name:"Variant" , pack:["godot", "variant"]}}, {name: "_value", type: ret}],
+                            macros: {
+                                field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrKeyedSetter;}).fields[0],
+                                fieldSetter: [
+                                    '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_keyed_setter(${type})'
+                                ]
+                            }
+                        });
+
+                    } else {
+                        var iname = '_index_get';
+                        binds.push({
+                            clazz: clazz,
+                            name: 'index_get',
+                            type: FunctionBindType.INDEX_GET,
+                            returnType: ret,
+                            access: [APublic],
+                            arguments: [{name: "_index", type: {name:"Int" , pack:[]}}],
+                            macros: {
+                                field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrIndexedGetter;}).fields[0],
+                                fieldSetter: [
+                                    '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_getter(${type})'
+                                ]
+                            }
+                        });
+
+                        var iname = '_index_set';
+                        binds.push({
+                            clazz: clazz,
+                            name: 'index_set',
+                            type: FunctionBindType.INDEX_SET,
+                            returnType: ret,
+                            access: [APublic],
+                            arguments: [{name: "_index", type: {name:"Int" , pack:[]}}, {name: "_value", type: ret}],
+                            macros: {
+                                field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrIndexedSetter;}).fields[0],
+                                fieldSetter: [
+                                    '$iname = godot.Types.GodotNativeInterface.variant_get_ptr_indexed_setter(${type})'
+                                ]
+                            }
+                        });
+                    }                    
                 }
             }
 
@@ -1030,6 +1067,9 @@ class ClassGenMacros {
 
                     case FunctionBindType.INDEX_GET, FunctionBindType.INDEX_SET:
                         FunctionMacros.buildIndexing(bind, abstractFields);
+
+                    case FunctionBindType.KEYED_GET, FunctionBindType.KEYED_SET:
+                        FunctionMacros.buildKeyed(bind, abstractFields);
 
                     default:
                 }

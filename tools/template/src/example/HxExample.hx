@@ -3,6 +3,8 @@ package example;
 import godot.GlobalConstants;
 import godot.core.GDUtils;
 import godot.variant.Vector3;
+import godot.variant.Vector4i;
+import godot.variant.Dictionary;
 import godot.variant.GDString;
 import godot.variant.StringName;
 import godot.variant.TypedSignal;
@@ -12,10 +14,10 @@ import godot.variant.PackedFloat32Array;
 class HxExample extends godot.Node {
 
     @:export
-    public var onHit:TypedSignal<(name:String, count:Int)->Void>;
+    public var onHit:TypedSignal<(count:Int)->Void>;
 
     @:export
-    public var onTest:TypedSignal<(name:String, count:Int)->Void>;
+    public var onTest:TypedSignal<(node:HxExample)->Void>;
 
     static var test_static_initialization:StringName = "no more crash";
     static var test_static_initialization_of_this_node = new godot.Node();
@@ -58,7 +60,7 @@ class HxExample extends godot.Node {
         b.x = this.hx_random_MyVector3;
         trace(b);
         trace(b.x);
-        trace(b[4]); // out of bounds <3
+        //trace(b[4]); // out of bounds <3
         trace(b[1] = new Vector3(3,2,1));
         trace(b.y);
         trace(b.z);
@@ -78,9 +80,11 @@ class HxExample extends godot.Node {
         arr.push_back(1);
         arr.push_back("x2"); // mix types!
 
+        /*
         for (v in 0...arr.size()) {
             trace((arr[v]:Int)); // [1] will fail on cast
         }
+        */
 
         hx_ImportantFloat = _v;
         return _v;
@@ -193,7 +197,20 @@ class HxExample extends godot.Node {
 
         return _v;
     }
-    
+
+    @:export
+    public function test_vector4i(_v:Vector4i):Vector4i {
+        _v.x = 55;
+        trace(_v.x);
+        return _v;
+    }
+
+    @:export
+    public function test_dict(_v:Dictionary):Dictionary {
+        _v["foo"] = 99;
+        trace(_v);
+        return _v;
+    }
 
     static var c = 0;
     override function _process(_delta:Float):Void {
@@ -209,6 +226,8 @@ class HxExample extends godot.Node {
 
         var node = new godot.Node();
         node = null;
+
+        onTest.emit(this);
     }
 
     /*

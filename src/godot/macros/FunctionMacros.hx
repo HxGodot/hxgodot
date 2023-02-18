@@ -18,6 +18,8 @@ enum FunctionBindType {
     PROPERTY_GET;
     INDEX_SET;
     INDEX_GET;
+    KEYED_SET;
+    KEYED_GET;
     VIRTUAL_METHOD;
 }
 
@@ -622,6 +624,96 @@ class FunctionMacros {
                     $i{mname}.ptr,
                     this.native_ptr(),
                     $i{index},
+                    arg
+                );
+            }];
+
+            if (TypeMacros.isTypeNative(_bind.returnType.name)) {
+                // a native return type
+                body = macro {
+                    var arg = cpp.Native.addressOf($i{aName});
+                    $b{exprs};
+                    return $i{aName};
+                };
+            } else {
+                // // we have a managed return type, create it properly
+                var typePath = _bind.returnType;
+                body = macro {
+                    var arg = $i{aName}.native_ptr();
+                    $b{exprs};
+                    return $i{aName};
+                };
+            }
+        }
+
+        // now add the field to the abstract
+        _abstractFields.push({
+            name: _bind.name,
+            access: _bind.access,
+            pos: Context.currentPos(),
+            meta: [{name: ':op', params:[Context.parse('[]', Context.currentPos())], pos: Context.currentPos()}],
+            kind: FFun({
+                args: argExprs,
+                expr: body,
+                params: [],
+                ret: TPath(_bind.returnType)
+            })
+        });
+    }
+
+    //
+    public static function buildKeyed(_bind:FunctionBind, _abstractFields:Array<Field>) {
+        var mname = '${_bind.clazz.name}._${_bind.name}';
+
+        // preprocess the arguments
+        var argExprs = [];
+        var conCallArgs = [];
+        for (a in _bind.arguments) {
+            var argName = '${a.name}';
+            argExprs.push({name:argName, type:TPath(a.type)});
+        }
+
+        var body = null;
+        var typePath = TPath(_bind.returnType);
+        var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
+
+        if (_bind.type == FunctionBindType.KEYED_GET) {
+            var key = _bind.arguments[0].name;
+            var exprs = [macro {
+                untyped __cpp__('((GDExtensionPtrKeyedGetter){0})({1}, (GDExtensionConstTypePtr){2}, {3});', 
+                    $i{mname}.ptr,
+                    this.native_ptr(),
+                    $i{key}.native_ptr(),
+                    _hx__ret
+                );
+            }];
+
+            if (TypeMacros.isTypeNative(_bind.returnType.name)) {
+                // a native return type
+                body = macro {
+                    var ret2:$typePath = $v{defaultValue};
+                    var _hx__ret = cpp.Native.addressOf(ret2);
+                    $b{exprs};
+                    return ret2;
+                };
+            } else {
+                // // we have a managed return type, create it properly
+                var typePath = _bind.returnType;
+                body = macro {
+                    var ret2 = new $typePath();
+                    var _hx__ret = ret2.native_ptr();
+                    $b{exprs};
+                    return ret2;
+                };
+            }
+        } else {
+            var key = _bind.arguments[0].name;
+            var aName = _bind.arguments[1].name;
+            var exprs = [macro {
+                untyped __cpp__('((GDExtensionPtrKeyedSetter){0})({1}, (GDExtensionConstTypePtr){2}, {3});', 
+                    $i{mname}.ptr,
+                    this.native_ptr(),
+                    $i{key}.native_ptr(),
                     arg
                 );
             }];

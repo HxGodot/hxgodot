@@ -273,6 +273,8 @@ typedef GDExtensionPtrSetter = Int;
 typedef GDExtensionPtrOperatorEvaluator = Int;
 typedef GDExtensionPtrIndexedGetter = Int;
 typedef GDExtensionPtrIndexedSetter = Int;
+typedef GDExtensionPtrKeyedGetter = Int;
+typedef GDExtensionPtrKeyedSetter = Int;
 typedef GDExtensionCallError = Int;
 
 typedef GDExtensionPtrUtilityFunction = Int;
@@ -309,6 +311,8 @@ typedef GDExtensionPtrSetter = VoidPtr;
 typedef GDExtensionPtrOperatorEvaluator = VoidPtr;
 typedef GDExtensionPtrIndexedGetter = VoidPtr;
 typedef GDExtensionPtrIndexedSetter = VoidPtr;
+typedef GDExtensionPtrKeyedGetter = VoidPtr;
+typedef GDExtensionPtrKeyedSetter = VoidPtr;
 
 typedef GDExtensionPtrUtilityFunction = VoidPtr;
 
@@ -468,6 +472,14 @@ extern class __GodotNativeInterface {
         return untyped __cpp__('(cpp::Function<void (const void *)> *)::godot::internal::gde_interface->variant_get_ptr_indexed_setter((GDExtensionVariantType){0})', _type);
     }
 
+    inline public static function variant_get_ptr_keyed_getter(_type:Int):GDExtensionPtrIndexedGetter {
+        return untyped __cpp__('(cpp::Function<void (const void *)> *)::godot::internal::gde_interface->variant_get_ptr_keyed_getter((GDExtensionVariantType){0})', _type);
+    }
+
+    inline public static function variant_get_ptr_keyed_setter(_type:Int):GDExtensionPtrIndexedSetter {
+        return untyped __cpp__('(cpp::Function<void (const void *)> *)::godot::internal::gde_interface->variant_get_ptr_keyed_setter((GDExtensionVariantType){0})', _type);
+    }
+
     inline public static function variant_can_convert_strict(_from:GDExtensionVariantType, _to:GDExtensionVariantType):Bool {
         return untyped __cpp__('::godot::internal::gde_interface->variant_can_convert_strict((GDExtensionVariantType){0}, (GDExtensionVariantType){1})', _from, _to);
     }
@@ -614,6 +626,12 @@ class GodotNativeInterface {
 
     public static function variant_get_ptr_indexed_setter(_type:Int):GDExtensionPtrIndexedSetter 
         return __GodotNativeInterface.variant_get_ptr_indexed_setter(_type);
+
+    public static function variant_get_ptr_keyed_getter(_type:Int):GDExtensionPtrKeyedGetter 
+        return __GodotNativeInterface.variant_get_ptr_keyed_getter(_type);
+
+    public static function variant_get_ptr_keyed_setter(_type:Int):GDExtensionPtrKeyedSetter 
+        return __GodotNativeInterface.variant_get_ptr_keyed_setter(_type);
 
     public static function variant_can_convert_strict(_from:GDExtensionVariantType, _to:GDExtensionVariantType):Bool 
         return __GodotNativeInterface.variant_can_convert_strict(_from, _to);

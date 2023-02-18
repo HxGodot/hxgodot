@@ -26,6 +26,14 @@ func _ready():
 	var strings = test_strings(PackedStringArray(["was", "geht"]))
 	print(strings)
 
+	var vec4 = test_vector4i(Vector4i(11, 22, 33, 44));
+	print(vec4);
+	
+	var dict = {"test": 444, "foo": 77}
+	print(dict)
+	test_dict(dict)
+	print(dict)
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta):
 	#simple_add(69, _delta, true)
