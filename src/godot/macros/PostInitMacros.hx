@@ -169,10 +169,9 @@ class PostInitMacros {
             static var __inheritance_depth:Int = $v{_inheritanceDepth};
 
             static function ___binding_create_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr):godot.Types.VoidPtr {
-            	return untyped __cpp__("nullptr");
+            	return null;
             }
             static function ___binding_free_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr):Void {
-                return untyped __cpp__("nullptr");
             }
             static function ___binding_reference_callback(_token:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr, _reference:Bool):Bool {
                 return true;

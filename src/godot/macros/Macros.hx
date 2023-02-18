@@ -905,7 +905,7 @@ class Macros {
                 var rname;
 
                 $b{virtualFuncCallbacks};
-                return untyped __cpp__('nullptr'); // should never happen
+                return null; // should never happen(only in cases where we dont have any function)
             }
             
             public static function __registerClass() {
