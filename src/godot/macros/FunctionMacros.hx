@@ -217,7 +217,7 @@ class FunctionMacros {
                         godot.Types.GodotNativeInterface.variant_call(
                             (this:godot.variant.Variant).native_ptr(),
                             cast ($v{_bind.name}:godot.variant.StringName).native_ptr(),
-                            cpp.Pointer.fromStar(untyped __cpp__("call_args.data()")),
+                            cpp.Pointer.fromStar(untyped __cpp__("(void*)call_args.data()")),
                             untyped __cpp__("call_args.size()"),
                             _hx__ret,
                             cpp.Pointer.addressOf(err)
@@ -260,7 +260,7 @@ class FunctionMacros {
                         godot.Types.GodotNativeInterface.variant_call(
                             (this:godot.variant.Variant).native_ptr(),
                             cast ($v{_bind.name}:godot.variant.StringName).native_ptr(),
-                            cpp.Pointer.fromStar(untyped __cpp__("call_args.data()")),
+                            cpp.Pointer.fromStar(untyped __cpp__("(void*)call_args.data()")),
                             untyped __cpp__("call_args.size()"),
                             _hx__ret,
                             cpp.Pointer.addressOf(err)
