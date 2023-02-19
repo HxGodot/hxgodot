@@ -16,11 +16,11 @@ class ArgumentMacros {
     static var ptrSize = Context.defined("HXCPP_M64") ? "int64_t" : "int32_t";
     static var ptrSizeOf = Context.parse('untyped __cpp__("sizeof($ptrSize)")', Context.currentPos());
 
-    public static function convert(_index:Int, _args:String, _type:haxe.macro.ComplexType) {
-        return _convert(_index, 0, _args, _type);
+    public static function inbound(_index:Int, _args:String, _type:haxe.macro.ComplexType) {
+        return _inbound(_index, 0, _args, _type);
     }
 
-    public static function convertVariant(_index:Int, _args:String, _type:haxe.macro.ComplexType) {
+    public static function inboundVariant(_index:Int, _args:String, _type:haxe.macro.ComplexType) {
         var type = ComplexTypeTools.toType(_type);
         var isWrappedGodotClass = Context.unify(type, Context.getType("godot.Wrapped"));
         
@@ -67,21 +67,21 @@ class ArgumentMacros {
         return switch(_type) {
             case TPath(_d):
                 if (TypeMacros.isACustomBuiltIn(_d.name))
-                    _convert(_index, 1, _args, _type);
+                    _inbound(_index, 1, _args, _type);
                 else
                     _default();                
             default: _default();
         };
     }    
 
-    private static function _convert(_index:Int, _offset:Int, _args:String, _type:haxe.macro.ComplexType) {
+    private static function _inbound(_index:Int, _offset:Int, _args:String, _type:haxe.macro.ComplexType) {
         var typePath = switch(_type) {
             case TPath(_d): _d.name;
             default: "";
         };
 
         function _default() {
-            var val = 'nullptr /* _convert: $_type */';
+            var val = 'nullptr /* _inbound: $_type */';
             return macro { untyped __cpp__($v{val}); };
         }
         inline function _create(_inst, _size) {
@@ -262,15 +262,18 @@ class ArgumentMacros {
         } : _default();
     }
 
-    public static function encode(_type:haxe.macro.ComplexType, _dest:String, _src:String) {
+    public static function outbound(_type:haxe.macro.ComplexType, _dest:String, _src:String) {
         function _default() {
-            var val = 'nullptr /* encode: $_type */';
+            var val = 'nullptr /* outbound: $_type */';
+            Context.warning('WARNING: couldnt handle outbound type of "$_type"', Context.currentPos());
             return macro { untyped __cpp__($v{val}); };
         }
 
-        inline function _encode(_size) {
-            return macro untyped __cpp__('memcpy((void*){0}, (void*){1}, {2})', $i{_dest}.ptr, $i{_src}.native_ptr(), $_size);
-        }
+        inline function _outbound(_size)
+            return macro untyped __cpp__('memcpy((void*){0}, (void*){1}, {2})', $i{_dest}.ptr, $i{_src}.native_ptr().ptr, $_size);
+
+        inline function _outboundObject()
+            return macro untyped __cpp__('*(void**){0} = {1}', $i{_dest}.ptr, $i{_src}.native_ptr().ptr);
 
         return _type != null ? switch(_type) {
             case TPath(_d):
@@ -289,31 +292,31 @@ class ArgumentMacros {
                     case 'Vector2i': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(int)*2)', $i{_dest}.ptr, cpp.NativeArray.address($i{_src}, 0));
                     case 'Vector3i': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(int)*3)', $i{_dest}.ptr, cpp.NativeArray.address($i{_src}, 0));
                     case 'Vector4i': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(int)*4)', $i{_dest}.ptr, cpp.NativeArray.address($i{_src}, 0));
-                    case "Rect2": _encode(macro godot.variant.Rect2.RECT2_SIZE);
-                    case "Rect2i": _encode(macro godot.variant.Rect2i.RECT2I_SIZE);
-                    case "AABB": _encode(macro godot.variant.AABB.AABB_SIZE);
-                    case "Basis": _encode(macro godot.variant.Basis.BASIS_SIZE);
-                    case "Callable": _encode(macro godot.variant.Callable.CALLABLE_SIZE);
-                    case "Dictionary": _encode(macro godot.variant.Dictionary.DICTIONARY_SIZE);
-                    case "GDArray": _encode(macro godot.variant.GDArray.ARRAY_SIZE);
-                    case "NodePath": _encode(macro godot.variant.NodePath.NODEPATH_SIZE);
-                    case "PackedByteArray": _encode(macro godot.variant.PackedByteArray.PACKEDBYTEARRAY_SIZE);
-                    case "PackedColorArray": _encode(macro godot.variant.PackedColorArray.PACKEDCOLORARRAY_SIZE);
-                    case "PackedFloat32Array": _encode(macro godot.variant.PackedFloat32Array.PACKEDFLOAT32ARRAY_SIZE);
-                    case "PackedFloat64Array": _encode(macro godot.variant.PackedFloat64Array.PACKEDFLOAT64ARRAY_SIZE);
-                    case "PackedInt32Array": _encode(macro godot.variant.PackedInt32Array.PACKEDINT32ARRAY_SIZE);
-                    case "PackedInt64Array": _encode(macro godot.variant.PackedInt64Array.PACKEDINT64ARRAY_SIZE);
-                    case "PackedStringArray": _encode(macro godot.variant.PackedStringArray.PACKEDSTRINGARRAY_SIZE);
-                    case "PackedVector2Array": _encode(macro godot.variant.PackedVector2Array.PACKEDVECTOR2ARRAY_SIZE);
-                    case "PackedVector3Array": _encode(macro godot.variant.PackedVector3Array.PACKEDVECTOR3ARRAY_SIZE);
-                    case "Projection": _encode(macro godot.variant.Projection.PROJECTION_SIZE);
-                    case "RID": _encode(macro godot.variant.RID.RID_SIZE);
-                    case "Object": _encode(${ptrSizeOf});
-                    case "Signal": _encode(macro godot.variant.Signal.SIGNAL_SIZE);
-                    case "StringName": _encode(macro godot.variant.StringName.STRINGNAME_SIZE);
-                    case "Transform2D": _encode(macro godot.variant.Transform2D.TRANSFORM2D_SIZE);
-                    case "Transform3D": _encode(macro godot.variant.Transform3D.TRANSFORM3D_SIZE);
-                    default: _default();
+                    case "Rect2": _outbound(macro godot.variant.Rect2.RECT2_SIZE);
+                    case "Rect2i": _outbound(macro godot.variant.Rect2i.RECT2I_SIZE);
+                    case "AABB": _outbound(macro godot.variant.AABB.AABB_SIZE);
+                    case "Basis": _outbound(macro godot.variant.Basis.BASIS_SIZE);
+                    case "Callable": _outbound(macro godot.variant.Callable.CALLABLE_SIZE);
+                    case "Dictionary": _outbound(macro godot.variant.Dictionary.DICTIONARY_SIZE);
+                    case "GDArray": _outbound(macro godot.variant.GDArray.ARRAY_SIZE);
+                    case "NodePath": _outbound(macro godot.variant.NodePath.NODEPATH_SIZE);
+                    case "PackedByteArray": _outbound(macro godot.variant.PackedByteArray.PACKEDBYTEARRAY_SIZE);
+                    case "PackedColorArray": _outbound(macro godot.variant.PackedColorArray.PACKEDCOLORARRAY_SIZE);
+                    case "PackedFloat32Array": _outbound(macro godot.variant.PackedFloat32Array.PACKEDFLOAT32ARRAY_SIZE);
+                    case "PackedFloat64Array": _outbound(macro godot.variant.PackedFloat64Array.PACKEDFLOAT64ARRAY_SIZE);
+                    case "PackedInt32Array": _outbound(macro godot.variant.PackedInt32Array.PACKEDINT32ARRAY_SIZE);
+                    case "PackedInt64Array": _outbound(macro godot.variant.PackedInt64Array.PACKEDINT64ARRAY_SIZE);
+                    case "PackedStringArray": _outbound(macro godot.variant.PackedStringArray.PACKEDSTRINGARRAY_SIZE);
+                    case "PackedVector2Array": _outbound(macro godot.variant.PackedVector2Array.PACKEDVECTOR2ARRAY_SIZE);
+                    case "PackedVector3Array": _outbound(macro godot.variant.PackedVector3Array.PACKEDVECTOR3ARRAY_SIZE);
+                    case "Projection": _outbound(macro godot.variant.Projection.PROJECTION_SIZE);
+                    case "RID": _outbound(macro godot.variant.RID.RID_SIZE);
+                    // case "Object": _outboundObject(); // this is the default case
+                    case "Signal": _outbound(macro godot.variant.Signal.SIGNAL_SIZE);
+                    case "StringName": _outbound(macro godot.variant.StringName.STRINGNAME_SIZE);
+                    case "Transform2D": _outbound(macro godot.variant.Transform2D.TRANSFORM2D_SIZE);
+                    case "Transform3D": _outbound(macro godot.variant.Transform3D.TRANSFORM3D_SIZE);
+                    default: _outboundObject();
                 }
             default: _default();
         } : _default();

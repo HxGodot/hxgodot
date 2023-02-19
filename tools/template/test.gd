@@ -34,6 +34,13 @@ func _ready():
 	test_dict(dict)
 	print(dict)
 
+	var re = test_regexp()
+	print(re)
+	var result = re.search("abc n-0123")
+	print(result)
+	if (result):
+		print(result.get_string()) # Would print n-0123
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta):
 	#simple_add(69, _delta, true)

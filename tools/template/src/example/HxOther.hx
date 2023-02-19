@@ -25,7 +25,7 @@ class HxOther extends godot.Node {
     }
 
     @:export 
-    function onAreaEntered2(body:HxExample) {
+    function onAreaEntered2(body:HxExample):Void {
         trace("area entered!");
         trace(body);
     }
@@ -38,7 +38,7 @@ class HxOther extends godot.Node {
     }
 
     @:export 
-    function onAreaEntered3(val:Int) {
+    function onAreaEntered3(val:Int):Int {
         trace("area entered!");
         trace(val);
         return val;

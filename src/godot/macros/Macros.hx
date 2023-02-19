@@ -493,8 +493,12 @@ class Macros {
                         var arg = arguments[i];
                         var argType = _mapHxTypeToGodot(arg.type);
                         var argTypeString = godot.Types.GDExtensionVariantType.toString(argType);
-                        if (argType == godot.Types.GDExtensionVariantType.NIL)
-                            argTypeString = switch(arg.type){case TPath(_d): _d.name; default: "Object"; };
+                        if (argType == godot.Types.GDExtensionVariantType.NIL) {
+                            argTypeString = switch(arg.type){case TPath(_d): _d.name; default: "Void"; };
+
+                            if (argTypeString != "Void")
+                                argType = godot.Types.GDExtensionVariantType.OBJECT;
+                        }
 
                         regSigs.push(macro {
                             var aNamePtr:godot.Types.GDExtensionStringNamePtr = ($v{'${arg.name}'}:godot.variant.StringName).native_ptr();
@@ -564,10 +568,28 @@ class Macros {
                     for (j in -1..._f.args.length) {
                         
                         if (j == -1) { // -1 indicates the return type of the function, deal with it as special case
+                            if (_f.ret == null) {
+                                var hasReturn = false;
+                                function _findReturn(_e:Expr) {
+                                    switch (_e.expr) {
+                                        case EReturn(_r): if (_r != null) hasReturn = true;
+                                        case _: ExprTools.iter(_e, _findReturn);
+                                    }
+                                }
+                                _findReturn(_f.expr);                                
+                                if (hasReturn)
+                                    Context.fatalError('Your field "${field.name}" is missing a return type-hint. Please add one!', Context.currentPos());
+                            }
+
                             var argType = _mapHxTypeToGodot(_f.ret);
                             var argTypeString = godot.Types.GDExtensionVariantType.toString(argType);
-                            if (argType == godot.Types.GDExtensionVariantType.NIL)
-                                argTypeString = switch(_f.ret){case TPath(_d): _d.name; default: "Object"; };
+
+                            if (argType == godot.Types.GDExtensionVariantType.NIL) {
+                                argTypeString = switch(_f.ret){case TPath(_d): _d.name; default: "Void"; };
+
+                                if (argTypeString != "Void")
+                                    argType = godot.Types.GDExtensionVariantType.OBJECT;
+                            }
 
                             retAndArgsInfos.push(macro {
                                 var _cl:godot.Types.GDExtensionStringNamePtr = __class_name.native_ptr();
@@ -600,11 +622,15 @@ class Macros {
                         var argument = _f.args[j];
                         var argType = _mapHxTypeToGodot(argument.type);
                         var argTypeString = godot.Types.GDExtensionVariantType.toString(argType);
-                        if (argType == godot.Types.GDExtensionVariantType.NIL)
-                            argTypeString = switch(argument.type){case TPath(_d): _d.name; default: "Object"; };
+                        if (argType == godot.Types.GDExtensionVariantType.NIL) {
+                            argTypeString = switch(argument.type){case TPath(_d): _d.name; default: "Void"; };
+
+                            if (argTypeString != "Void")
+                                argType = godot.Types.GDExtensionVariantType.OBJECT;
+                        }
                         
-                        argExprs.push(ArgumentMacros.convert(j, "_args", argument.type));
-                        argVariantExprs.push(ArgumentMacros.convertVariant(j, "_args", argument.type));
+                        argExprs.push(ArgumentMacros.inbound(j, "_args", argument.type));
+                        argVariantExprs.push(ArgumentMacros.inboundVariant(j, "_args", argument.type));
                         
                         retAndArgsInfos.push(macro {
                             var hint_string:godot.Types.GDExtensionStringPtr = (new godot.variant.GDString()).native_ptr();
@@ -665,7 +691,7 @@ class Macros {
 
                         bindPtrs.push(macro {
                             var ret = $i{methodRoot}.$fname($a{argExprs});
-                            ${ArgumentMacros.encode(_f.ret, "_ret", "ret")};
+                            ${ArgumentMacros.outbound(_f.ret, "_ret", "ret")};
                         });
                     } else {
                         binds.push(macro {
@@ -789,7 +815,7 @@ class Macros {
                     var args = [];
                     for (i in 0..._f.args.length) {
                         var argument = _f.args[i];
-                        var arg = ArgumentMacros.convert(i, "_args", argument.type);
+                        var arg = ArgumentMacros.inbound(i, "_args", argument.type);
                         args.push(arg);
                     }
 
@@ -801,7 +827,7 @@ class Macros {
                     if (hasReturnValue) { // deal with the return type
                         virtCall = macro {
                             var ret = $i{f.name}($a{args});
-                            ${ArgumentMacros.encode(_f.ret, "_ret", "ret")};
+                            ${ArgumentMacros.outbound(_f.ret, "_ret", "ret")};
                         };
                     } else { // no return type, just call
                         virtCall = macro {

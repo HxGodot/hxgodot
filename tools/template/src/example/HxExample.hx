@@ -212,6 +212,18 @@ class HxExample extends godot.Node {
         return _v;
     }
 
+    @:export
+    function test_regexp():godot.RegEx {
+        var re = new godot.RegEx();
+        re.compile("\\w-(\\d+)");
+        return re;
+    }
+
+    @:export
+    function test_void():Void {
+        trace("test_void");
+    }
+
     static var c = 0;
     override function _process(_delta:Float):Void {
         //trace('_process($_delta) called');
