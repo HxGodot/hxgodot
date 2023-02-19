@@ -14,6 +14,7 @@ using haxe.macro.ExprTools;
 
 class ArgumentMacros {
     static var ptrSize = Context.defined("HXCPP_M64") ? "int64_t" : "int32_t";
+    static var ptrSizeOf = Context.parse('untyped __cpp__("sizeof($ptrSize)")', Context.currentPos());
 
     public static function convert(_index:Int, _args:String, _type:haxe.macro.ComplexType) {
         return _convert(_index, 0, _args, _type);
@@ -108,7 +109,11 @@ class ArgumentMacros {
                     cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")),
                     cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
                 );
-                retOriginal;
+                var instance:godot.Object = untyped __cpp__(
+                    $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
+                    obj.ptr
+                );
+                instance;
             };
         }
 
@@ -216,7 +221,7 @@ class ArgumentMacros {
                     case 'PackedVector3Array': _create(macro new godot.variant.PackedVector3Array(), macro godot.variant.PackedVector3Array.PACKEDVECTOR3ARRAY_SIZE);
                     case 'Projection': _create(macro new godot.variant.Projection(), macro godot.variant.Projection.PROJECTION_SIZE);
                     case 'RID': _create(macro new godot.variant.RID(), macro godot.variant.RID.RID_SIZE);
-                    case 'Object': _createObject(macro new godot.variant.Object(), macro godot.variant.OBJECT.OBJECT_SIZE);
+                    case 'Object': _createObject(macro new godot.variant.Object(), ${ptrSizeOf});
                     case 'Signal': _create(macro new godot.variant.Signal(), macro godot.variant.Signal.SIGNAL_SIZE);
                     case 'StringName': _create(macro new godot.variant.StringName(), macro godot.variant.StringName.STRINGNAME_SIZE);
                     case 'Transform2D': _create(macro new godot.variant.Transform2D(), macro godot.variant.Transform2D.TRANSFORM2D_SIZE);
@@ -303,7 +308,7 @@ class ArgumentMacros {
                     case "PackedVector3Array": _encode(macro godot.variant.PackedVector3Array.PACKEDVECTOR3ARRAY_SIZE);
                     case "Projection": _encode(macro godot.variant.Projection.PROJECTION_SIZE);
                     case "RID": _encode(macro godot.variant.RID.RID_SIZE);
-                    case "Object": _encode(macro godot.variant.OBJECT.OBJECT_SIZE);
+                    case "Object": _encode(${ptrSizeOf});
                     case "Signal": _encode(macro godot.variant.Signal.SIGNAL_SIZE);
                     case "StringName": _encode(macro godot.variant.StringName.STRINGNAME_SIZE);
                     case "Transform2D": _encode(macro godot.variant.Transform2D.TRANSFORM2D_SIZE);

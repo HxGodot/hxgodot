@@ -792,9 +792,22 @@ class Macros {
                         var arg = ArgumentMacros.convert(i, "_args", argument.type);
                         args.push(arg);
                     }
-                    virtCall = macro {
-                        $i{f.name}($a{args});
-                    };
+
+                    var hasReturnValue = _f.ret != null ? switch(_f.ret) {
+                        case (macro:Void): false;
+                        default: true;
+                    } : false;
+
+                    if (hasReturnValue) { // deal with the return type
+                        virtCall = macro {
+                            var ret = $i{f.name}($a{args});
+                            ${ArgumentMacros.encode(_f.ret, "_ret", "ret")};
+                        };
+                    } else { // no return type, just call
+                        virtCall = macro {
+                            $i{f.name}($a{args});
+                        };
+                    }
                 }
                 default: continue;
             }
