@@ -123,19 +123,7 @@ class ArgumentMacros {
                     case 'Bool': macro { (untyped __cpp__('*(bool *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}.ptr, $v{_index}, $v{_offset}):Bool); }
                     case 'Int', 'Int64': macro { (untyped __cpp__('(int64_t)*(int32_t *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}.ptr, $v{_index}, $v{_offset}):Int); }
                     case 'Float': macro { (untyped __cpp__('*(double *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}.ptr, $v{_index}, $v{_offset}):Float); }
-                    case 'GDString': macro {
-                        var str = new GDString();
-                        (untyped __cpp__(
-                            'memcpy({4}->opaque, (uint8_t *)(*((({0} **){1})+{2})+{3}), {5})',
-                            $i{ptrSize},
-                            $i{_args}.ptr,
-                            $v{_index},
-                            $v{_offset},
-                            str,
-                            GDString.STRING_SIZE
-                        ));
-                        str;
-                    }
+                    case 'GDString': _create(macro new godot.variant.GDString(), macro godot.variant.GDString.STRING_SIZE);
                     case 'Vector2', 'Point2':
                         macro { 
                             var v:Array<godot.Types.GDExtensionFloat> = cpp.NativeArray.create(2);
@@ -285,7 +273,7 @@ class ArgumentMacros {
                     }
                     case 'Int64': macro (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}.ptr, $i{_src}):haxe.Int64);
                     case 'Float': macro (untyped __cpp__('*((double*){0}) = {1}', $i{_dest}.ptr, $i{_src}):Float);
-                    case 'GDString': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, {2})', $i{_dest}.ptr, $i{_src}.native_ptr(), godot.variant.GDString.STRING_SIZE);
+                    case 'GDString': _outbound(macro godot.variant.GDString.STRING_SIZE);
                     case 'Color', 'Quaternion', 'Vector4': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*4)', $i{_dest}.ptr, cpp.NativeArray.address($i{_src}, 0));
                     case 'Vector2': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*2)', $i{_dest}.ptr, cpp.NativeArray.address($i{_src}, 0));
                     case 'Vector3': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*3)', $i{_dest}.ptr, cpp.NativeArray.address($i{_src}, 0));
