@@ -118,11 +118,11 @@ class ArgumentMacros {
         }
 
         return _type != null ? switch(_type) {
-            case TPath(_d):
+            case TPath(_d): {
                 switch(_d.name) {
-                    case 'Bool': macro { (untyped __cpp__('*(bool *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}.ptr, $v{_index}, $v{_offset}):Bool); }
-                    case 'Int', 'Int64': macro { (untyped __cpp__('(int64_t)*(int32_t *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}.ptr, $v{_index}, $v{_offset}):Int); }
-                    case 'Float': macro { (untyped __cpp__('*(double *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}.ptr, $v{_index}, $v{_offset}):Float); }
+                    case 'Bool', 'GDExtensionBool': macro { (untyped __cpp__('*(bool *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}.ptr, $v{_index}, $v{_offset}):Bool); }
+                    case 'Int', 'Int64', 'GDExtensionInt': macro { (untyped __cpp__('(int64_t)*(int32_t *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}.ptr, $v{_index}, $v{_offset}):Int); }
+                    case 'Float', 'GDExtensionFloat': macro { (untyped __cpp__('*(double *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}.ptr, $v{_index}, $v{_offset}):Float); }
                     case 'GDString': _create(macro new godot.variant.GDString(), macro godot.variant.GDString.STRING_SIZE);
                     case 'Vector2', 'Point2':
                         macro { 
@@ -217,6 +217,7 @@ class ArgumentMacros {
 
                     default: {
                         var ctType = Context.followWithAbstracts(haxe.macro.ComplexTypeTools.toType(_type));
+
                         var isRefCounted = switch (ctType) {
                             case TInst(_classType, _): _classType.get().meta.has(":gdRefCounted");
                             default: false;
@@ -246,6 +247,7 @@ class ArgumentMacros {
                         }
                     }
                 }
+            }
             default: _default();
         } : _default();
     }
@@ -266,13 +268,13 @@ class ArgumentMacros {
         return _type != null ? switch(_type) {
             case TPath(_d):
                 switch(_d.name) {
-                    case 'Bool': macro (untyped __cpp__('*((bool*){0}) = {1}', $i{_dest}.ptr, $i{_src}):Bool);
+                    case 'Bool', 'GDExtensionBool': macro (untyped __cpp__('*((bool*){0}) = {1}', $i{_dest}.ptr, $i{_src}):Bool);
                     case 'Int': macro {
                         var tmp = haxe.Int64.ofInt($i{_src});
                         (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}.ptr, tmp):Int); 
                     }
-                    case 'Int64': macro (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}.ptr, $i{_src}):haxe.Int64);
-                    case 'Float': macro (untyped __cpp__('*((double*){0}) = {1}', $i{_dest}.ptr, $i{_src}):Float);
+                    case 'Int64', 'GDExtensionInt': macro (untyped __cpp__('*((int64_t*){0}) = {1}', $i{_dest}.ptr, $i{_src}):haxe.Int64);
+                    case 'Float', 'GDExtensionFloat': macro (untyped __cpp__('*((double*){0}) = {1}', $i{_dest}.ptr, $i{_src}):Float);
                     case 'GDString': _outbound(macro godot.variant.GDString.STRING_SIZE);
                     case 'Color', 'Quaternion', 'Vector4': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*4)', $i{_dest}.ptr, cpp.NativeArray.address($i{_src}, 0));
                     case 'Vector2': macro untyped __cpp__('memcpy((void*){0}, (void*){1}, sizeof(float)*2)', $i{_dest}.ptr, cpp.NativeArray.address($i{_src}, 0));

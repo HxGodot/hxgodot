@@ -356,7 +356,7 @@ extern class GDExtensionPropertyInfo {
 typedef GDExtensionPropertyInfoPtr = cpp.Pointer<GDExtensionPropertyInfo>;
 
 typedef GDExtensionInt = cpp.Int64;
-typedef GDExtensionBool = cpp.UInt8;
+typedef GDExtensionBool = Bool;
 typedef GDExtensionFloat = cpp.Float32; // TODO: take into account if godot was compiled for doubles
 typedef GDObjectInstanceID = cpp.UInt64;
 
