@@ -304,6 +304,7 @@ class ArgumentMacros {
                     case "StringName": _outbound(macro godot.variant.StringName.STRINGNAME_SIZE);
                     case "Transform2D": _outbound(macro godot.variant.Transform2D.TRANSFORM2D_SIZE);
                     case "Transform3D": _outbound(macro godot.variant.Transform3D.TRANSFORM3D_SIZE);
+                    case "Variant": macro untyped __cpp__('*(void**){0} = {1}', $i{_dest}.ptr, $i{_src}.native_ptr());
                     default: _outboundObject();
                 }
             default: _default();
