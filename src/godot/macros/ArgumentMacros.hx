@@ -265,6 +265,12 @@ class ArgumentMacros {
         inline function _outboundObject()
             return macro untyped __cpp__('*(void**){0} = {1}', $i{_dest}.ptr, $i{_src}.native_ptr().ptr);
 
+        inline function _outboundVariant() 
+            return macro {
+                godot.Types.GodotNativeInterface.variant_destroy($i{_dest});
+                godot.Types.GodotNativeInterface.variant_new_copy($i{_dest}, $i{_src}.native_ptr());
+            };
+
         return _type != null ? switch(_type) {
             case TPath(_d):
                 switch(_d.name) {
@@ -306,7 +312,7 @@ class ArgumentMacros {
                     case "StringName": _outbound(macro godot.variant.StringName.STRINGNAME_SIZE);
                     case "Transform2D": _outbound(macro godot.variant.Transform2D.TRANSFORM2D_SIZE);
                     case "Transform3D": _outbound(macro godot.variant.Transform3D.TRANSFORM3D_SIZE);
-                    case "Variant": macro untyped __cpp__('*(void**){0} = {1}', $i{_dest}.ptr, $i{_src}.native_ptr());
+                    case "Variant": _outboundVariant();
                     default: _outboundObject();
                 }
             default: _default();
