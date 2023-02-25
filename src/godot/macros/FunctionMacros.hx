@@ -108,9 +108,7 @@ class FunctionMacros {
                 expr: macro {
                     var inst:$ctPath = new $tpath();
                     $destr;
-
                     $b{exprs};
-
                     return inst;
                 },
                 params: [],

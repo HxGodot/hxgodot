@@ -100,26 +100,10 @@ class ArgumentMacros {
             };
         }
 
-        inline function _createObject(_inst, _size) {
-            var identBindings = '&${typePath}_obj::___binding_callbacks';
-            return macro {
-                var retOriginal:godot.Types.StarVoidPtr = untyped __cpp__('nullptr');
-                var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
-                    cpp.Pointer.fromStar(retOriginal), 
-                    cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")),
-                    cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
-                );
-                var instance:godot.Object = untyped __cpp__(
-                    $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                    obj.ptr
-                );
-                instance;
-            };
-        }
-
         return _type != null ? switch(_type) {
             case TPath(_d): {
                 switch(_d.name) {
+                    // TODO: add Pointer?
                     case 'Bool', 'GDExtensionBool': macro { (untyped __cpp__('*(bool *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}.ptr, $v{_index}, $v{_offset}):Bool); }
                     case 'Int', 'Int64', 'GDExtensionInt': macro { (untyped __cpp__('(int64_t)*(int32_t *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}.ptr, $v{_index}, $v{_offset}):Int); }
                     case 'Float', 'GDExtensionFloat': macro { (untyped __cpp__('*(double *)(*((({0} **){1})+{2})+{3})', $i{ptrSize}, $i{_args}.ptr, $v{_index}, $v{_offset}):Float); }
@@ -209,7 +193,7 @@ class ArgumentMacros {
                     case 'PackedVector3Array': _create(macro new godot.variant.PackedVector3Array(), macro godot.variant.PackedVector3Array.PACKEDVECTOR3ARRAY_SIZE);
                     case 'Projection': _create(macro new godot.variant.Projection(), macro godot.variant.Projection.PROJECTION_SIZE);
                     case 'RID': _create(macro new godot.variant.RID(), macro godot.variant.RID.RID_SIZE);
-                    case 'Object': _createObject(macro new godot.variant.Object(), ${ptrSizeOf});
+                    //case 'Object': _createObject(macro new godot.variant.Object(), ${ptrSizeOf});
                     case 'Signal': _create(macro new godot.variant.Signal(), macro godot.variant.Signal.SIGNAL_SIZE);
                     case 'StringName': _create(macro new godot.variant.StringName(), macro godot.variant.StringName.STRINGNAME_SIZE);
                     case 'Transform2D': _create(macro new godot.variant.Transform2D(), macro godot.variant.Transform2D.TRANSFORM2D_SIZE);
@@ -259,11 +243,20 @@ class ArgumentMacros {
             return macro { untyped __cpp__($v{val}); };
         }
 
-        inline function _outbound(_size)
-            return macro untyped __cpp__('memcpy((void*){0}, (void*){1}, {2})', $i{_dest}.ptr, $i{_src}.native_ptr().ptr, $_size);
+        inline function _outbound(_size) {
+            var src = macro $i{_src}.native_ptr();
+            return macro untyped __cpp__('memcpy((void*){0}, (void*){1}, {2})', $i{_dest}.ptr, $src, $_size);
+        }
 
-        inline function _outboundObject()
-            return macro untyped __cpp__('*(void**){0} = {1}', $i{_dest}.ptr, $i{_src}.native_ptr().ptr);
+        inline function _outboundObject() {
+            var src = macro $i{_src}.native_ptr();
+            return macro untyped __cpp__('*(void**){0} = {1}', $i{_dest}.ptr, $src);
+        }
+
+        inline function _outboundPointer() {
+            var src = macro $i{_src}.ptr;
+            return macro untyped __cpp__('*(void**){0} = {1}', $i{_dest}.ptr, $src);
+        }
 
         inline function _outboundVariant() 
             return macro {
@@ -274,6 +267,7 @@ class ArgumentMacros {
         return _type != null ? switch(_type) {
             case TPath(_d):
                 switch(_d.name) {
+                    case 'Pointer': _outboundPointer();
                     case 'Bool', 'GDExtensionBool': macro (untyped __cpp__('*((bool*){0}) = {1}', $i{_dest}.ptr, $i{_src}):Bool);
                     case 'Int': macro {
                         var tmp = haxe.Int64.ofInt($i{_src});
@@ -307,12 +301,12 @@ class ArgumentMacros {
                     case "PackedVector3Array": _outbound(macro godot.variant.PackedVector3Array.PACKEDVECTOR3ARRAY_SIZE);
                     case "Projection": _outbound(macro godot.variant.Projection.PROJECTION_SIZE);
                     case "RID": _outbound(macro godot.variant.RID.RID_SIZE);
-                    // case "Object": _outboundObject(); // this is the default case
                     case "Signal": _outbound(macro godot.variant.Signal.SIGNAL_SIZE);
                     case "StringName": _outbound(macro godot.variant.StringName.STRINGNAME_SIZE);
                     case "Transform2D": _outbound(macro godot.variant.Transform2D.TRANSFORM2D_SIZE);
                     case "Transform3D": _outbound(macro godot.variant.Transform3D.TRANSFORM3D_SIZE);
                     case "Variant": _outboundVariant();
+                    // case "Object": _outboundObject(); // this is the default case
                     default: _outboundObject();
                 }
             default: _default();
