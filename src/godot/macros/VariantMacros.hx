@@ -57,6 +57,13 @@ class VariantMacros {
             }
             @:to inline public function toGDArray():godot.variant.GDArray ${_convertTo(GDExtensionVariantType.ARRAY, macro : godot.variant.GDArray, macro new godot.variant.GDArray())}
 
+            // Color
+            @:from inline static function fromColor(_x:godot.variant.Color):Variant {
+                return (untyped __cpp__('{0}.mPtr != nullptr', _x)) ?
+                    _buildVariant2(GDExtensionVariantType.COLOR, _x.native_ptr()) : null;
+            }
+            @:to inline public function toColor():godot.variant.Color ${_convertToCustom(GDExtensionVariantType.COLOR, macro : godot.variant.Color, macro new godot.variant.Color(), macro cpp.NativeArray.address(res, 0))}
+
             // Vector2
             @:from inline static function fromVector2(_x:godot.variant.Vector2):Variant {
                 return (untyped __cpp__('{0}.mPtr != nullptr', _x)) ?
