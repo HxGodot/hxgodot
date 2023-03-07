@@ -989,7 +989,7 @@ class Macros {
             }
 
             static function __registerMethods() {
-                var library:cpp.Pointer<cpp.Void> = cpp.Pointer.fromStar(untyped __cpp__("godot::internal::library"));
+                var library:godot.Types.VoidPtr = cpp.Pointer.fromStar(untyped __cpp__("godot::internal::library"));
                 
                 // register all methods
                 $b{regOut};
