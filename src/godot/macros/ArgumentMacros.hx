@@ -250,7 +250,12 @@ class ArgumentMacros {
 
         inline function _outboundObject() {
             var src = macro $i{_src}.native_ptr();
-            return macro untyped __cpp__('*(void**){0} = {1}', $i{_dest}.ptr, $src);
+            return macro {
+                if ($i{_src} != null)
+                    untyped __cpp__('*(void**){0} = {1}', $i{_dest}.ptr, $src);
+                else
+                    untyped __cpp__('*(void**){0} = nullptr', $i{_dest}.ptr);
+            };
         }
 
         inline function _outboundPointer() {
@@ -267,7 +272,7 @@ class ArgumentMacros {
         return _type != null ? switch(_type) {
             case TPath(_d):
                 switch(_d.name) {
-                    case 'Pointer': _outboundPointer();
+                    case 'Pointer', 'VoidPtr': _outboundPointer();
                     case 'Bool', 'GDExtensionBool': macro (untyped __cpp__('*((bool*){0}) = {1}', $i{_dest}.ptr, $i{_src}):Bool);
                     case 'Int': macro {
                         var tmp = haxe.Int64.ofInt($i{_src});
