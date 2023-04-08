@@ -16,21 +16,31 @@ class ClassGenExtraMacros {
         var ops = [];
         switch (_type) {
             case "GDString": {
-                // TODO: these inlined string calls are a problem!
+                // TODO: these inlined string calls are a problem when using CPPIA! we should not inline them in a normal compile!
                 var tmp = macro class {
-                    @:from inline public static function fromString(_v:String):GDString {
+                    @:from /*inline*/ public static function fromString(_v:String):GDString {
                         var s = new GDString();
                         godot.Types.GodotNativeInterface.string_new_with_utf8_chars(s.native_ptr(), cast cpp.NativeString.c_str(_v));
                         return s;
                     }
 
-                    @:to inline public function toString():String {
+                    @:to /*inline*/ public function toString():String {
                         var size = godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDExtensionStringPtr){0}', this.native_ptr()), null, 0);
                         var chars:Array<cpp.Char> = cpp.NativeArray.create(size);
                         var ptr = cpp.NativeArray.address(chars, 0);
                         godot.Types.GodotNativeInterface.string_to_utf8_chars(untyped __cpp__('(GDExtensionStringPtr){0}', this.native_ptr()), ptr, size);
                         return cpp.NativeString.fromPointerLen(ptr, size);
                     }
+
+                    // @:op(A == B) 
+                    // @:commutative
+                    // inline public static function strEqual(_a:GDString, _b:String):Bool
+                    //     return (_a:String) == _b;
+
+                    // @:op(A != B) 
+                    // @:commutative
+                    // inline public static function strNotEqual(_a:GDString, _b:String):Bool
+                    //     return (_a:String) != _b;
                 }
                 ops = ops.concat(tmp.fields);
             }

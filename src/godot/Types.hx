@@ -249,6 +249,7 @@ typedef GDExtensionClassMethodCall = Int;
 typedef GDExtensionClassMethodPtrCall = Int;
 typedef GDExtensionClassCreationInfo = Int;
 typedef GDExtensionClassMethodInfo = Int;
+typedef GDExtensionScriptInstanceInfo = Int;
 typedef GodotNativeInterface = Int;
 typedef GDExtensionPropertyInfoPtr = Int;
 typedef GDExtensionClassCallVirtual = Int;
@@ -278,6 +279,9 @@ typedef GDExtensionPtrKeyedSetter = Int;
 typedef GDExtensionCallError = Int;
 
 typedef GDExtensionPtrUtilityFunction = Int;
+
+typedef GDExtensionScriptInstancePtr = Int;
+typedef GDExtensionScriptInstanceDataPtr = Int;
 
 #else
 
@@ -316,6 +320,9 @@ typedef GDExtensionPtrKeyedSetter = VoidPtr;
 
 typedef GDExtensionPtrUtilityFunction = VoidPtr;
 
+typedef GDExtensionScriptInstancePtr = VoidPtr;
+typedef GDExtensionScriptInstanceDataPtr = VoidPtr;
+
 // simple extern class to make the includes work
 @:include("godot_cpp/godot.hpp")
 @:include("godot_cpp/gdextension_interface.h")
@@ -338,6 +345,12 @@ extern class GDExtensionCallError {
     var argument:cpp.Int32;
     var expected:cpp.Int32;
 }
+
+@:include("godot_cpp/godot.hpp")
+@:include("godot_cpp/gdextension_interface.h")
+@:native("::GDExtensionScriptInstanceInfo")
+extern class GDExtensionScriptInstanceInfo {}
+typedef GDExtensionScriptInstanceInfoPtr = cpp.Pointer<GDExtensionScriptInstanceInfo>;
 
 @:structAccess
 @:unreflective
@@ -515,6 +528,10 @@ extern class __GodotNativeInterface {
     @:native("::godot::internal::gde_interface->global_get_singleton")
     public static function global_get_singleton(_classname:GDExtensionStringNamePtr):GDExtensionObjectPtr;
 
+    // script instances
+    @:native("::godot::internal::gde_interface->script_instance_create")
+    public static function script_instance_create(_info:GDExtensionScriptInstanceInfoPtr, _instance_data:GDExtensionScriptInstanceDataPtr):GDExtensionScriptInstancePtr;
+
     // array functions
     inline public static function packed_byte_array_operator_index(_self:GDExtensionTypePtr, _index:godot.Types.GDExtensionInt):cpp.Pointer<cpp.UInt8>
         return cpp.Pointer.fromStar(_packed_byte_array_operator_index(_self, _index));
@@ -662,6 +679,9 @@ class GodotNativeInterface {
 
     public static function global_get_singleton(_classname:GDExtensionStringNamePtr):GDExtensionObjectPtr
         return __GodotNativeInterface.global_get_singleton(_classname);
+
+    public static function script_instance_create(_info:GDExtensionScriptInstanceInfoPtr, _instance_data:GDExtensionScriptInstanceDataPtr):GDExtensionScriptInstancePtr
+        return __GodotNativeInterface.script_instance_create(_info, _instance_data);
 
     public static function packed_byte_array_operator_index(_self:GDExtensionTypePtr, _index:godot.Types.GDExtensionInt):cpp.Pointer<cpp.UInt8>
         return __GodotNativeInterface.packed_byte_array_operator_index(_self, _index);

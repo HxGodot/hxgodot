@@ -5,6 +5,10 @@ import cpp.link.StaticZlib;
 import godot.Types;
 import godot.variant.Variant;
 
+#if scriptable
+    import godot.cppia.CppiaHost;
+#end
+
 @:buildXml("<files id='haxe'>
         <compilerflag value='-I${haxelib:hxgodot}/src'/>
         <compilerflag value='-I../bindings'/>
@@ -14,6 +18,8 @@ import godot.variant.Variant;
         <file name='${haxelib:hxgodot}/src/hxcpp_ext/hxgodot_api.cpp'/>
     </files>")
 class HxGodot {
+
+
     static function main() {
         // setup constructors
         __Variant.__initBindings();
@@ -77,16 +83,25 @@ class HxGodot {
         bannerMsg.add('\n[b][color=FFA500]Hx[/color][color=6495ED]Godot[/color] (${GDUtils.HXGODOT_VERSION})[/b]\n');
         bannerMsg.add('${builtins.length} builtins / ${tmp.length} classes available\n');
         #if scriptable
-        bannerMsg.add('(CPPIA host-mode enabled)\n');
+            bannerMsg.add('(CPPIA host-mode enabled)\n');
         #end
         GDUtils.print_rich(bannerMsg.toString());
 
         #if scriptable
-        //cpp.cppia.Host.runFile("bin/hxgodot.cppia");
+            CppiaHost.init();
         #end
     }
 
+    public static var shuttingDown = false;
     public static function shutdown() {
+
+        trace("shutting down...");
+
+        //shuttingDown = true;
+        #if scriptable
+            CppiaHost.deinit();
+        #end
+
         // sort all classes depending on their inheritance depth, highest first
         var tmp = Lambda.array(CompileTime.getAllClasses(godot.Wrapped));
         haxe.ds.ArraySort.sort(tmp, function(_a:Dynamic, _b:Dynamic) {

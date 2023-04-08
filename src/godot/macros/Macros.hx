@@ -10,6 +10,7 @@ import haxe.macro.TypeTools;
 import godot.macros.ArgumentMacros;
 import godot.macros.PostInitMacros;
 import haxe.macro.ComplexTypeTools;
+import haxe.macro.Type;
 
 using haxe.macro.ExprTools;
 using StringTools;
@@ -48,6 +49,8 @@ class Macros {
         var tokens = cls.get().superClass.t.toString().split(".");
         var parent_class_name = tokens[tokens.length-1];
 
+        
+
         // add necessary metadata to the class
         classMeta.add(":headerCode", [macro "
                 #include <godot_cpp/gdextension_interface.h>
@@ -56,37 +59,43 @@ class Macros {
                 #include <hxcpp_ext/Dynamic2.h>
                 #include <cpp/vm/Gc.h>
             "], pos);
-        classMeta.add(":headerClassCode", [macro "
-                static void *___binding_create_callback(void *p_token, void *p_instance) {
-                    int base = 99;
-                    hx::SetTopOfStack(&base,true);
-                    void *res = _hx____binding_create_callback(p_token, cpp::Pointer<void>(p_instance));
-                    hx::SetTopOfStack((int*)0,true);
-                    return res;
-                }
-                static void ___binding_free_callback(void *p_token, void *p_instance, void *p_binding) {
-                    int base = 99;
-                    hx::SetTopOfStack(&base,true);
-                    _hx____binding_free_callback(p_token, cpp::Pointer<void>(p_instance), cpp::Pointer<void>(p_binding));
-                    hx::SetTopOfStack((int*)0,true);
-                }
-                static GDExtensionBool ___binding_reference_callback(void *p_token, void *p_instance, GDExtensionBool p_reference) { 
-                    int base = 99;
-                    hx::SetTopOfStack(&base,true);
-                    GDExtensionBool res = _hx____binding_reference_callback(p_token, cpp::Pointer<void>(p_instance), p_reference);
-                    hx::SetTopOfStack((int*)0,true);
-                    return res;
-                }
-                static constexpr GDExtensionInstanceBindingCallbacks ___binding_callbacks = {
-                    ___binding_create_callback,
-                    ___binding_free_callback,
-                    ___binding_reference_callback,
-                };
-            "], pos);
+
+        var additionalHeaderClassCode = '';
+        if (classMeta.has(':additionalHeaderClassCode'))
+            additionalHeaderClassCode = ExprTools.getValue(classMeta.extract(':additionalHeaderClassCode')[0].params[0]);
+        
+        var headerFileCode = additionalHeaderClassCode + "
+            static void *___binding_create_callback(void *p_token, void *p_instance) {
+                int base = 99;
+                hx::SetTopOfStack(&base,true);
+                void *res = _hx____binding_create_callback(p_token, cpp::Pointer<void>(p_instance));
+                hx::SetTopOfStack((int*)0,true);
+                return res;
+            }
+            static void ___binding_free_callback(void *p_token, void *p_instance, void *p_binding) {
+                int base = 99;
+                hx::SetTopOfStack(&base,true);
+                _hx____binding_free_callback(p_token, cpp::Pointer<void>(p_instance), cpp::Pointer<void>(p_binding));
+                hx::SetTopOfStack((int*)0,true);
+            }
+            static GDExtensionBool ___binding_reference_callback(void *p_token, void *p_instance, GDExtensionBool p_reference) { 
+                int base = 99;
+                hx::SetTopOfStack(&base,true);
+                GDExtensionBool res = _hx____binding_reference_callback(p_token, cpp::Pointer<void>(p_instance), p_reference);
+                hx::SetTopOfStack((int*)0,true);
+                return res;
+            }
+            static constexpr GDExtensionInstanceBindingCallbacks ___binding_callbacks = {
+                ___binding_create_callback,
+                ___binding_free_callback,
+                ___binding_reference_callback,
+            };
+        ";
+        classMeta.add(":headerClassCode", [macro $v{headerFileCode}], pos);
+
         var bDef = 'constexpr GDExtensionInstanceBindingCallbacks ${classNameCpp}_obj::___binding_callbacks;';
         classMeta.add(":cppFileCode", [macro $v{bDef}], pos);
-
-
+        
         // register these extension fields
         var extensionFields = [];
         //var extensionIntegerConstants = [];
@@ -286,7 +295,7 @@ class Macros {
     static function buildFieldBindings(
         _fields:Array<haxe.macro.Field>,
         _className:String,
-        _classMeta,
+        _classMeta:MetaAccess,
         _typePath,
         _extensionFields:Array<haxe.macro.Field>,
         _virtualFields:Array<Dynamic>,
@@ -852,8 +861,14 @@ class Macros {
             virtualFuncImpls = virtualFuncImpls.concat(virtClass.fields);
         }
 
+        // make sure we allow for additional CppFile Code to be injected!
+        // TODO: this is a special case we added for CppiaScript, maybe we should add support for the other cpp code metadata here, too. Who knows?
+        var additionalCppFileCode = '';
+        if (_classMeta.has(':additionalCppFileCode'))
+            additionalCppFileCode = ExprTools.getValue(_classMeta.extract(':additionalCppFileCode')[0].params[0]);
+
         // add the callback wrappers, so we can play along with GC
-        var cppCode = vCallbacks + '
+        var cppCode = additionalCppFileCode + vCallbacks + '
             static GDExtensionObjectPtr __onCreate(void *p_userdata) {
                 int base = 99;
                 hx::SetTopOfStack(&base,true);
