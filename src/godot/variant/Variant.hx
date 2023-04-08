@@ -31,11 +31,12 @@ class __Variant {
         return GodotNativeInterface.variant_get_type(this.native_ptr());
     }
 
+    public static function destructVariant(_inst:Variant) {
+        godot.Types.GodotNativeInterface.variant_destroy(_inst.native_ptr());
+    }
+
     static function __initBindings() {
         for (i in 1...GDExtensionVariantType.MAXIMUM) {
-            // from_type_constructor[i] = (GodotNativeInterface.get_variant_from_type_constructor(i): godot.Types.StarVoidPtr);
-            // to_type_constructor[i] = (GodotNativeInterface.get_variant_to_type_constructor(i): godot.Types.StarVoidPtr);
-
             from_type_constructor[i] = untyped __cpp__('(void *)godot::internal::gde_interface->get_variant_from_type_constructor((GDExtensionVariantType){0})', i);
             to_type_constructor[i] = untyped __cpp__('(void *)godot::internal::gde_interface->get_variant_to_type_constructor((GDExtensionVariantType){0})', i);
         }
@@ -112,6 +113,7 @@ abstract Variant(__Variant) from __Variant to __Variant {
             res.native_ptr(), 
             tmp
         );
+        HxGodot.setFinalizer(res, cpp.Callable.fromStaticFunction(__Variant.destructVariant));
         return res;
     }
 
@@ -126,8 +128,8 @@ abstract Variant(__Variant) from __Variant to __Variant {
             (constructor:godot.Types.StarVoidPtr), 
             res.native_ptr(), 
             _y
-        );
-
+        );        
+        HxGodot.setFinalizer(res, cpp.Callable.fromStaticFunction(__Variant.destructVariant));
         return res;
     } 
 
@@ -142,6 +144,7 @@ abstract Variant(__Variant) from __Variant to __Variant {
             res.native_ptr(),
             untyped __cpp__('&{0}', _y)
         );
+        HxGodot.setFinalizer(res, cpp.Callable.fromStaticFunction(__Variant.destructVariant));
         return res;
     }    
 }

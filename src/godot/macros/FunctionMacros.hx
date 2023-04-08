@@ -97,7 +97,7 @@ class FunctionMacros {
         var tpath = _bind.clazz.typePath;
         var ctPath = TPath(tpath);
         var destr = _bind.clazz.hasDestructor ? 
-            macro HxGodot.setFinalizer(inst, cpp.Callable.fromStaticFunction(_destruct)) : macro {};
+            macro HxGodot.setFinalizer(inst, cpp.Callable.fromStaticFunction(destruct)) : macro {};
         _fields.push({
             name: _bind.name,
             access: _bind.access,
@@ -172,8 +172,9 @@ class FunctionMacros {
             meta: [{name: ':noCompletion', pos: Context.currentPos()}],
             kind: FFun({
                 args: [{name: '_this', type: TPath(_bind.clazz.typePath)}],
-                expr: macro { 
-                    untyped __cpp__('((GDExtensionPtrDestructor){0})({1})', _destructor.ptr, _this.native_ptr());
+                expr: macro {
+                    if (_destructor != null)
+                        untyped __cpp__('((GDExtensionPtrDestructor){0})({1})', _destructor.ptr, _this.native_ptr());
                 },
                 params: [],
                 ret: TPath(_bind.returnType)
@@ -183,7 +184,7 @@ class FunctionMacros {
         // add an accessible killer function
         _fields.push({
             name: 'destruct',
-            access: [AInline, APublic, AStatic],
+            access: [APublic, AStatic],
             pos: Context.currentPos(),
             kind: FFun({
                 args: [{name: '_this', type: TPath(_bind.clazz.typePath)}],

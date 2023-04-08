@@ -39,18 +39,21 @@ class Wrapped {
         return ret;
     }
 
+    @:noCompletion
     public function addGCRoot() {
         if (__root == null) {
             __root = untyped __cpp__('(void*)new cpp::utils::RootedObject({0}.mPtr)', this);
         }
     }
 
+    @:noCompletion
     public function prepareRemoveGCRoot() {
         if (__root != null) {
             untyped __cpp__('((cpp::utils::RootedObject*){0})->prepareRemoval()', __root.ptr);
         }
     }
 
+    @:noCompletion
     public function removeGCRoot() {
         if (__root != null) {
             untyped __cpp__('delete ((cpp::utils::RootedObject*){0})', __root.ptr);
