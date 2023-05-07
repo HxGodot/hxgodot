@@ -225,12 +225,14 @@ class ClassGenMacros {
                                 break;
                             }
                             var defValExpr = null;
-                            var argType = TypeMacros.getTypeName(a.type);
+                            //var actualType = a.meta != null ? a.meta : a.type;
+                            var actualType = a.type;
+                            var argType = TypeMacros.getTypeName(actualType);
                             var argPack = TypeMacros.getTypePackage(argType);
 
-                            if (TypeMacros.isEnumOrBitfield(a.type)) {
-                                var tokens = a.type.split(".");
-                                argType = "cpp.Int32";
+                            if (TypeMacros.isEnumOrBitfield(actualType)) {
+                                var tokens = actualType.split(".");
+                                argType = "cpp.Int64";
                                 argPack = [];
                             }
 
@@ -1415,7 +1417,7 @@ class ClassGenMacros {
             buf.add('@:structAccess\n');
             buf.add('@:unreflective\n');            
             buf.add('@:include("godot_cpp/godot.hpp")\n');
-            buf.add('@:include("godot/gdextension_interface.h")\n');
+            buf.add('@:include("godot_cpp/gdextension_interface.h")\n');
             buf.add('@:include("godot/native_structs.hpp")\n');
             buf.add('@:native("godot::structs::$sName")\n');
             buf.add('extern class $sName {}\n\n');

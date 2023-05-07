@@ -65,6 +65,10 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
     inline public function copy():Vector3
         return new Vector3(this[0], this[1], this[2]);
 
+    public function set(_x:Float, _y:Float, _z:Float):Void {
+        this[0] = _x; this[1] = _y; this[2] = _z;
+    }
+
     public function cross(p_with:Vector3):Vector3 {
         var ret = new Vector3(
                 (y * p_with.z) - (z * p_with.y),

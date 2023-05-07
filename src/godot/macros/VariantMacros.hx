@@ -31,7 +31,8 @@ class VariantMacros {
                 var tmp = haxe.Int64.ofInt(_x);
                 return _buildVariant(GDExtensionVariantType.INT, tmp);
             }
-            @:to inline public function toInt():cpp.Int64 ${_convertToNative(GDExtensionVariantType.INT, macro : cpp.Int64, macro 0)}
+            @:to inline public function toInt64():cpp.Int64 ${_convertToNative(GDExtensionVariantType.INT, macro : cpp.Int64, macro 0i64)}
+            @:to inline public function toInt():Int ${_convertToNative(GDExtensionVariantType.INT, macro : Int, macro 0)}
 
             // FLOAT
             @:from inline public static function fromFloat(_x:Float):Variant

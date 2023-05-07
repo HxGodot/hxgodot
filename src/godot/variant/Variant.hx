@@ -128,7 +128,7 @@ abstract Variant(__Variant) from __Variant to __Variant {
             (constructor:godot.Types.StarVoidPtr), 
             res.native_ptr(), 
             _y
-        );        
+        );
         HxGodot.setFinalizer(res, cpp.Callable.fromStaticFunction(__Variant.destructVariant));
         return res;
     } 

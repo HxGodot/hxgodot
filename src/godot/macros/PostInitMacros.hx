@@ -63,10 +63,10 @@ class PostInitMacros {
 
                     untyped __cpp__('godot::internal::gde_interface->object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, owner, ret);
 
-                    if (!_reference && refCount == 1)
+                    if (!_reference && refCount == 1i64)
                         untyped __cpp__('((::godot::Wrapped_obj*){0})->prepareRemoveGCRoot()', instance);
 
-                    return (refCount == 0);
+                    return (refCount == 0i64);
                 }
 
                 return true;

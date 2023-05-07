@@ -358,7 +358,7 @@ typedef GDExtensionPropertyInfoPtr = cpp.Pointer<GDExtensionPropertyInfo>;
 typedef GDExtensionInt = cpp.Int64;
 typedef GDExtensionBool = Bool;
 typedef GDExtensionFloat = cpp.Float32; // TODO: take into account if godot was compiled for doubles
-typedef GDObjectInstanceID = cpp.UInt64;
+typedef GDObjectInstanceID = haxe.Int64;
 
 // simple extern to work with the static functions of the native interface and proper typing
 @:include("godot_cpp/godot.hpp")
@@ -521,6 +521,11 @@ extern class __GodotNativeInterface {
     @:native("::godot::internal::gde_interface->packed_byte_array_operator_index")
     private static function _packed_byte_array_operator_index(_self:GDExtensionTypePtr, _index:godot.Types.GDExtensionInt):cpp.Star<cpp.UInt8>;
 
+    inline public static function packed_int32_array_operator_index(_self:GDExtensionTypePtr, _index:godot.Types.GDExtensionInt):cpp.Pointer<cpp.Int32>
+        return cpp.Pointer.fromStar(_packed_int32_array_operator_index(_self, _index));
+    @:native("::godot::internal::gde_interface->packed_int32_array_operator_index")
+    private static function _packed_int32_array_operator_index(_self:GDExtensionTypePtr, _index:godot.Types.GDExtensionInt):cpp.Star<cpp.Int32>;
+
     inline public static function packed_float32_array_operator_index(_self:GDExtensionTypePtr, _index:godot.Types.GDExtensionInt):cpp.Pointer<cpp.Float32>
         return cpp.Pointer.fromStar(_packed_float32_array_operator_index(_self, _index));
     @:native("::godot::internal::gde_interface->packed_float32_array_operator_index")
@@ -665,6 +670,9 @@ class GodotNativeInterface {
 
     public static function packed_byte_array_operator_index(_self:GDExtensionTypePtr, _index:godot.Types.GDExtensionInt):cpp.Pointer<cpp.UInt8>
         return __GodotNativeInterface.packed_byte_array_operator_index(_self, _index);
+
+    public static function packed_int32_array_operator_index(_self:GDExtensionTypePtr, _index:godot.Types.GDExtensionInt):cpp.Pointer<cpp.Int32>
+        return __GodotNativeInterface.packed_int32_array_operator_index(_self, _index);
 
     public static function packed_float32_array_operator_index(_self:GDExtensionTypePtr, _index:godot.Types.GDExtensionInt):cpp.Pointer<cpp.Float32>
         return __GodotNativeInterface.packed_float32_array_operator_index(_self, _index);

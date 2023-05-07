@@ -10,10 +10,10 @@ HxGodot combines Haxe's hxcpp target with Godot 4's GDExtension mechanism to sup
 ### Prerequisites & Toolchain: 
 - A Commandline shell of your choice. We assume a *nix-based shell for all commands presented here.
 - [SCons](https://scons.org/)
-- [Haxe 4.2+](https://haxe.org/download/)
+- [Haxe 4.3.1+](https://haxe.org/download/)
   
   Install Haxe and setup Haxe's package manager via `haxelib setup` 
-- hxcpp 4.2+
+- hxcpp 4.3.1+
   
   Install hxcpp by running `haxelib install hxcpp`
 - Godot 4 beta10+ (best build from master)

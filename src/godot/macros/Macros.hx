@@ -791,7 +791,7 @@ class Macros {
             var vname = 'virtual_${_className}_${f.name}';
             virtualFuncCallbacks.push(macro {
                 var hs = lname.hash();
-                if (haxe.Int32.ucompare(hs, $v{djb2(f.name)}) == 0) 
+                if (haxe.Int32.ucompare(hs.toInt(), $v{djb2(f.name)}) == 0) 
                     return untyped __cpp__($v{"(void *)(GDExtensionClassCallVirtual)&"+vname+"__onVirtualCall"});
             });
 

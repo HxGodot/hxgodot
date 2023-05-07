@@ -89,9 +89,9 @@ class ClassGenExtraMacros {
             case "PackedByteArray": {
                 var tmp = macro class {
 
-                    // Fast acces to the unamanged array!
+                    // Fast access to the unamanged array!
                     inline public function data():haxe.io.BytesData {
-                        var len = this.size();
+                        var len = this.size().toInt();
                         var ptr = godot.Types.GodotNativeInterface.packed_byte_array_operator_index(this.native_ptr(), 0);
                         var arr = [];
                         cpp.NativeArray.setUnmanagedData(arr, ptr, len);
@@ -108,7 +108,7 @@ class ClassGenExtraMacros {
                     }
 
                     @:to inline public function toBytes():haxe.io.Bytes {
-                        var len = this.size();
+                        var len = this.size().toInt();
                         var ptr = godot.Types.GodotNativeInterface.packed_byte_array_operator_index(this.native_ptr(), 0);
                         var bytes = haxe.io.Bytes.alloc(len);
                         cpp.Native.memcpy(cpp.NativeArray.getBase(bytes.getData()).getBase(), ptr, len);
@@ -120,9 +120,9 @@ class ClassGenExtraMacros {
             case "PackedFloat32Array": {
                 var tmp = macro class {
 
-                    // Fast acces to the unamanged array!
+                    // Fast access to the unamanged array!
                     inline public function data():Array<cpp.Float32> {
-                        var len = this.size();
+                        var len = this.size().toInt();
                         var ptr = godot.Types.GodotNativeInterface.packed_float32_array_operator_index(this.native_ptr(), 0);
                         var arr = [];
                         cpp.NativeArray.setUnmanagedData(arr, ptr, len);
@@ -139,12 +139,44 @@ class ClassGenExtraMacros {
                     }
 
                     @:to inline public function toFloat32Array():haxe.io.Float32Array {
-                        var bLen = (this.size():Int) * 4;
+                        var bLen = this.size().toInt() * 4;
                         var tmp = godot.Types.GodotNativeInterface.packed_float32_array_operator_index(this.native_ptr(), 0).ptr;
                         var ptr:cpp.Star<cpp.UInt8> = untyped __cpp__('(uint8_t*){0}', tmp);
                         var bytes = haxe.io.Bytes.alloc(bLen);
                         cpp.Native.memcpy(cpp.NativeArray.getBase(bytes.getData()).getBase(), ptr, bLen);
                         return haxe.io.Float32Array.fromBytes(bytes);
+                    }
+                }
+                ops = ops.concat(tmp.fields);
+            }
+            case "PackedInt32Array": {
+                var tmp = macro class {
+
+                    // Fast access to the unamanged array!
+                    inline public function data():Array<cpp.Int32> {
+                        var len = this.size().toInt();
+                        var ptr = godot.Types.GodotNativeInterface.packed_int32_array_operator_index(this.native_ptr(), 0);
+                        var arr = [];
+                        cpp.NativeArray.setUnmanagedData(arr, ptr, len);
+                        return arr;
+                    }
+
+                    @:from inline public static function fromInt32Array(_v:haxe.io.Int32Array):godot.variant.PackedInt32Array {
+                        var res = new godot.variant.PackedInt32Array();
+                        res.resize(_v.length);
+                        var ptr = godot.Types.GodotNativeInterface.packed_int32_array_operator_index(res.native_ptr(), 0);
+                        var src = cpp.NativeArray.getBase(_v.view.buffer.getData()).getBase();
+                        cpp.Native.memcpy(ptr, src, _v.view.byteLength);
+                        return res;
+                    }
+
+                    @:to inline public function toInt32Array():haxe.io.Int32Array {
+                        var bLen = this.size().toInt() * 4;
+                        var tmp = godot.Types.GodotNativeInterface.packed_int32_array_operator_index(this.native_ptr(), 0).ptr;
+                        var ptr:cpp.Star<cpp.UInt8> = untyped __cpp__('(uint8_t*){0}', tmp);
+                        var bytes = haxe.io.Bytes.alloc(bLen);
+                        cpp.Native.memcpy(cpp.NativeArray.getBase(bytes.getData()).getBase(), ptr, bLen);
+                        return haxe.io.Int32Array.fromBytes(bytes);
                     }
                 }
                 ops = ops.concat(tmp.fields);

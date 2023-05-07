@@ -19,7 +19,7 @@ class Wrapped {
         return __owner;
     }
 
-    public function as<T:Wrapped>(_cls:Class<T>):T {
+    public function as<T:Wrapped>(_cls:Class<T>, ?_report:Bool = true):T {
         var ret:T = null;
         
         var name:godot.variant.StringName = Reflect.field(_cls, "__class_name");
@@ -33,7 +33,7 @@ class Wrapped {
         if (obj != null) {
             ret = cast Type.createEmptyInstance(classTags.get(name));
             ret.__owner = obj;
-        } else
+        } else if (_report)
             trace('CANNOT CONVERT ${this} TO $name', true);
 
         return ret;
