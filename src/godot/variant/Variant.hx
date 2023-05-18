@@ -37,8 +37,8 @@ class __Variant {
 
     static function __initBindings() {
         for (i in 1...GDExtensionVariantType.MAXIMUM) {
-            from_type_constructor[i] = untyped __cpp__('(void *)godot::internal::gde_interface->get_variant_from_type_constructor((GDExtensionVariantType){0})', i);
-            to_type_constructor[i] = untyped __cpp__('(void *)godot::internal::gde_interface->get_variant_to_type_constructor((GDExtensionVariantType){0})', i);
+            from_type_constructor[i] = untyped __cpp__('(void *)godot::internal::gdextension_interface_get_variant_from_type_constructor((GDExtensionVariantType){0})', i);
+            to_type_constructor[i] = untyped __cpp__('(void *)godot::internal::gdextension_interface_get_variant_to_type_constructor((GDExtensionVariantType){0})', i);
         }
     }
 

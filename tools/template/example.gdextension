@@ -1,5 +1,6 @@
 [configuration]
 
+compatibility_minimum = "4.1.0"
 entry_symbol = "hxgodot_library_init"
 
 [libraries]
