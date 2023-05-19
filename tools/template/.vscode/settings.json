@@ -1,0 +1,5 @@
+{
+    "haxe.configurations": [
+        ["-cpp", "bin/", "-cp", "bindings", "build.hxml"],
+    ]
+}
