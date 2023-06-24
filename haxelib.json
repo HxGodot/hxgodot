@@ -4,7 +4,7 @@
   "license": "MIT",
   "tags": ["godot", "cpp"],
   "description": "",
-  "version": "1.0.0-alpha",
+  "version": "1.0.0-beta",
   "classPath": "src/",
   "releasenote": "Initial Alpha release. Use with caution",
   "contributors": ["dazKind"],

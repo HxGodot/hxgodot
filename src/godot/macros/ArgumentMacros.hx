@@ -265,7 +265,7 @@ class ArgumentMacros {
 
         inline function _outboundVariant() 
             return macro {
-                var tmp = $i{_src} != null ? $i{_src} : new Variant();
+                var tmp = $i{_src} != null ? $i{_src} : new godot.variant.Variant();
                 godot.Types.GodotNativeInterface.variant_destroy($i{_dest});
                 godot.Types.GodotNativeInterface.variant_new_copy($i{_dest}, tmp.native_ptr());
             };

@@ -520,8 +520,10 @@ class FunctionMacros {
         var defaultValue = TypeMacros.getNativeTypeDefaultValue(_bind.returnType.name);
 
         // TODO: this will break, if there are unary operators!
-        if (_bind.arguments.length < 2)
-            Context.fatalError('UNSUPPORTED UNARY OPERATOR FOUND! ${_bind.name}', Context.currentPos());
+        if (_bind.arguments.length < 2) {
+            Context.reportError('UNSUPPORTED UNARY OPERATOR FOUND! ${_bind.name}', Context.currentPos());
+            return;
+        }
 
         var left = Context.parse(conCallArgs[0], Context.currentPos());
         var right = Context.parse(conCallArgs[1], Context.currentPos());
@@ -1134,21 +1136,23 @@ class FunctionMacros {
 
                 argExprs.push(arg);
 
-                if (TypeMacros.isTypeNative(a.type.name))
-                    conCallArgs.push({
-                        type: '(GDExtensionTypePtr)&', 
-                        name: '_hxwrap__$argName',
-                        decl: [ 'var _hxwrap__$argName:$argType = ($argName:${argType});' ]
-                    });
-                else
-                    conCallArgs.push({
-                        type: '(GDExtensionTypePtr)',
-                        name: '_hxwrap__$argName',
-                        decl: [ 
-                            'var _hxwrap__$argName:godot.Types.VoidPtr = null;',
-                            'if (untyped __cpp__("{0}.mPtr != nullptr",$argName)) _hxwrap__$argName = $argName.native_ptr();'
-                        ]
-                    });
+                var conArg = {
+                    type: '(GDExtensionTypePtr)',
+                    name: '_hxwrap__$argName',
+                    decl: [ 
+                        'var _hxwrap__$argName:godot.Types.VoidPtr = null;',
+                        'if (untyped __cpp__("{0}.mPtr != nullptr",$argName)) _hxwrap__$argName = $argName.native_ptr();'
+                    ]
+                };
+
+                if (TypeMacros.isTypeNative(a.type.name)) {
+                    conArg.type = '(GDExtensionTypePtr)&';
+                    conArg.decl = [ 'var _hxwrap__$argName:$argType = ($argName:${argType});' ];
+
+                } else if (TypeMacros.isObjectType(a.type.name))
+                    conArg.type = '(GDExtensionTypePtr)&';
+
+                conCallArgs.push(conArg);
             }
 
             // wtf is even happening? Well, we assemble a std::array in using several untyped __cpp__ calls to allow for proper typing...

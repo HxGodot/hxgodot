@@ -180,6 +180,20 @@ class TypeMacros {
         };
     }
 
+    public static function isObjectType(_t:String):Bool 
+        return switch(_t) {
+            case 'Pointer', 'VoidPtr', 'Bool', 'GDExtensionBool', 'Int', 'Int64', 
+                 'GDExtensionInt', 'Float', 'GDExtensionFloat', 'GDString', 'Color', 
+                 'Quaternion', 'Vector4', 'Vector2', 'Vector3', 'Vector2i', 'Vector3i', 
+                 'Vector4i', "Rect2", "Rect2i", "AABB", "Basis", "Callable", "Dictionary", 
+                 "GDArray", "NodePath", "PackedByteArray", "PackedColorArray", 
+                 "PackedFloat32Array", "PackedFloat64Array", "PackedInt32Array", 
+                 "PackedInt64Array", "PackedStringArray", "PackedVector2Array", 
+                 "PackedVector3Array", "Projection", "RID", "Signal", "StringName", 
+                 "Transform2D", "Transform3D", "Variant": false;
+            default: true;
+        };
+
     public static function isACustomBuiltIn(_type:String):Bool {
         // whitelist custom builtin implementations
         return switch (_type) {
