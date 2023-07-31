@@ -37,15 +37,19 @@ class ArgumentMacros {
                         _hx__ret,
                         variant.native_ptr()
                     );
-                    var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
-                        cpp.Pointer.fromStar(retOriginal),
-                        cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")), 
-                        cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
-                    );
-                    res = untyped __cpp__(
-                        $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                        obj.ptr
-                    );
+                    if (retOriginal != untyped __cpp__('nullptr')) {
+                        var obj = godot.Types.GodotNativeInterface.object_get_instance_binding(
+                            cpp.Pointer.fromStar(retOriginal),
+                            cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")), 
+                            cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
+                        );
+                        res = untyped __cpp__(
+                            $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
+                            obj.ptr
+                        );
+                    } else
+                        res = null;
+                    
                 } : 
                     macro res = (variant:$_type);
 

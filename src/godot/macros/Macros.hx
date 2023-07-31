@@ -334,7 +334,7 @@ class Macros {
                     var argType = _mapHxTypeToGodot(_type);
                     var hint = macro $v{godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE};
                     var hint_string = macro $v{""};
-                    var usage = macro $v{7}; // TODO: we should prolly expose this
+                    var usage = macro $v{6}; // TODO: we should prolly expose this
                     var group = null;
                     var group_prefix = null;
                     var sub_group = null;
@@ -685,8 +685,11 @@ class Macros {
                     if (hasReturnValue) {
                         binds.push(macro {
                             var ret:godot.variant.Variant = $i{methodRoot}.$fname($a{argVariantExprs});
-                            godot.Types.GodotNativeInterface.variant_destroy(_ret);
-                            godot.Types.GodotNativeInterface.variant_new_copy(_ret, ret.native_ptr());
+                            if (ret != null) {
+                                godot.Types.GodotNativeInterface.variant_destroy(_ret);
+                                godot.Types.GodotNativeInterface.variant_new_copy(_ret, ret.native_ptr());
+                            } else
+                                godot.Types.GodotNativeInterface.variant_new_nil(_ret);
                         });
 
                         bindPtrs.push(macro {
@@ -1023,7 +1026,7 @@ class Macros {
                     $b{bindCalls};
                 } catch (_e) {
                     trace(HxGodot.getExceptionStackString(_e), true);
-                    throw _e;
+                    //throw _e;
                 }
             }
 

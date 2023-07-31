@@ -58,6 +58,7 @@ class HxGodot {
         });
 
         // now init the binding classes and register the extension classes
+        var singletons = [];
         for (t in tmp) {
             if (Reflect.hasField(t, "__init_engine_bindings")) // engine class bindings
                 Reflect.field(t, "__init_engine_bindings")();
@@ -70,7 +71,14 @@ class HxGodot {
 
             if (Reflect.hasField(t, "__static_init")) // extension static initialization
                 Reflect.field(t, "__static_init")();
+
+            if (Reflect.hasField(t, "__registerSingleton")) // extension singleton initialization
+                singletons.push(t); // defer the actual registration to out of this loop!
         }
+
+        // everything is setup now, now safely setup the engine singletons
+        for (s in singletons)
+            Reflect.field(s, "__registerSingleton")(); 
 
         // print a fancy banner message
         var bannerMsg = new StringBuf();
@@ -99,6 +107,9 @@ class HxGodot {
 
         // now null / release all the godot stuff we have in our classes
         for (t in tmp) {
+            if (Reflect.hasField(t, "__unregisterSingleton")) // extension singleton initialization
+                Reflect.field(t, "__unregisterSingleton")();
+
             if (Reflect.hasField(t, "__static_deinit"))
                 Reflect.field(t, "__static_deinit")();
 

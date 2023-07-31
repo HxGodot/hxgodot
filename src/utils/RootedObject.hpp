@@ -30,6 +30,7 @@ namespace cpp
         {
         private:
             hx::Object** rooted;
+            int refCount;
 
         public:
             RootedObject();
@@ -44,6 +45,9 @@ namespace cpp
 
             hx::Object* getObject() const;
             void setObject(hx::Object*) const;
+
+            int incRef();
+            int decRef();
 
             operator hx::Object*() const;
         };

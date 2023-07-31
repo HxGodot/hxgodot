@@ -23,24 +23,28 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 cpp::utils::RootedObject::RootedObject()
     : rooted(new hx::Object*(nullptr))
 {
+    refCount = 1;
     hx::GCAddRoot(rooted);
 }
 
 cpp::utils::RootedObject::RootedObject(void* _baton)
     : rooted(static_cast<hx::Object**>(_baton))
 {
+    refCount = 1;
     //
 }
 
 cpp::utils::RootedObject::RootedObject(hx::Object** _root)
     : rooted(_root)
 {
+    refCount = 1;
     //
 }
 
 cpp::utils::RootedObject::RootedObject(hx::Object* _object)
     : rooted(new hx::Object*(_object))
 {
+    refCount = 1;
     hx::GCAddRoot(rooted);
 }
 
@@ -54,8 +58,20 @@ cpp::utils::RootedObject::~RootedObject()
 
 void cpp::utils::RootedObject::prepareRemoval() 
 {
-    hx::GCRemoveRoot(rooted);
+    if (refCount == 1) {
+        hx::GCRemoveRoot(rooted);
+    }
     rooted = nullptr;
+}
+
+int cpp::utils::RootedObject::incRef() 
+{
+    return ++refCount;
+}
+
+int cpp::utils::RootedObject::decRef() 
+{
+    return --refCount;
 }
 
 hx::Object** cpp::utils::RootedObject::getObjectPtr() const
