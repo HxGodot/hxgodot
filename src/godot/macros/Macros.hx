@@ -334,7 +334,7 @@ class Macros {
                     var argType = _mapHxTypeToGodot(_type);
                     var hint = macro $v{godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE};
                     var hint_string = macro $v{""};
-                    var usage = macro $v{6}; // TODO: we should prolly expose this
+                    var usage = macro $v{godot.GlobalConstants.PropertyUsageFlags.PROPERTY_USAGE_DEFAULT};
                     var group = null;
                     var group_prefix = null;
                     var sub_group = null;
@@ -346,6 +346,8 @@ class Macros {
                             case ':hint': {
                                 hint = macro ${m.params[0]};
                                 hint_string = macro ${m.params[1]};
+                                if (m.params.length > 2)
+                                    usage = macro ${m.params[2]};
                             }
                             case ':group': {
                                 group = macro ${m.params[0]};
@@ -436,7 +438,7 @@ class Macros {
                             clNamePtr,
                             ${hint},
                             hname.native_ptr(),
-                            godot.GlobalConstants.PropertyUsageFlags.PROPERTY_USAGE_DEFAULT
+                            ${usage}
                         );
 
                         var setter:godot.variant.StringName = $v{"set_"+field.name};
