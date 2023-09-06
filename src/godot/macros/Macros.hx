@@ -86,6 +86,9 @@ class Macros {
         var bDef = 'constexpr GDExtensionInstanceBindingCallbacks ${classNameCpp}_obj::___binding_callbacks;';
         classMeta.add(":cppFileCode", [macro $v{bDef}], pos);
 
+        // have 2 buckets of fields
+        var exportedFields = new Map<String, haxe.macro.Field>();
+        var unexportedFields = new Map<String, haxe.macro.Field>();
 
         // register these extension fields
         var extensionFields = [];
@@ -94,25 +97,27 @@ class Macros {
         var staticInits = [];
         var staticDeinits = [];
         var staticsToRewriteForInit = [];
-        var virtualFields = new Map<String, haxe.macro.Field>();   
+        var virtualFields = new Map<String, haxe.macro.Field>();
+
+        
+        var customPropFieldsThatShouldExport = new Map<String, Bool>();
 
         for (field in fields) {
+            // pre-sort  for (un-)exported fields and static inits
             var isExported = false;
-            var isStatic = field.access.indexOf(AStatic) != -1;
 
             for (fmeta in field.meta)
                 if (fmeta.name == ":export")
                     isExported = true;
 
+            if (isExported)
+                exportedFields.set(field.name, field);
+            else
+                unexportedFields.set(field.name, field);
+
+            // now check the fields for static initialization which is super important for godot classes
+            var isStatic = field.access.indexOf(AStatic) != -1;
             switch (field.kind) {
-                case FFun(_f):
-                    if (isExported)
-                        extensionFields.push(field);
-
-                case FProp(_g, _s, _type):
-                    if (isExported)
-                        extensionProperties.push(field);
-
                 case FVar(_t, _e): {
                     // only deal with static variables or actual useful and correctly declared ones
                     if (_t == null && _e == null) continue; // safe case for us, let the compiler complain about this ;)
@@ -140,51 +145,77 @@ class Macros {
                             default:
                         }
                     }
+                }
+                default: // do nothing in this case 
+            }            
+        }
 
-                    if (isExported) {
-                        switch (ft) {
-                            //case TInst(t, params): trace(t.get().name);// t.pack
-                            case TAbstract(t, params): {
-                                var tname = t.toString();
-                                if (tname == "godot.variant.Signal") // we dont allow that
-                                    Context.fatalError('Signal "${field.name}" has to be explicitly typed as TypedSignal.', Context.currentPos());
-                                else if (tname == "godot.variant.TypedSignal") // special case for signals
-                                    extensionProperties.push(field);
-                            }
-                            default:
+        for (field in exportedFields) {
+            var isStatic = field.access.indexOf(AStatic) != -1;
+
+            switch (field.kind) {
+                case FFun(_f):
+                    extensionFields.push(field);
+
+                case FProp(_g, _s, _type):
+                    
+                    extensionProperties.push(field);
+
+                    // check for getter/setters that we require to be exported. 
+                    // This is just a convenience to make sure we have everything exported when dealing with haxe properties
+                    if (_g == "get" && unexportedFields.exists('get_${field.name}'))
+                        extensionFields.push(unexportedFields.get('get_${field.name}'));
+                    if (_s == "set" && unexportedFields.exists('set_${field.name}'))
+                        extensionFields.push(unexportedFields.get('set_${field.name}'));                
+
+                case FVar(_t, _e): {
+                    // only deal with static variables or actual useful and correctly declared ones
+                    if (_t == null && _e == null) continue; // safe case for us, let the compiler complain about this ;)
+
+                    var ft = _t != null ? Context.follow(ComplexTypeTools.toType(_t)) : Context.typeof(_e);
+
+                    switch (ft) {
+                        //case TInst(t, params): trace(t.get().name);// t.pack
+                        case TAbstract(t, params): {
+                            var tname = t.toString();
+                            if (tname == "godot.variant.Signal") // we dont allow that
+                                Context.fatalError('Signal "${field.name}" has to be explicitly typed as TypedSignal.', Context.currentPos());
+                            else if (tname == "godot.variant.TypedSignal") // special case for signals
+                                extensionProperties.push(field);
                         }
+                        default:
+                    }
 
-                        // // make sure we only allow integer constants
-                        // TODO: we dont really need these, yet
-                        // function fatalError() {
-                        //     Context.fatalError("Exported Constant is not an integer: " + field.name, Context.currentPos());
-                        // }
-                        // if (_e == null) {
-                        //     Context.fatalError("Exported Constant has no value: " + field.name, Context.currentPos());
-                        //     continue;
-                        // }
-                        // if (_t == null) { // no type supplied, check value expr
-                        //     switch (_e.expr) {
-                        //         case EConst(_ct): {
-                        //             switch (_ct) {
-                        //                 case CInt(_value): extensionIntegerConstants.push(field);
-                        //                 default: fatalError();
-                        //             }
-                        //         }
-                        //         default: fatalError();
-                        //     }
-                        // } else {
-                        //     switch(_t) {
-                        //         case TPath(_p): {
-                        //             if (_p.name == "Int") 
-                        //                 extensionIntegerConstants.push(field);
-                        //             else 
-                        //                 fatalError();
-                        //         }
-                        //         default: fatalError();
-                        //     }
-                        // }
-                    }                    
+                    // // make sure we only allow integer constants
+                    // TODO: we dont really need these, yet
+                    // function fatalError() {
+                    //     Context.fatalError("Exported Constant is not an integer: " + field.name, Context.currentPos());
+                    // }
+                    // if (_e == null) {
+                    //     Context.fatalError("Exported Constant has no value: " + field.name, Context.currentPos());
+                    //     continue;
+                    // }
+                    // if (_t == null) { // no type supplied, check value expr
+                    //     switch (_e.expr) {
+                    //         case EConst(_ct): {
+                    //             switch (_ct) {
+                    //                 case CInt(_value): extensionIntegerConstants.push(field);
+                    //                 default: fatalError();
+                    //             }
+                    //         }
+                    //         default: fatalError();
+                    //     }
+                    // } else {
+                    //     switch(_t) {
+                    //         case TPath(_p): {
+                    //             if (_p.name == "Int") 
+                    //                 extensionIntegerConstants.push(field);
+                    //             else 
+                    //                 fatalError();
+                    //         }
+                    //         default: fatalError();
+                    //     }
+                    // }                 
                 }                        
             }
 
@@ -417,7 +448,7 @@ class Macros {
                                 __class_name.native_ptr(),
                                 sub_group.native_ptr(),
                                 sub_group_prefix.native_ptr()
-                            );    
+                            );
                         });
                     }
 
