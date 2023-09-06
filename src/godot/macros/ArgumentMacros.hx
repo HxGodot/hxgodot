@@ -203,6 +203,15 @@ class ArgumentMacros {
                     case 'Transform2D': _create(macro new godot.variant.Transform2D(), macro godot.variant.Transform2D.TRANSFORM2D_SIZE);
                     case 'Transform3D': _create(macro new godot.variant.Transform3D(), macro godot.variant.Transform3D.TRANSFORM3D_SIZE);
 
+                    case 'Pointer': {
+                        // TODO: deal with native types vs. engine structs
+                        macro {
+                            // managed types need a pointer indirection
+                            var ptr = cpp.Pointer.fromRaw(cast untyped __cpp__('(*(({0}**){1})[{2}])', $i{ptrSize}, $i{_args}.ptr, $v{_index}));
+                            ptr;
+                        }
+                    }
+
                     default: {
                         var ctType = Context.followWithAbstracts(haxe.macro.ComplexTypeTools.toType(_type));
 
@@ -332,7 +341,6 @@ class ArgumentMacros {
             default: Context.fatalError('Error: ${_ctType} is not dealt with in ArgumentMacros. Please report this type so we can fix!', Context.currentPos()); null;
         }
         path.push(tClassName);
-
         return '(void*)&::${path.join("::")}_obj::___binding_callbacks';
     }
 

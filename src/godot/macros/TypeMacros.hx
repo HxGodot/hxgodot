@@ -65,8 +65,6 @@ class TypeMacros {
                 if (_t.endsWith("*")) {
                     var tmp = getTypeName(_t.substring(0, _t.length-1).trim());
                     var pack = getTypePackage(tmp).concat([tmp]);
-
-                    // TODO: does this work with native pointers? indirection?
                     ret = 'cpp.Pointer<${pack.join(".")}>';
                 }
 
