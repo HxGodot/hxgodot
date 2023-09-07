@@ -567,6 +567,7 @@ class Macros {
         }
 
         // build everything for the extension fields
+        var hasNotificationFunc = false;
         for (i in 0..._extensionFields.length) {
             var field = _extensionFields[i];
 
@@ -579,6 +580,9 @@ class Macros {
                 case FFun(_f): {
                     // trace("////////////////////////////////////////////////////////////////////////////////");
                     // trace('// FFun: ${field.name}');
+
+                    if (field.name == "_notification")
+                        hasNotificationFunc = true;
                     
                     var argExprs = [];
                     var argVariantExprs = [];
@@ -940,7 +944,42 @@ class Macros {
 
             constexpr GDExtensionInstanceBindingCallbacks ${_cppClassName}_obj::___binding_callbacks;
         ';
+
+
+        if (hasNotificationFunc) {
+            cppCode += '
+            static void __onNotification(GDExtensionClassInstancePtr p_instance, int32_t p_what) {
+                int base = 99;
+                hx::SetTopOfStack(&base,true);
+                ${_cppClassName}_obj::_hx___notification((void *)p_instance, p_what);
+                hx::SetTopOfStack((int*)0,true);
+            }
+            ';
+        }
         _classMeta.add(":cppFileCode", [macro $v{cppCode}], pos);
+
+
+        var classRegistrationString = '
+            {
+                false, 
+                false,
+                nullptr, // GDExtensionClassSet set_func;
+                nullptr, // GDExtensionClassGet get_func;
+                nullptr, // GDExtensionClassGetPropertyList get_property_list_func;
+                nullptr, // GDExtensionClassFreePropertyList free_property_list_func;
+                nullptr, // GDExtensionClassPropertyCanRevert property_can_revert_func;
+                nullptr, // GDExtensionClassPropertyGetRevert property_get_revert_func;
+                ${hasNotificationFunc ? "(GDExtensionClassNotification)&__onNotification" : "nullptr"}, // GDExtensionClassNotification notification_func;
+                nullptr, // GDExtensionClassToString to_string_func;
+                nullptr, // GDExtensionClassReference reference_func;
+                nullptr, // GDExtensionClassUnreference unreference_func;
+                (GDExtensionClassCreateInstance)&__onCreate, // this one is mandatory
+                (GDExtensionClassFreeInstance)&__onFree, // this one is mandatory
+                (GDExtensionClassGetVirtual)&__onGetVirtualFunc,
+                nullptr, // GDExtensionClassGetRID get_rid;
+                (void *){0}, // void *class_userdata;
+            };
+        ';
         
         var fieldBindingsClass = macro class {
             private static function __create(_data:godot.Types.VoidPtr):godot.Types.GDExtensionObjectPtr { 
@@ -974,27 +1013,7 @@ class Macros {
             
                 // assemble the classinfo
                 var _cl = __class_name.native_ptr();
-                var class_info:godot.Types.GDExtensionClassCreationInfo = untyped __cpp__('
-                        {
-                            false, 
-                            false,
-                            nullptr, // GDExtensionClassSet set_func;
-                            nullptr, // GDExtensionClassGet get_func;
-                            nullptr, // GDExtensionClassGetPropertyList get_property_list_func;
-                            nullptr, // GDExtensionClassFreePropertyList free_property_list_func;
-                            nullptr, // GDExtensionClassPropertyCanRevert property_can_revert_func;
-                            nullptr, // GDExtensionClassPropertyGetRevert property_get_revert_func;
-                            nullptr, // GDExtensionClassNotification notification_func;
-                            nullptr, // GDExtensionClassToString to_string_func;
-                            nullptr, // GDExtensionClassReference reference_func;
-                            nullptr, // GDExtensionClassUnreference unreference_func;
-                            (GDExtensionClassCreateInstance)&__onCreate, // this one is mandatory
-                            (GDExtensionClassFreeInstance)&__onFree, // this one is mandatory
-                            (GDExtensionClassGetVirtual)&__onGetVirtualFunc,
-                            nullptr, // GDExtensionClassGetRID get_rid;
-                            (void *){0}, // void *class_userdata;
-                        };
-                    ', 
+                var class_info:godot.Types.GDExtensionClassCreationInfo = untyped __cpp__($v{classRegistrationString}, 
                     _cl);
                 
                 // register this extension class with Godot
@@ -1069,6 +1088,21 @@ class Macros {
                 }
             }
         }
+
+        if (hasNotificationFunc) {
+            var tmp = macro class {
+                private static function __notification(_ptr:godot.Types.GDExtensionObjectPtr, _what:Int) {
+                    var instance:$ctType = untyped __cpp__(
+                            $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
+                            _ptr.ptr
+                        );
+                    
+                    instance._notification(_what);
+                }
+            }
+            fieldBindingsClass.fields = fieldBindingsClass.fields.concat(tmp.fields);
+        }
+
         return _fields.concat(fieldBindingsClass.fields.concat(virtualFuncImpls));
     }
 }
