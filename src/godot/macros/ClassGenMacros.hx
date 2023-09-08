@@ -1146,7 +1146,12 @@ class ClassGenMacros {
             var abstrct = macro class $abstractName {
                 inline public static var $sizeName = $v{sizeValue};
             };
+
+#if (haxe == version("4.3.2"))
+            abstrct.kind = TDAbstract(typePathComplex, [], [typePathComplex], [typePathComplex]);
+#else
             abstrct.kind = TDAbstract(typePathComplex, [typePathComplex], [typePathComplex]);
+#end 
             abstrct.fields = abstrct.fields.concat(ClassGenExtraMacros.getHaxeOperators(abstractName));
             abstrct.fields = abstrct.fields.concat(abstractFields);
             abstrct.meta = [{
