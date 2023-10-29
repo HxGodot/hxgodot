@@ -47,7 +47,7 @@ void initialize_hxgodot_module(ModuleInitializationLevel p_level) {
 }
 
 void uninitialize_hxgodot_module(ModuleInitializationLevel p_level) {
-    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+    if (p_level != MODULE_INITIALIZATION_LEVEL_CORE) {
         return;
     }
     hxgodot_shutdown();

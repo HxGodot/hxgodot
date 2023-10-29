@@ -408,8 +408,11 @@ class Macros {
                             _fields.push(tmp.fields[0]);
                         }
 
-                        // override accessor and readd
-                        field.meta.push({name:":isVar", pos:Context.currentPos()});
+                        // make the proper
+                        if (_g == "default" || _s == "default")
+                            field.meta.push({name:":isVar", pos:Context.currentPos()});
+
+                        // override accessor and readd                        
                         field.kind = FProp("get", "set", _type, _expr);
                         _fields.push(field);
                     }
@@ -788,12 +791,14 @@ class Macros {
             bindCalls.push(macro {
                 if (methodId == $v{i}) {
                     $b{binds};
+                    return;
                 }
             });
 
             bindCallPtrs.push(macro {
                 if (methodId == $v{i}) {
                     $b{bindPtrs};
+                    return;
                 }
             });
         }
@@ -942,6 +947,26 @@ class Macros {
                 hx::SetTopOfStack((int*)0,true);
             }
 
+            static void __onReference(GDExtensionClassInstancePtr p_instance)
+            {
+                int base = 99;
+                hx::SetTopOfStack(&base,true);
+                ${_cppClassName}_obj::_hx___reference(
+                    (void *)p_instance
+                );
+                hx::SetTopOfStack((int*)0,true);
+            }
+
+            static void __onUnreference(GDExtensionClassInstancePtr p_instance)
+            {
+                int base = 99;
+                hx::SetTopOfStack(&base,true);
+                ${_cppClassName}_obj::_hx___unreference(
+                    (void *)p_instance
+                );
+                hx::SetTopOfStack((int*)0,true);
+            }
+
             constexpr GDExtensionInstanceBindingCallbacks ${_cppClassName}_obj::___binding_callbacks;
         ';
 
@@ -958,7 +983,6 @@ class Macros {
         }
         _classMeta.add(":cppFileCode", [macro $v{cppCode}], pos);
 
-
         var classRegistrationString = '
             {
                 false, 
@@ -971,8 +995,8 @@ class Macros {
                 nullptr, // GDExtensionClassPropertyGetRevert property_get_revert_func;
                 ${hasNotificationFunc ? "(GDExtensionClassNotification)&__onNotification" : "nullptr"}, // GDExtensionClassNotification notification_func;
                 nullptr, // GDExtensionClassToString to_string_func;
-                nullptr, // GDExtensionClassReference reference_func;
-                nullptr, // GDExtensionClassUnreference unreference_func;
+                (GDExtensionClassReference)&__onReference, // GDExtensionClassReference reference_func;
+                (GDExtensionClassUnreference)&__onUnreference, // GDExtensionClassUnreference unreference_func;
                 (GDExtensionClassCreateInstance)&__onCreate, // this one is mandatory
                 (GDExtensionClassFreeInstance)&__onFree, // this one is mandatory
                 (GDExtensionClassGetVirtual)&__onGetVirtualFunc,
@@ -1082,6 +1106,36 @@ class Macros {
                             _instance.ptr
                         );
                     $b{bindCallPtrs};
+                } catch (_e) {
+                    trace(HxGodot.getExceptionStackString(_e), true);
+                    throw _e;
+                }
+            }
+
+            static function __reference(_instance:godot.Types.VoidPtr) 
+            {
+                try {
+                    var instance:$ctType = untyped __cpp__(
+                            $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
+                            _instance.ptr
+                        );
+                    //var count = instance.incRef();
+                    // trace('reference called: ${instance} : ${count}');
+                } catch (_e) {
+                    trace(HxGodot.getExceptionStackString(_e), true);
+                    throw _e;
+                }
+            }
+
+            static function __unreference(_instance:godot.Types.VoidPtr) 
+            {
+                try {
+                    var instance:$ctType = untyped __cpp__(
+                            $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
+                            _instance.ptr
+                        );
+                    //var count = instance.decRef();
+                    //trace('unreference called: ${instance} : ${count}');
                 } catch (_e) {
                     trace(HxGodot.getExceptionStackString(_e), true);
                     throw _e;

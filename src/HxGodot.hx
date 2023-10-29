@@ -14,6 +14,10 @@ import godot.variant.Variant;
         <file name='${haxelib:hxgodot}/src/hxcpp_ext/hxgodot_api.cpp'/>
     </files>")
 class HxGodot {
+
+    static var engineClasses:Array<Dynamic> = [];
+    static var extensions:Array<Dynamic> = [];
+
     static function main() {
         // setup constructors
         __Variant.__initBindings();
@@ -58,27 +62,35 @@ class HxGodot {
         });
 
         // now init the binding classes and register the extension classes
-        var singletons = [];
+
         for (t in tmp) {
-            if (Reflect.hasField(t, "__init_engine_bindings")) // engine class bindings
-                Reflect.field(t, "__init_engine_bindings")();
+            if (Reflect.hasField(t, "__init_engine_bindings"))
+                engineClasses.push(t);
 
-            if (Reflect.hasField(t, "__init_constant_bindings")) // class constants bindings
-                Reflect.field(t, "__init_constant_bindings")();
+            if (Reflect.hasField(t, "__registerClass"))
+                extensions.push(t);
+        }
+        
+        function _init(_tmp:Array<Dynamic>) {
+            for (t in _tmp) {
+                if (Reflect.hasField(t, "__init_engine_bindings")) // engine class bindings
+                    Reflect.field(t, "__init_engine_bindings")();
 
-            if (Reflect.hasField(t, "__registerClass")) // extension class bindings
-                Reflect.field(t, "__registerClass")();
+                if (Reflect.hasField(t, "__init_constant_bindings")) // class constants bindings
+                    Reflect.field(t, "__init_constant_bindings")();
 
-            if (Reflect.hasField(t, "__static_init")) // extension static initialization
-                Reflect.field(t, "__static_init")();
+                if (Reflect.hasField(t, "__registerClass")) // extension class bindings
+                    Reflect.field(t, "__registerClass")();
 
-            if (Reflect.hasField(t, "__registerSingleton")) // extension singleton initialization
-                singletons.push(t); // defer the actual registration to out of this loop!
+                if (Reflect.hasField(t, "__static_init")) // extension static initialization
+                    Reflect.field(t, "__static_init")();
+
+                if (Reflect.hasField(t, "__registerSingleton")) // extension singleton initialization
+                    Reflect.field(t, "__registerSingleton")();
+            }
         }
 
-        // everything is setup now, now safely setup the engine singletons
-        for (s in singletons)
-            Reflect.field(s, "__registerSingleton")(); 
+        _init(engineClasses);
 
         // print a fancy banner message
         var bannerMsg = new StringBuf();
@@ -89,15 +101,39 @@ class HxGodot {
         #end
         GDUtils.print_rich(bannerMsg.toString());
 
+        _init(extensions);
+
         #if scriptable
         //cpp.cppia.Host.runFile("bin/hxgodot.cppia");
         #end
     }
 
     public static function shutdown() {
-        // sort all classes depending on their inheritance depth, highest first
-        var tmp = Lambda.array(CompileTime.getAllClasses(godot.Wrapped));
-        haxe.ds.ArraySort.sort(tmp, function(_a:Dynamic, _b:Dynamic) {
+
+        function _deinit(_tmp:Array<Dynamic>) {
+            // now null / release all the godot stuff we have in our classes
+            for (t in _tmp) {
+                if (Reflect.hasField(t, "__unregisterSingleton")) // extension singleton initialization
+                    Reflect.field(t, "__unregisterSingleton")();
+
+                if (Reflect.hasField(t, "__static_deinit"))
+                    Reflect.field(t, "__static_deinit")();
+
+                if (Reflect.hasField(t, "__registerClass")) {
+                    var cname:godot.variant.StringName = Reflect.field(t, "__class_name");
+                    godot.Types.GodotNativeInterface.classdb_unregister_extension_class(
+                        untyped __cpp__("godot::internal::library"),
+                        cname.native_ptr()
+                    );
+                }
+                
+                if (Reflect.hasField(t, "__deinit_constant_bindings"))
+                    Reflect.field(t, "__deinit_constant_bindings")();
+            }
+        }
+
+        // sort all classes depending on their inheritance depth, this way everything unregisters in order
+        haxe.ds.ArraySort.sort(extensions, function(_a:Dynamic, _b:Dynamic) {
             var a = Reflect.field(_a, "__inheritance_depth");
             var b = Reflect.field(_b, "__inheritance_depth");
             if (a < b) return 1;
@@ -105,35 +141,22 @@ class HxGodot {
             return 0;
         });
 
-        // now null / release all the godot stuff we have in our classes
-        for (t in tmp) {
-            if (Reflect.hasField(t, "__unregisterSingleton")) // extension singleton initialization
-                Reflect.field(t, "__unregisterSingleton")();
-
-            if (Reflect.hasField(t, "__static_deinit"))
-                Reflect.field(t, "__static_deinit")();
-
-            if (Reflect.hasField(t, "__registerClass")) {
-                var cname:godot.variant.StringName = Reflect.field(t, "__class_name");
-                godot.Types.GodotNativeInterface.classdb_unregister_extension_class(
-                    untyped __cpp__("godot::internal::library"),
-                    cname.native_ptr()
-                );
-            }
-
-            if (Reflect.hasField(t, "__deinit_constant_bindings"))
-                Reflect.field(t, "__deinit_constant_bindings")();
-        }
-
-        // tear down GC and cleanup active objects
+        // cleanup extension objects
+        _deinit(extensions);
         cpp.NativeGc.run(true);
+
+        // cleanup engine objects
+        _deinit(engineClasses);
+        cpp.NativeGc.run(true);
+            
     }
 
     // utilities
     static var gcCycle = 0.0;
     public static function runGc(_dt:Float) {
         var ran = false;
-        if (gcCycle > 1) {            
+        if (gcCycle > 1) {
+            trace("running GC");
             cpp.NativeGc.run(true);
             gcCycle = 0;
             ran = true;

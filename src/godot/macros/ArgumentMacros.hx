@@ -237,8 +237,12 @@ class ArgumentMacros {
                                     obj.ptr
                                 );
 
-                            if ($v{isRefCounted} == true)
-                                untyped instance.reference();
+                            // if ($v{isRefCounted} == true) {
+                            //     var refCount = instance.get_reference_count();
+                            //     trace(refCount);
+                            //     if (refCount >= 0i64)
+                            //         untyped instance.reference();
+                            // }
 
                             instance;
                         }

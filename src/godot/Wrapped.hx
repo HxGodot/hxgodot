@@ -61,6 +61,22 @@ class Wrapped {
         }
     }
 
+    @:noCompletion
+    public function incRef():Int {
+        var res = 0;
+        if (__root != null)
+            res = untyped __cpp__('((cpp::utils::RootedObject*){0})->incRef()', __root.ptr);
+        return res;
+    }
+
+    @:noCompletion
+    public function decRef():Int {
+        var res = 0;
+        if (__root != null)
+            res = untyped __cpp__('((cpp::utils::RootedObject*){0})->decRef()', __root.ptr);
+        return res;
+    }
+
     function __postInit(?_finalize = true) {} // override
 
     function getClassName():godot.variant.StringName { return null; } // override

@@ -58,10 +58,10 @@ cpp::utils::RootedObject::~RootedObject()
 
 void cpp::utils::RootedObject::prepareRemoval() 
 {
-    if (refCount == 1) {
+    if (refCount <= 1) {
         hx::GCRemoveRoot(rooted);
-    }
-    rooted = nullptr;
+        // rooted = nullptr;
+    }    
 }
 
 int cpp::utils::RootedObject::incRef() 
@@ -70,8 +70,9 @@ int cpp::utils::RootedObject::incRef()
 }
 
 int cpp::utils::RootedObject::decRef() 
-{
-    return --refCount;
+{   
+    refCount -= 1;
+    return refCount;
 }
 
 hx::Object** cpp::utils::RootedObject::getObjectPtr() const
