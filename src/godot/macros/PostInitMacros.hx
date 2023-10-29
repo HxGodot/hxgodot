@@ -32,6 +32,15 @@ class PostInitMacros {
                 else
                     HxGodot.setFinalizer(tmp, cpp.Callable.fromStaticFunction(__static_cleanUp));
 
+                if ($v{_isRefCounted==true}) {
+                    var refCount:cpp.Int64 = 0;
+                    var ret = cpp.Native.addressOf(refCount);
+                    untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, _instance, ret);
+
+                    if (refCount > 1i64)
+                        untyped tmp.reference();
+                }
+
                 tmp.addGCRoot();
                 return tmp.__root;
             }
@@ -49,7 +58,8 @@ class PostInitMacros {
                         //instance.__owner = null;
                     instance.removeGCRoot();
 
-                    HxGodot.setFinalizer(instance, null);
+                    if (!instance.__finalizing)
+                        HxGodot.setFinalizer(instance, null);
                 }
             }
             static function ___binding_reference_callback(_token:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr, _reference:Bool):Bool {
@@ -65,6 +75,9 @@ class PostInitMacros {
                     
                     var owner:godot.Types.VoidPtr = untyped __cpp__('((::godot::Wrapped_obj*){0})->native_ptr()', instance);
                     untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, owner, ret);
+
+                    if (refCount == 1i64)
+                        untyped __cpp__('((::godot::Wrapped_obj*){0})->prepareRemoveGCRoot()', instance);
 
                     return (refCount == 0i64);
                 }
@@ -138,11 +151,12 @@ class PostInitMacros {
                     var ret = cpp.Native.addressOf(refCount);
                     untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, _v.native_ptr(), ret);
 
-                    if (refCount > 1i64) {
+                    if (refCount >= 1i64) {
                         var die:Bool = false;
                         var ret = cpp.Native.addressOf(die);
                         untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_unreference, _v.native_ptr(), ret);
                         if (die) {
+                            _v.__finalizing = true;
                             godot.Types.GodotNativeInterface.object_destroy(_v.__owner);
                             _v.__owner = null;
                         }

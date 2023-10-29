@@ -15,6 +15,7 @@ class Wrapped {
     
     public var __root:VoidPtr = null;
     public var __owner:VoidPtr = null; // pointer to the godot-side parent class we need to keep around
+    public var __finalizing = false;
     public function native_ptr():GDExtensionObjectPtr {
         return __owner;
     }
