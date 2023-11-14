@@ -32,6 +32,8 @@ class PostInitMacros {
                 else
                     HxGodot.setFinalizer(tmp, cpp.Callable.fromStaticFunction(__static_cleanUp));
 
+                tmp.addGCRoot();
+
                 if ($v{_isRefCounted==true}) {
                     var refCount:cpp.Int64 = 0;
                     var ret = cpp.Native.addressOf(refCount);
@@ -39,9 +41,9 @@ class PostInitMacros {
 
                     if (refCount > 1i64)
                         untyped tmp.reference();
-                }
-
-                tmp.addGCRoot();
+                    else
+                        tmp.prepareRemoveGCRoot();
+                }                    
                 return tmp.__root;
             }
             static function ___binding_free_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr):Void {
