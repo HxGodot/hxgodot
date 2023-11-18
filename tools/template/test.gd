@@ -12,7 +12,7 @@ func _ready():
 
 	var res3 = simple_add_vector3(Vector3(400, 300, 500), Vector3(1, 2, 3))
 	test_variant(res3)
-	print(hx_random_MyVector3)
+	print(res3)
 
 	var arr = PackedFloat32Array([33.0,22.0,11.0])
 	print(arr)
