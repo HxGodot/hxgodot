@@ -1140,14 +1140,14 @@ class FunctionMacros {
                     type: '(GDExtensionTypePtr)',
                     name: '_hxwrap__$argName',
                     decl: [ 
-                        'var _hxwrap__$argName:godot.Types.VoidPtr = null;',
-                        'if (untyped __cpp__("{0}.mPtr != nullptr",$argName)) _hxwrap__$argName = $argName.native_ptr();'
+                        'var _hxwrap__$argName:godot.Types.VoidPtr = null',
+                        'if (untyped __cpp__("{0}.mPtr != nullptr",$argName)) _hxwrap__$argName = $argName.native_ptr()'
                     ]
                 };
 
                 if (TypeMacros.isTypeNative(a.type.name)) {
                     conArg.type = '(GDExtensionTypePtr)&';
-                    conArg.decl = [ 'var _hxwrap__$argName:$argType = ($argName:${argType});' ];
+                    conArg.decl = [ 'var _hxwrap__$argName:$argType = ($argName:${argType})' ];
 
                 } else if (TypeMacros.isObjectType(a.type.name))
                     conArg.type = '(GDExtensionTypePtr)&';
