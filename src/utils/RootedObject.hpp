@@ -29,25 +29,23 @@ namespace cpp
         class RootedObject
         {
         private:
+            bool weak;
             hx::Object** rooted;
-            int refCount;
 
         public:
-            RootedObject();
             RootedObject(void*);
             RootedObject(hx::Object**);
             RootedObject(hx::Object*);
 
             ~RootedObject();
 
-            void prepareRemoval();
+            void makeStrong();
+            void makeWeak();
+            bool isWeak();
             hx::Object** getObjectPtr() const;
 
             hx::Object* getObject() const;
             void setObject(hx::Object*) const;
-
-            int incRef();
-            int decRef();
 
             operator hx::Object*() const;
         };

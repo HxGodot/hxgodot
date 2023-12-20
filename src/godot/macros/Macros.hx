@@ -350,6 +350,12 @@ class Macros {
                     }
                     
                     var argType = _mapHxTypeToGodot(_type);
+                    if (argType == godot.Types.GDExtensionVariantType.NIL) { // make sure we switch NIL to Object for the editor
+                        var argTypeString = switch(_type){case TPath(_d): _d.name; default: "Void"; };
+                        if (argTypeString != "Void")
+                            argType = godot.Types.GDExtensionVariantType.OBJECT;
+                    }
+
                     var hint = macro $v{godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE};
                     var hint_string = macro $v{""};
                     var usage = macro $v{godot.GlobalConstants.PropertyUsageFlags.PROPERTY_USAGE_DEFAULT};
@@ -478,7 +484,6 @@ class Macros {
 
                     var hint = macro $v{godot.GlobalConstants.PropertyHint.PROPERTY_HINT_NONE};
                     var hint_string = macro $v{""};
-                    var usage = macro $v{7}; // TODO: we should prolly expose this
 
                     var params = switch (_t) {
                         case TPath(_t): _t.params;
@@ -610,7 +615,6 @@ class Macros {
 
                             var argType = _mapHxTypeToGodot(_f.ret);
                             var argTypeString = godot.Types.GDExtensionVariantType.toString(argType);
-
                             if (argType == godot.Types.GDExtensionVariantType.NIL) {
                                 argTypeString = switch(_f.ret){case TPath(_d): _d.name; default: "Void"; };
 
@@ -947,26 +951,6 @@ class Macros {
                 hx::SetTopOfStack((int*)0,true);
             }
 
-            static void __onReference(GDExtensionClassInstancePtr p_instance)
-            {
-                int base = 99;
-                hx::SetTopOfStack(&base,true);
-                ${_cppClassName}_obj::_hx___reference(
-                    (void *)p_instance
-                );
-                hx::SetTopOfStack((int*)0,true);
-            }
-
-            static void __onUnreference(GDExtensionClassInstancePtr p_instance)
-            {
-                int base = 99;
-                hx::SetTopOfStack(&base,true);
-                ${_cppClassName}_obj::_hx___unreference(
-                    (void *)p_instance
-                );
-                hx::SetTopOfStack((int*)0,true);
-            }
-
             constexpr GDExtensionInstanceBindingCallbacks ${_cppClassName}_obj::___binding_callbacks;
         ';
 
@@ -995,8 +979,8 @@ class Macros {
                 nullptr, // GDExtensionClassPropertyGetRevert property_get_revert_func;
                 ${hasNotificationFunc ? "(GDExtensionClassNotification)&__onNotification" : "nullptr"}, // GDExtensionClassNotification notification_func;
                 nullptr, // GDExtensionClassToString to_string_func;
-                (GDExtensionClassReference)&__onReference, // GDExtensionClassReference reference_func;
-                (GDExtensionClassUnreference)&__onUnreference, // GDExtensionClassUnreference unreference_func;
+                nullptr, // GDExtensionClassReference reference_func;
+                nullptr, // GDExtensionClassUnreference unreference_func;
                 (GDExtensionClassCreateInstance)&__onCreate, // this one is mandatory
                 (GDExtensionClassFreeInstance)&__onFree, // this one is mandatory
                 (GDExtensionClassGetVirtual)&__onGetVirtualFunc,
@@ -1009,6 +993,7 @@ class Macros {
             private static function __create(_data:godot.Types.VoidPtr):godot.Types.GDExtensionObjectPtr { 
                 var n = new $_typePath();
                 n.addGCRoot();
+                n.makeStrong();
                 return n.__owner;
             }
 
@@ -1018,8 +1003,7 @@ class Macros {
                         _ptr.ptr
                     );
                 
-                n.prepareRemoveGCRoot();
-                //n.__owner = null;
+                n.makeWeak();
             }
 
             private static function __getVirtualFunc(_userData:godot.Types.VoidPtr, _name:godot.Types.GDExtensionStringNamePtr):godot.Types.GDExtensionClassCallVirtual {
@@ -1106,36 +1090,6 @@ class Macros {
                             _instance.ptr
                         );
                     $b{bindCallPtrs};
-                } catch (_e) {
-                    trace(HxGodot.getExceptionStackString(_e), true);
-                    throw _e;
-                }
-            }
-
-            static function __reference(_instance:godot.Types.VoidPtr) 
-            {
-                try {
-                    var instance:$ctType = untyped __cpp__(
-                            $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                            _instance.ptr
-                        );
-                    //var count = instance.incRef();
-                    // trace('reference called: ${instance} : ${count}');
-                } catch (_e) {
-                    trace(HxGodot.getExceptionStackString(_e), true);
-                    throw _e;
-                }
-            }
-
-            static function __unreference(_instance:godot.Types.VoidPtr) 
-            {
-                try {
-                    var instance:$ctType = untyped __cpp__(
-                            $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                            _instance.ptr
-                        );
-                    //var count = instance.decRef();
-                    //trace('unreference called: ${instance} : ${count}');
                 } catch (_e) {
                     trace(HxGodot.getExceptionStackString(_e), true);
                     throw _e;

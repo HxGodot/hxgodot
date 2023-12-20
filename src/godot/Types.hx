@@ -91,7 +91,7 @@ enum abstract GDExtensionVariantType(Int) from Int to Int {
             case "PackedVector2Array": PACKED_VECTOR2_ARRAY;
             case "PackedVector3Array": PACKED_VECTOR3_ARRAY;
             case "PackedColorArray": PACKED_COLOR_ARRAY;
-            default: OBJECT;
+            default: NIL;
         }
     }
 
@@ -135,7 +135,7 @@ enum abstract GDExtensionVariantType(Int) from Int to Int {
             case PACKED_VECTOR2_ARRAY: "PackedVector2Array";
             case PACKED_VECTOR3_ARRAY: "PackedVector3Array";
             case PACKED_COLOR_ARRAY: "PackedColorArray";
-            default: "Object";
+            default: "Nil";
         }
     }
 }

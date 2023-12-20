@@ -1206,6 +1206,9 @@ class FunctionMacros {
                             obj.ptr
                         );
 
+                    // disable this with function returns, we already receive an incremented refcount here
+                    //instance.__validateInstance();
+
                     return cast instance;
                 }
                 return null;

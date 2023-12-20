@@ -20,59 +20,47 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <hxcpp.h>
 #include "utils/RootedObject.hpp"
 
-cpp::utils::RootedObject::RootedObject()
-    : rooted(new hx::Object*(nullptr))
-{
-    refCount = 1;
-    hx::GCAddRoot(rooted);
-}
-
 cpp::utils::RootedObject::RootedObject(void* _baton)
-    : rooted(static_cast<hx::Object**>(_baton))
+    : rooted(static_cast<hx::Object**>(_baton)), weak(true)
 {
-    refCount = 1;
-    //
 }
 
 cpp::utils::RootedObject::RootedObject(hx::Object** _root)
-    : rooted(_root)
+    : rooted(_root), weak(true)
 {
-    refCount = 1;
-    //
 }
 
 cpp::utils::RootedObject::RootedObject(hx::Object* _object)
-    : rooted(new hx::Object*(_object))
+    : rooted(new hx::Object*(_object)), weak(true)
 {
-    refCount = 1;
-    hx::GCAddRoot(rooted);
+    
 }
 
 cpp::utils::RootedObject::~RootedObject()
 {
     if (rooted != nullptr) {
-        hx::GCRemoveRoot(rooted);
+        // if (!weak)
+            hx::GCRemoveRoot(rooted);
         delete rooted;
+        rooted = nullptr;
     }
 }
 
-void cpp::utils::RootedObject::prepareRemoval() 
+void cpp::utils::RootedObject::makeStrong() 
 {
-    if (refCount <= 1) {
-        hx::GCRemoveRoot(rooted);
-        // rooted = nullptr;
-    }    
+    hx::GCAddRoot(rooted);
+    weak = false;
 }
 
-int cpp::utils::RootedObject::incRef() 
+void cpp::utils::RootedObject::makeWeak() 
 {
-    return ++refCount;
+    hx::GCRemoveRoot(rooted);
+    weak = true;
+    // rooted = nullptr;
 }
 
-int cpp::utils::RootedObject::decRef() 
-{   
-    refCount -= 1;
-    return refCount;
+bool cpp::utils::RootedObject::isWeak() {
+    return weak;
 }
 
 hx::Object** cpp::utils::RootedObject::getObjectPtr() const

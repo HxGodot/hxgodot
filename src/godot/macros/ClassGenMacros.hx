@@ -178,9 +178,9 @@ class ClassGenMacros {
                 for (e in cast(c.enums, Array<Dynamic>)) {
                     var enumName = '${cname}${e.name}';
                     var buf = new StringBuf();
-                    buf.add('enum abstract $enumName(Int) from Int to Int {\n');
+                    buf.add('class $enumName {\n');
                     for (v in cast(e.values, Array<Dynamic>)){
-                        buf.add('\tvar ${v.name} = ${v.value};\n');
+                        buf.add('\tpublic static var ${v.name} = ${v.value}i64;\n');
                     }
                     buf.add('}\n\n');
                     enums.push(buf.toString());

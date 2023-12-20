@@ -43,10 +43,12 @@ class ArgumentMacros {
                             cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")), 
                             cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
                         );
-                        res = untyped __cpp__(
+                        var wrapped:godot.Wrapped = untyped __cpp__(
                             $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
                             obj.ptr
                         );
+                        wrapped.__validateInstance();
+                        res = wrapped;
                     } else
                         res = null;
                     
@@ -237,13 +239,7 @@ class ArgumentMacros {
                                     obj.ptr
                                 );
 
-                            // if ($v{isRefCounted} == true) {
-                            //     var refCount = instance.get_reference_count();
-                            //     trace(refCount);
-                            //     if (refCount >= 0i64)
-                            //         untyped instance.reference();
-                            // }
-
+                            instance.__validateInstance();
                             instance;
                         }
                     }

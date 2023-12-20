@@ -316,7 +316,7 @@ class VariantMacros {
         var identBindings = '(void*)&::godot::Object_obj::___binding_callbacks';
         return macro {
             var type = this.getVariantType();
-            var res = null;
+            var res:$_type = null;
             if (__Variant._canConvert(type, $v{_extType})) {
                 var constructor = __Variant.to_type_constructor.get($v{_extType});
                 var retOriginal:godot.Types.StarVoidPtr = untyped __cpp__('nullptr');
@@ -338,6 +338,7 @@ class VariantMacros {
                         $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
                         obj.ptr
                     );
+                    res.__validateInstance();
                 }
             } else {
                 trace("Cannot cast "+ __Variant.getGDExtensionVariantTypeString(type) + " to " + __Variant.getGDExtensionVariantTypeString($v{_extType}), true);

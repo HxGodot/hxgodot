@@ -15,7 +15,9 @@ class Wrapped {
     
     public var __root:VoidPtr = null;
     public var __owner:VoidPtr = null; // pointer to the godot-side parent class we need to keep around
-    public var __finalizing = false;
+    public var __initialized = false;
+    public var __refCount:haxe.Int64 = -1i64;
+
     public function native_ptr():GDExtensionObjectPtr {
         return __owner;
     }
@@ -42,16 +44,20 @@ class Wrapped {
 
     @:noCompletion
     public function addGCRoot() {
-        if (__root == null) {
+        if (__root == null)
             __root = untyped __cpp__('(void*)new cpp::utils::RootedObject({0}.mPtr)', this);
-        }
     }
 
     @:noCompletion
-    public function prepareRemoveGCRoot() {
-        if (__root != null) {
-            untyped __cpp__('((cpp::utils::RootedObject*){0})->prepareRemoval()', __root.ptr);
-        }
+    public function makeStrong() {
+        if (__root != null)
+            untyped __cpp__('((cpp::utils::RootedObject*){0})->makeStrong()', __root.ptr);
+    }
+
+    @:noCompletion
+    public function makeWeak() {
+        if (__root != null)
+            untyped __cpp__('((cpp::utils::RootedObject*){0})->makeWeak()', __root.ptr);
     }
 
     @:noCompletion
@@ -63,22 +69,13 @@ class Wrapped {
     }
 
     @:noCompletion
-    public function incRef():Int {
-        var res = 0;
-        if (__root != null)
-            res = untyped __cpp__('((cpp::utils::RootedObject*){0})->incRef()', __root.ptr);
-        return res;
+    public function isWeak():Bool {
+        return untyped __cpp__('((cpp::utils::RootedObject*){0})->isWeak()', __root.ptr);
     }
 
-    @:noCompletion
-    public function decRef():Int {
-        var res = 0;
-        if (__root != null)
-            res = untyped __cpp__('((cpp::utils::RootedObject*){0})->decRef()', __root.ptr);
-        return res;
-    }
+    public function __validateInstance() {}
 
-    function __postInit(?_finalize = true) {} // override
+    function __postInit() {} // override
 
     function getClassName():godot.variant.StringName { return null; } // override
 }
