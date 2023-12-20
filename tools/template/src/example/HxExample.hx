@@ -2,14 +2,8 @@ package example;
 
 import godot.GlobalConstants;
 import godot.core.GDUtils;
-import godot.variant.Vector3;
-import godot.variant.Vector4i;
-import godot.variant.Dictionary;
-import godot.variant.GDString;
-import godot.variant.StringName;
-import godot.variant.TypedSignal;
-import godot.variant.Signal;
-import godot.variant.PackedFloat32Array;
+import godot.*;
+import godot.variant.*;
 
 class HxExample extends godot.Node {
 
@@ -21,7 +15,7 @@ class HxExample extends godot.Node {
 
     static var test_static_initialization:StringName = "no more crash";
     static var test_static_initialization_of_this_node = new godot.Node();
-    var myInstanceVec = new godot.variant.Vector3(0,0,0);
+    var myInstanceVec = new Vector3(0,0,0);
 
     @:export
     @:hint(PropertyHint.PROPERTY_HINT_RANGE, "0,64,1")
@@ -72,7 +66,7 @@ class HxExample extends godot.Node {
         trace(tmp1 + " " + tmp2);
         trace(tmp1 % tmp2); // Godot's format string <3
 
-        for (i in 0...tmp1.length())
+        for (i in 0...tmp1.length().toInt())
             trace(tmp1[i]);
 
         // mess with arrays
@@ -109,6 +103,11 @@ class HxExample extends godot.Node {
     @:subGroup("Random Properties", "hx_random")
     public var hx_random_MyVector3(default, default):Vector3 = new Vector3(1,2,3);
 
+    // 
+    @:export
+    @:hint(PropertyHint.PROPERTY_HINT_RESOURCE_TYPE, "Image")
+    public var test_image(default, default):Image;
+
     // ...
 
 
@@ -137,7 +136,7 @@ class HxExample extends godot.Node {
     }
 
     @:export
-    public function simple_add_vector3(_v0:godot.variant.Vector3, _v1:godot.variant.Vector3):godot.variant.Vector3 {
+    public function simple_add_vector3(_v0:Vector3, _v1:Vector3):Vector3 {
         trace('simple_add_vector3 called ($_v0, $_v1)');
         return _v0 + _v1;
     }
@@ -165,7 +164,7 @@ class HxExample extends godot.Node {
     }
 
     @:export
-    public function test_bytes(_v:godot.variant.PackedByteArray):godot.variant.PackedByteArray {
+    public function test_bytes(_v:PackedByteArray):PackedByteArray {
         trace("test_bytes:");
 
         trace(_v[0]);
@@ -188,7 +187,7 @@ class HxExample extends godot.Node {
     }
 
     @:export
-    public function test_strings(_v:godot.variant.PackedStringArray):godot.variant.PackedStringArray {
+    public function test_strings(_v:PackedStringArray):PackedStringArray {
         trace("test_strings:");
 
         // this uses managed types, dont do fancy pointer stuff here
@@ -231,7 +230,7 @@ class HxExample extends godot.Node {
     }
 
     override function _enter_tree():Void {
-        trace("_enter_tree called");
+        trace("_enter_tree called: start");
         var name:String = GDString.fromStringName(this.get_name());
         this.print_tree_pretty();
         trace(name);
@@ -240,6 +239,7 @@ class HxExample extends godot.Node {
         node = null;
 
         onTest.emit(this);
+        trace("_enter_tree called: end");
     }
 
     /*

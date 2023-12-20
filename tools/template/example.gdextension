@@ -3,6 +3,11 @@
 compatibility_minimum = "4.1.0"
 entry_symbol = "hxgodot_library_init"
 
+[icons]
+HxExample = "res://icons/haxe-logo-glyph.svg"
+HxOther = "res://icons/haxe-logo-glyph.svg"
+HxOtherInPackage = "res://icons/haxe-logo-glyph.svg"
+
 [libraries]
 
 macos.debug.arm64 = "bin/libhxgodot.debug.arm64.dylib"
