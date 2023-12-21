@@ -32,8 +32,10 @@ class PostInitMacros {
 
                 if ($v{_isRefCounted==true})
                     HxGodot.setFinalizer(tmp, cpp.Callable.fromStaticFunction(__unRef));
-                else
+                else {
+                    // HxGodot.setFinalizer(tmp, cpp.Callable.fromStaticFunction(__release));
                     tmp.makeStrong(); // keep not refcounted objects around
+                }
                 return tmp.__root;
             }
             static function ___binding_free_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr):Void {
@@ -56,6 +58,7 @@ class PostInitMacros {
                         );
 
                     instance.removeGCRoot();
+
                     // untyped __cpp__('printf("%s::free_callback: %llx: removeGCRoot()\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), instance.__owner);
                 }
             }
@@ -67,6 +70,7 @@ class PostInitMacros {
 
                     // untyped __cpp__('::godot::Wrapped_obj* tmp0 = ((::godot::Wrapped_obj*)(((cpp::utils::RootedObject*){0})->getObject()))', _binding.ptr);
                     // untyped __cpp__('cpp::utils::RootedObject* tmp1 = (cpp::utils::RootedObject*){0}', _binding.ptr);
+
 
                     var refCount:cpp.Int64 = 0;
                     var ret = cpp.Native.addressOf(refCount);
@@ -108,11 +112,10 @@ class PostInitMacros {
                     // last time _v is valid!
                     var refCount = _v.__refCount;
 
-                    if (refCount > 0i64) {
+                    if (refCount >= 0i64) {
                         var die:Bool = false;
                         var ret = cpp.Native.addressOf(die);
                         untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_unreference, _v.native_ptr(), ret);
-
                         // untyped __cpp__('printf("%s::__unRef: %llx: %lld -> unreference(), die == %d\\n", {0}, {1}, {2}, {3})', cpp.NativeString.c_str($v{className}), _v.native_ptr(), refCount, die);
                         
                         if (die) {
@@ -123,6 +126,10 @@ class PostInitMacros {
                     }
                 }
             }
+
+            // @:void private static function __release(_v:$ctType):Void {
+            //     untyped __cpp__('printf("%s::__release: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
+            // }
 
             static function __init_constant_bindings() {
                 __class_name = $v{className};
@@ -145,12 +152,23 @@ class PostInitMacros {
                         
                         // untyped __cpp__('printf("%s::__validateInstance: %llx: %lld\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), this.__owner, refCount);
                         
-                        if (refCount == 0i64)                        
+                        if (refCount == 0i64)
                             untyped this.init_ref();
                         else
                             untyped this.reference();
+
                         __initialized = true;
                     }
+                }
+            }
+
+            override function __acceptReturn() {
+                if ($v{_isRefCounted==true}) {
+                    this.__refCount = untyped this.get_reference_count();
+                    if (this.__refCount > 1)
+                        this.makeStrong();
+                    else
+                        this.makeWeak();
                 }
             }
 

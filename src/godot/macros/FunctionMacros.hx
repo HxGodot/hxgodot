@@ -1181,7 +1181,7 @@ class FunctionMacros {
 
     static function _assembleReturn(_bind:FunctionBind, _exprs:Array<haxe.macro.Expr>):haxe.macro.Expr {
         // // we have a managed return type, create it properly
-        var typePath = _bind.returnType;        
+        var typePath = _bind.returnType;
         var body = null;
         var identBindings = '(void*)&${typePath.name}_obj::___binding_callbacks';
         var ctType = TPath(typePath);
@@ -1207,7 +1207,7 @@ class FunctionMacros {
                         );
 
                     // disable this with function returns, we already receive an incremented refcount here
-                    //instance.__validateInstance();
+                    instance.__acceptReturn();
 
                     return cast instance;
                 }

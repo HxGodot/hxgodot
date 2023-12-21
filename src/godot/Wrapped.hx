@@ -36,6 +36,7 @@ class Wrapped {
         if (obj != null) {
             ret = cast Type.createEmptyInstance(classTags.get(name));
             ret.__owner = obj;
+            ret.addGCRoot();
         } else if (_report)
             trace('CANNOT CONVERT ${this} TO $name', true);
 
@@ -74,6 +75,7 @@ class Wrapped {
     }
 
     public function __validateInstance() {}
+    public function __acceptReturn() {}
 
     function __postInit() {} // override
 
