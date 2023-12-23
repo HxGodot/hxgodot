@@ -571,6 +571,7 @@ class ClassGenMacros {
                         if (__instance == null) {
                             __instance = cast Type.createEmptyInstance(Wrapped.classTags.get(__class_name));
                             __instance.__owner = godot.Types.GodotNativeInterface.global_get_singleton(__class_name.native_ptr());
+                            __instance.addGCRoot();
                         }
                         return __instance;
                     }
@@ -1308,6 +1309,8 @@ class ClassGenMacros {
                 if (obj != null) {
                     ret = cast Type.createEmptyInstance(godot.Object);
                     ret.__owner = obj;
+                    ret.addGCRoot();
+                    ret.__validateInstance();
                 }
                 return ret;
             }

@@ -15,8 +15,9 @@ class Wrapped {
     
     public var __root:VoidPtr = null;
     public var __owner:VoidPtr = null; // pointer to the godot-side parent class we need to keep around
-    public var __initialized = false;
-    public var __refCount:haxe.Int64 = -1i64;
+    public var __managed:Bool = false;
+    // public var __initialized = false;
+    // public var __refCount:haxe.Int64 = -1i64;
 
     public function native_ptr():GDExtensionObjectPtr {
         return __owner;
@@ -37,6 +38,7 @@ class Wrapped {
             ret = cast Type.createEmptyInstance(classTags.get(name));
             ret.__owner = obj;
             ret.addGCRoot();
+            // ret.__validateInstance();
         } else if (_report)
             trace('CANNOT CONVERT ${this} TO $name', true);
 

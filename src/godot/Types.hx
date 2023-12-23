@@ -400,6 +400,9 @@ extern class __GodotNativeInterface {
     inline public static function object_get_instance_binding(_owner:VoidPtr, _token:VoidPtr, _bindingCallbacks:VoidPtr):VoidPtr
         return untyped __cpp__('::godot::internal::gdextension_interface_object_get_instance_binding({0}, {1}, (const GDExtensionInstanceBindingCallbacks*){2})', _owner.ptr, _token.ptr, _bindingCallbacks.ptr);
 
+    inline public static function object_free_instance_binding(_owner:VoidPtr, _token:VoidPtr):VoidPtr
+        return untyped __cpp__('::godot::internal::gdextension_interface_object_free_instance_binding({0}, {1})', _owner.ptr, _token.ptr);
+
     inline public static function classdb_register_extension_class_method(_library:VoidPtr, _classname:GDExtensionStringNamePtr, _method_info:cpp.Pointer<GDExtensionClassMethodInfo>):Void
         return untyped __cpp__('::godot::internal::gdextension_interface_classdb_register_extension_class_method({0}, {1}, {2})', _library.ptr, _classname, _method_info.ptr);
 
@@ -577,6 +580,9 @@ class GodotNativeInterface {
 
     public static function object_get_instance_binding(_owner:VoidPtr, _token:VoidPtr, _bindingCallbacks:VoidPtr):VoidPtr
         return __GodotNativeInterface.object_get_instance_binding(_owner, _token, _bindingCallbacks);
+
+    public static function object_free_instance_binding(_owner:VoidPtr, _token:VoidPtr):VoidPtr
+        return __GodotNativeInterface.object_free_instance_binding(_owner, _token);
 
     public static function classdb_register_extension_class_method(_library:VoidPtr, _classname:GDExtensionStringNamePtr, _method_info:cpp.Pointer<GDExtensionClassMethodInfo>):Void
         __GodotNativeInterface.classdb_register_extension_class_method(_library, _classname, _method_info);
