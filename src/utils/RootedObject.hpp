@@ -42,7 +42,7 @@ namespace cpp
             void makeStrong();
             void makeWeak();
             bool isWeak();
-            hx::Object** getObjectPtr() const;
+            inline hx::Object** getObjectPtr() const;
 
             hx::Object* getObject() const;
             void setObject(hx::Object*) const;

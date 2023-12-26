@@ -337,6 +337,7 @@ class ClassGenMacros {
                                 field: (macro class {@:noCompletion public static var $mname:godot.Types.GDExtensionPtrBuiltInMethod;}).fields[0],
                                 fieldSetter: [
                                     'var name_${m.name}:godot.variant.StringName = "${m.name}"',
+                                    // 'trace("name_${m.name}")', // DEBUG: use this for debugging not found methods 
                                     '$mname = godot.Types.GodotNativeInterface.classdb_get_method_bind(type_${cname}.native_ptr(), name_${m.name}.native_ptr(), untyped __cpp__(\'{0}\', $mhash))'
                                 ]
                             }
@@ -507,7 +508,6 @@ class ClassGenMacros {
                }
             }
 
-
             // now worry about the nasty details of expression and type-building
             pointerInits.push(Context.parse('var type_${cname}:godot.variant.StringName = "${cname}"',Context.currentPos()));
             for (bind in binds) {
@@ -547,12 +547,22 @@ class ClassGenMacros {
                 pos: Context.currentPos()
             }];
 
-            if (c.is_refcounted) // set a marker for refcounting
+            if (c.api_type != null) {
+                var api_type:Int = godot.Types.GDApiType.fromString(c.api_type);
                 cls.meta.push({
-                name: ':gdRefCounted',
-                params: [],
-                pos: Context.currentPos()
-            });
+                    name: "gdApiType",
+                    params: [macro $v{api_type}],
+                    pos: Context.currentPos()
+                });
+            }
+
+            if (c.is_refcounted) {// set a marker for refcounting
+                cls.meta.push({
+                    name: ':gdRefCounted',
+                    params: [],
+                    pos: Context.currentPos()
+                });
+            }
 
             cls.pack = ["godot"];
 
@@ -570,8 +580,8 @@ class ClassGenMacros {
                     public static function singleton() {
                         if (__instance == null) {
                             __instance = cast Type.createEmptyInstance(Wrapped.classTags.get(__class_name));
-                            __instance.__owner = godot.Types.GodotNativeInterface.global_get_singleton(__class_name.native_ptr());
-                            __instance.addGCRoot();
+                            __instance.setOwnerAndRoot(godot.Types.GodotNativeInterface.global_get_singleton(__class_name.native_ptr()));
+                            HxGodot.setFinalizer(__instance, cpp.Callable.fromStaticFunction(__finalize));
                         }
                         return __instance;
                     }
@@ -1308,8 +1318,8 @@ class ClassGenMacros {
                 var obj = godot.Types.GodotNativeInterface.object_get_instance_from_id(_id);
                 if (obj != null) {
                     ret = cast Type.createEmptyInstance(godot.Object);
-                    ret.__owner = obj;
-                    ret.addGCRoot();
+                    ret.setOwnerAndRoot(obj);
+                    // TODO: No finalizer here?
                     ret.__validateInstance();
                 }
                 return ret;

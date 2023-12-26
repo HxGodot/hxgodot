@@ -1,5 +1,21 @@
 package godot;
 
+enum abstract GDApiType(Int) from Int to Int  {
+    var CORE = 0;
+    var SERVERS;
+    var SCENE;
+    var EDITOR;
+
+    inline public static function fromString(_str:String):Int {
+        return switch (_str) {
+            case "servers": SERVERS;
+            case "scene": SCENE;
+            case "editor": EDITOR;
+            default: CORE;
+        }
+    }
+}
+
 enum abstract GDExtensionVariantType(Int) from Int to Int {
     var NIL = 0;
 

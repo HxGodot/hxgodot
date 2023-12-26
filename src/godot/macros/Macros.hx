@@ -32,6 +32,7 @@ class Macros {
         var className = cls.toString();
 
         var classMeta = cls.get().meta;
+        var apiType = classMeta.has("gdApiType") ? classMeta.extract("gdApiType")[0] : null;
         var isEngineClass = classMeta.has(":gdEngineClass");
         var isRefCounted = classMeta.has(":gdRefCounted");
 
@@ -125,7 +126,7 @@ class Macros {
 
                     // TODO: allow for normal and static initialization of Godot classes.
                     // add a compiler warning to make people aware                    
-                    if (isStatic && !isEngineClass && _e != null) {
+                    if (isStatic && !isEngineClass) {
                         function _checkGodotType(_gt) {
 
                             // TODO: go up the inheritance chain for the type to see if we hit an engine class. If yes, we need a static initializer
@@ -133,7 +134,9 @@ class Macros {
                             if (_gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(_gt.name)) {
                                 // TODO: keep this error around for
                                 //Context.fatalError('${field.name}:${_gt.name}: We don\'t support class level initialization of Godot classes yet!', Context.currentPos());
-                                staticInits.push(macro $i{field.name} = $_e);
+                                
+                                if (_e != null) // make sure we only add an init if we have an expression
+                                    staticInits.push(macro $i{field.name} = $_e);
                                 staticDeinits.push(macro $i{field.name} = null);
                                 staticsToRewriteForInit.push(field);
                             }
@@ -273,6 +276,16 @@ class Macros {
             ));
         }
         else {
+
+            if (apiType != null) {// we explicitly define an api level type in our custom class!
+                classMeta.add(apiType.name, apiType.params, pos);
+            } else {
+                // use the same level as the engine superclass
+                var m = engine_parent.meta.extract("gdApiType")[0];
+                classMeta.add(m.name, m.params, pos);
+            }
+                
+
             // we got an extension class, so make sure we got the whole extension bindings for the fields covered!
             fields = buildFieldBindings(
                 fields,
@@ -288,7 +301,8 @@ class Macros {
             );
 
             // properly bootstrap this class
-            fields = fields.concat(PostInitMacros.buildPostInitExtension(
+            // fields = fields.concat(PostInitMacros.buildPostInitExtension(
+            fields = fields.concat(PostInitMacros.buildPostInit(
                 typePath,
                 parent_class_name,
                 engine_parent.name,
@@ -992,9 +1006,14 @@ class Macros {
         var fieldBindingsClass = macro class {
             private static function __create(_data:godot.Types.VoidPtr):godot.Types.GDExtensionObjectPtr { 
                 var n = new $_typePath();
-                n.addGCRoot();
-                n.makeStrong();
-                return n.__owner;
+                n.setManaged(false);
+                n.strongRef();
+
+                #if DEBUG_PRINT_LIFECYCLE
+                    untyped __cpp__('printf("%s::__create: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{_className}), n.native_ptr());
+                #end
+
+                return n.native_ptr();
             }
 
             private static function __free(_data:godot.Types.VoidPtr, _ptr:godot.Types.GDExtensionObjectPtr) {
@@ -1002,8 +1021,12 @@ class Macros {
                         $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
                         _ptr.ptr
                     );
+                n.__isDying = true;
+                n.weakRef();
                 
-                n.makeWeak();
+                #if DEBUG_PRINT_LIFECYCLE
+                    untyped __cpp__('printf("%s::__free: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{_className}), n.native_ptr());
+                #end
             }
 
             private static function __getVirtualFunc(_userData:godot.Types.VoidPtr, _name:godot.Types.GDExtensionStringNamePtr):godot.Types.GDExtensionClassCallVirtual {

@@ -36,33 +36,27 @@
 using namespace godot;
 
 extern "C" void hxgodot_boot();
-extern "C" void hxgodot_init();
-extern "C" void hxgodot_shutdown();
+extern "C" void hxgodot_init_level(ModuleInitializationLevel p_level);
+extern "C" void hxgodot_shutdown_level(ModuleInitializationLevel p_level);
 
 void initialize_hxgodot_module(ModuleInitializationLevel p_level) {
-    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-        return;
-    }
-    hxgodot_init();
+    hxgodot_init_level(p_level);
 }
 
 void uninitialize_hxgodot_module(ModuleInitializationLevel p_level) {
-    if (p_level != MODULE_INITIALIZATION_LEVEL_CORE) {
-        return;
-    }
-    hxgodot_shutdown();
+    hxgodot_shutdown_level(p_level);
 }
 
 extern "C" {
 // Initialization.
 GDExtensionBool GDE_EXPORT hxgodot_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address, const GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization) {
     godot::GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library, r_initialization);
-    
-    hxgodot_boot();
 
     init_obj.register_initializer(initialize_hxgodot_module);
     init_obj.register_terminator(uninitialize_hxgodot_module);
     init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
+
+    hxgodot_boot();
 
     return init_obj.init();
 }

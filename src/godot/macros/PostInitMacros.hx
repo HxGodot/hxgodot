@@ -8,7 +8,7 @@ import haxe.macro.MacroStringTools;
 import haxe.macro.TypeTools;
 
 class PostInitMacros {
-	public static function buildPostInit(_typePath, _parent_class_name:String, _godotBaseclass:String, _cppClassName:String, _inheritanceDepth:Int, ?_isRefCounted:Bool = false) {
+	public static function buildPostInit(_typePath, _parent_class_name:String, _godotBaseclass:String, _cppClassName:String, _inheritanceDepth:Int, _isRefCounted:Bool) {
         var className = _typePath.name;
         var ctType = TPath(_typePath);
         var clsId = '${_typePath.pack.join(".")}.${_typePath.name}';
@@ -25,73 +25,55 @@ class PostInitMacros {
 
             static function ___binding_create_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr):godot.Types.VoidPtr {
                 var tmp = $inst;
-                tmp.__owner = _instance;
-                tmp.addGCRoot();
+                tmp.setOwnerAndRoot(_instance);
+                HxGodot.setFinalizer(tmp, cpp.Callable.fromStaticFunction(__finalize));
 
                 if ($v{_isRefCounted==true}) {
-                    var refCount = untyped tmp.get_reference_count();
-
-                    #if DEBUG_REFCOUNT_PRINT
-                    untyped __cpp__('printf("%s::create_callback: %llx: %lld - addGCRoot()\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), tmp.__owner, );
+                    var refCount:cpp.Int64 = untyped tmp.get_reference_count();
+                    #if DEBUG_PRINT_LIFECYCLE
+                        untyped __cpp__('printf("%s::___binding_create_callback: %llx: %lld\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), tmp.__owner, );
                     #end
-
-                    HxGodot.setFinalizer(tmp, cpp.Callable.fromStaticFunction(__unRef));
                 } else {
-                    // HxGodot.setFinalizer(tmp, cpp.Callable.fromStaticFunction(__release));
-                    tmp.makeStrong(); // keep not refcounted objects around
+                    tmp.strongRef(); // keep not refcounted objects around
+
+                    #if DEBUG_PRINT_LIFECYCLE
+                        untyped __cpp__('printf("%s::___binding_create_callback: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), tmp.__owner);
+                    #end
                 }
                 return tmp.__root;
             }
+
             static function ___binding_free_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr):Void {
+                var instance:$ctType = untyped __cpp__(
+                        $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
+                        _binding.ptr
+                    );
 
-                if (untyped __cpp__('((cpp::utils::RootedObject*){0})->getObjectPtr() == nullptr', _binding.ptr)) {
-                    #if DEBUG_REFCOUNT_PRINT
-                    untyped __cpp__('printf("%s::free_callback: %llx: deleting _binding.ptr\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _binding.ptr);
+                instance.weakRef();
+                instance.__isDying = true;
+
+                if ($v{_isRefCounted==true}) {
+                    var refCount:cpp.Int64 = untyped instance.get_reference_count();
+                    #if DEBUG_PRINT_LIFECYCLE
+                        untyped __cpp__('printf("%s::___binding_free_callback: %llx: %lld -> weakRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
                     #end
-                    untyped __cpp__('delete ((cpp::utils::RootedObject*){0})', _binding.ptr);
                 } else {
-
-                    // shit might already be gone here since GC already ran
-                    // untyped __cpp__('
-                    //     ::godot::Wrapped_obj* tmp1 = ((::godot::Wrapped_obj*)(((cpp::utils::RootedObject*){0})->getObject()));
-                    //     if (tmp1->_hx___owner == nullptr && tmp1->__root == nullptr)
-                    //         return;
-                    // ', _binding.ptr);
-
-
-                    var instance:$ctType = untyped __cpp__(
-                            $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                            _binding.ptr
-                        );
-
-                    instance.removeGCRoot();
-
-                    #if DEBUG_REFCOUNT_PRINT
-                    untyped __cpp__('printf("%s::free_callback: %llx: removeGCRoot()\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), instance.__owner);
+                    #if DEBUG_PRINT_LIFECYCLE
+                        untyped __cpp__('printf("%s::___binding_free_callback: %llx -> weakRef()\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), instance.native_ptr());
                     #end
                 }
             }
 
             static function ___binding_reference_callback(_token:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr, _reference:Bool):Bool {
                 if ($v{_isRefCounted==true}) {
-                    // if (untyped __cpp__('((cpp::utils::RootedObject*){0})->getObjectPtr() == nullptr', _binding.ptr))
-                    //     return true;
-
                     untyped __cpp__('cpp::utils::RootedObject* tmp0 = (cpp::utils::RootedObject*){0}', _binding.ptr);
-                    // untyped __cpp__('
-                    //     ::godot::Wrapped_obj* tmp1 = ((::godot::Wrapped_obj*)(((cpp::utils::RootedObject*){0})->getObject()));
-                    //     if (tmp1->__root == nullptr && tmp1->_hx___owner == nullptr)
-                    //         return true;
-                    //     ', _binding.ptr);
 
                     var instance:$ctType = untyped __cpp__(
                         $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
                         _binding.ptr
                     );
-                    // if (instance.native_ptr() == null)
-                    //     return true;
 
-                    var refCount = untyped instance.get_reference_count();
+                    var refCount:cpp.Int64 = untyped instance.get_reference_count();
                     var is_dieing = refCount == 0i64;
 
                     if (instance.isWeak() && is_dieing)
@@ -99,101 +81,77 @@ class PostInitMacros {
 
                     if (_reference) {
                         if (refCount > 1i64) {
-                            #if DEBUG_REFCOUNT_PRINT
-                            untyped __cpp__('printf("%s::reference_callback(true): %llx: %lld -> makeStrong()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
+                            #if DEBUG_PRINT_LIFECYCLE
+                                untyped __cpp__('printf("%s::___binding_reference_callback(true): %llx: %lld -> strongRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
                             #end
-                            instance.makeStrong();
+                            instance.strongRef();
                         } else {
-                            #if DEBUG_REFCOUNT_PRINT
-                            untyped __cpp__('printf("%s::reference_callback(true): %llx: %lld -> makeWeak()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
+                            #if DEBUG_PRINT_LIFECYCLE
+                                untyped __cpp__('printf("%s::___binding_reference_callback(true): %llx: %lld -> weakRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
                             #end
-                            instance.makeWeak();
+                            instance.weakRef();
                         }
                         is_dieing = false;
                     } else {
                         if (refCount == 1i64) {
-                            #if DEBUG_REFCOUNT_PRINT
-                            untyped __cpp__('printf("%s::reference_callback(false): %llx: %lld -> makeWeak()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
+                            #if DEBUG_PRINT_LIFECYCLE
+                                untyped __cpp__('printf("%s::___binding_reference_callback(false): %llx: %lld -> weakRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
                             #end
-                            instance.makeWeak();
+                            instance.weakRef();
                             is_dieing = false;
                         }
                     }
                     return is_dieing;
-
-                    // var refCount:cpp.Int64 = 0;
-                    // var ret = cpp.Native.addressOf(refCount);
-                    // var instance:godot.Types.StarVoidPtr = untyped __cpp__('(void*)((::godot::Wrapped_obj*)(((cpp::utils::RootedObject*){0})->getObject()))', _binding.ptr);
-                    // var owner:godot.Types.VoidPtr = untyped __cpp__('((::godot::Wrapped_obj*){0})->native_ptr()', instance);
-                    // if (owner == null)
-                    //     return true;
-
-                    // // store refcount here for the finalizer
-                    // untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, owner, ret);
-                    // untyped __cpp__('((::godot::Wrapped_obj*){0})->_hx___refCount = {1}', instance, refCount);
-
-                    // if (_reference) {
-                    //     untyped __cpp__('printf("%s::reference_callback: %llx: %lld -> true\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), owner, refCount);
-                    //     if (refCount > 1i64 && untyped __cpp__('((::godot::Wrapped_obj*){0})->isWeak()', instance)) {
-                    //         if (untyped __cpp__('((::godot::Wrapped_obj*){0})->_hx___initialized', instance)) { // only become strong if we are not reference ourselves
-                    //             untyped __cpp__('printf("%s::reference_callback: %llx: %lld -> makeStrong()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), owner, refCount);
-                    //             untyped __cpp__('((::godot::Wrapped_obj*){0})->makeStrong()', instance);
-                    //         } else 
-                    //             untyped __cpp__('((::godot::Wrapped_obj*){0})->makeWeak()', instance);
-                    //     }
-                    //     return false;
-                    // } else {
-                    //     untyped __cpp__('printf("%s::reference_callback: %llx: %lld -> false\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), owner, refCount);
-                    //     if (refCount == 1i64 && untyped __cpp__('((::godot::Wrapped_obj*){0})->isWeak()', instance) == false) {
-                    //         untyped __cpp__('printf("%s::reference_callback: %llx: %lld -> makeWeak()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), owner, refCount);
-                    //         untyped __cpp__('((::godot::Wrapped_obj*){0})->makeWeak()', instance);
-                    //         return false;
-                    //     }
-                    //     return (refCount == 0i64);
-                    // }
                 } else 
                     return true;
             }
 
-            @:void private static function __unRef(_v:$ctType):Void {
-                if ($v{_isRefCounted==true}) {
-                    // last time _v is valid!
-                    // var refCount = _v.__refCount;
+            @:void private static function __finalize(_v:$ctType):Void {
+                // last time _v is valid!
+                #if DEBUG_PRINT_LIFECYCLE
+                    untyped __cpp__('printf("%s::__finalize: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
+                #end
 
+                if ($v{_isRefCounted==true}) {
                     var refCount:cpp.Int64 = 0;
                     var ret = cpp.Native.addressOf(refCount);
                     untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, _v.native_ptr(), ret);
-
-                    if (refCount >= 0i64) {
+                
+                    if (refCount >= 1i64) {
                         var die:Bool = false;
-                        if (refCount > 0i64) {
-                            var ret = cpp.Native.addressOf(die);
-                            untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_unreference, _v.native_ptr(), ret);
-                            #if DEBUG_REFCOUNT_PRINT
-                            untyped __cpp__('printf("%s::__unRef: %llx: %lld -> unreference(), die == %d\\n", {0}, {1}, {2}, {3})', cpp.NativeString.c_str($v{className}), _v.native_ptr(), refCount, die);
-                            #end
-                        } else {
-                            // godot.Types.GodotNativeInterface.object_free_instance_binding(_v.__owner, cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")));
-                            // #if DEBUG_REFCOUNT_PRINT
-                            // untyped __cpp__('printf("%s::__unRef: %llx: %lld -> object_free_instance_binding, die == %d\\n", {0}, {1}, {2}, {3})', cpp.NativeString.c_str($v{className}), _v.native_ptr(), refCount, die);
-                            // #end
-                            // die = false;
-                        }                        
+                        var ret = cpp.Native.addressOf(die);
+                        untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_unreference, _v.native_ptr(), ret);
 
+                        // TODO: 
+                        refCount -= 1i64;
+
+                        #if DEBUG_PRINT_LIFECYCLE
+                            untyped __cpp__('printf("%s::__finalize: %llx: %lld -> unreference(), die == %d\\n", {0}, {1}, {2}, {3})', cpp.NativeString.c_str($v{className}), _v.native_ptr(), refCount, die);
+                        #end
+                        
                         if (die) {
-                            #if DEBUG_REFCOUNT_PRINT
-                            untyped __cpp__('printf("%s::should die: %llx: %lld -> object_destroy()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), _v.native_ptr(), refCount);
+                            #if DEBUG_PRINT_LIFECYCLE
+                                untyped __cpp__('printf("%s::__finalize: %llx: %lld -> should die (object_destroy)\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), _v.native_ptr(), refCount);
                             #end
-                            godot.Types.GodotNativeInterface.object_destroy(_v.__owner);
+                            godot.Types.GodotNativeInterface.object_destroy(_v.native_ptr());
+                        } else {
+                            #if DEBUG_PRINT_LIFECYCLE
+                                untyped __cpp__('printf("%s::__finalize: %llx: %lld -> should invalidate (free_instance_binding)\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), _v.native_ptr(), refCount);
+                            #end
+                            godot.Types.GodotNativeInterface.object_free_instance_binding(_v.native_ptr(), cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")));
                         }
-                        _v.__owner = null;
                     }
-                }
-            }
 
-            // @:void private static function __release(_v:$ctType):Void {
-                // untyped __cpp__('printf("%s::__release: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
-            // }
+                } else if (!_v.__isDying) {
+                    if (_v.isWeak() && _v.isManaged())
+                        godot.Types.GodotNativeInterface.object_destroy(_v.native_ptr());
+                    else
+                        godot.Types.GodotNativeInterface.object_free_instance_binding(_v.native_ptr(), cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")));
+                }
+                // cleanup
+                _v.setOwner(null);
+                _v.deleteRoot(); 
+            }
 
             static function __init_constant_bindings() {
                 __class_name = $v{className};
@@ -211,17 +169,16 @@ class PostInitMacros {
 
             override function __validateInstance() {
                 if ($v{_isRefCounted==true}) {
-
-                    // var refCount:cpp.Int64 = untyped this.get_reference_count();
+                    var refCount:cpp.Int64 = untyped this.get_reference_count();
                     
-                    // #if DEBUG_REFCOUNT_PRINT
-                    // untyped __cpp__('printf("%s::__validateInstance: %llx: %lld\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), this.__owner, refCount);
-                    // #end
+                    #if DEBUG_PRINT_LIFECYCLE
+                        untyped __cpp__('printf("%s::__validateInstance: %llx: %lld\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), this.native_ptr(), refCount);
+                    #end
                     
-                    // if (refCount == 0i64)
-                    //     untyped this.init_ref();
-                    // else
-                    //     untyped this.reference();
+                    if (refCount == 0i64)
+                        untyped this.init_ref();
+                    else
+                        untyped this.reference();
                 }
             }
 
@@ -229,35 +186,33 @@ class PostInitMacros {
                 if ($v{_isRefCounted==true}) {
                     var refCount:cpp.Int64 = untyped this.get_reference_count();
 
-                    #if DEBUG_REFCOUNT_PRINT
-                    untyped __cpp__('printf("%s::__acceptReturn: %llx: %lld\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), this.__owner, refCount);
+                    #if DEBUG_PRINT_LIFECYCLE
+                        untyped __cpp__('printf("%s::__acceptReturn: %llx: %lld\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), this.__owner, refCount);
                     #end
 
                     if (refCount > 1i64) {
-                        this.makeStrong();
+                        this.strongRef();
                         untyped this.unreference();
                     }
                     else
-                        this.makeWeak();
-                    
+                        this.weakRef();
                 }
             }
 
             override function __postInit() {
                 var gdBaseClass:godot.variant.StringName = $v{_godotBaseclass};
-                __owner = godot.Types.GodotNativeInterface.classdb_construct_object(gdBaseClass.native_ptr());
-                this.__managed = true;
+                this.setOwnerAndRoot(godot.Types.GodotNativeInterface.classdb_construct_object(gdBaseClass.native_ptr()));
+                this.setManaged(true);
+                HxGodot.setFinalizer(this, cpp.Callable.fromStaticFunction(__finalize));
 
-                // create our root
-                this.addGCRoot();
                 if ($v{_isRefCounted==true}) {
-                    var refCount:cpp.Int64 = untyped this.get_reference_count();
+                    var refCount:cpp.Int64 = untyped this.get_reference_count(); // TODO: remove
                     untyped this.init_ref();
                 }
 
                 if ($v{className != _godotBaseclass}) { // deadcode elimination will get rid of this
                     godot.Types.GodotNativeInterface.object_set_instance(
-                        __owner, 
+                        this.__owner, 
                         __class_name.native_ptr(),
                         this.__root
                     );
@@ -265,7 +220,7 @@ class PostInitMacros {
                 
                 // register the callbacks, do we need this?
                 godot.Types.GodotNativeInterface.object_set_instance_binding(
-                    __owner, 
+                    this.__owner, 
                     cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")), 
                     this.__root,
                     cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
@@ -280,88 +235,70 @@ class PostInitMacros {
     }
 
 
-    public static function buildPostInitExtension(_typePath, _parent_class_name:String, _godotBaseclass:String, _cppClassName:String, _inheritanceDepth:Int, ?_isRefCounted:Bool = false) {
-        var className = _typePath.name;
-        var ctType = TPath(_typePath);
-        var clsId = '${_typePath.pack.join(".")}.${_typePath.name}';
-        var inst = Context.parse('Type.createEmptyInstance($clsId)', Context.currentPos());
+    // public static function buildPostInitExtension(_typePath, _parent_class_name:String, _godotBaseclass:String, _cppClassName:String, _inheritanceDepth:Int, _isRefCounted:Bool) {
+    //     var className = _typePath.name;
+    //     var ctType = TPath(_typePath);
+    //     var clsId = '${_typePath.pack.join(".")}.${_typePath.name}';
+    //     var inst = Context.parse('Type.createEmptyInstance($clsId)', Context.currentPos());
 
-        var identBindings = '(void*)&${_cppClassName}_obj::___binding_callbacks';
-        var classIdentifier = Context.parse('${_typePath.pack.join(".")}.${_typePath.name}', Context.currentPos());
+    //     var identBindings = '(void*)&${_cppClassName}_obj::___binding_callbacks';
+    //     var classIdentifier = Context.parse('${_typePath.pack.join(".")}.${_typePath.name}', Context.currentPos());
 
-        var postInitClass = macro class {
-            static var __class_tag:godot.Types.VoidPtr;
-            static var __class_name:godot.variant.StringName;
-            static var __parent_class_name:godot.variant.StringName;
-            static var __inheritance_depth:Int = $v{_inheritanceDepth};
+    //     var postInitClass = macro class {
+    //         static var __class_tag:godot.Types.VoidPtr;
+    //         static var __class_name:godot.variant.StringName;
+    //         static var __parent_class_name:godot.variant.StringName;
+    //         static var __inheritance_depth:Int = $v{_inheritanceDepth};
 
-            static function ___binding_create_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr):godot.Types.VoidPtr {
-            	return null;
-            }
-            static function ___binding_free_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr):Void {
-            }
-            static function ___binding_reference_callback(_token:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr, _reference:Bool):Bool {
-                return true;
-            }
+    //         static function ___binding_create_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr):godot.Types.VoidPtr {
+    //         	return null;
+    //         }
+    //         static function ___binding_free_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr):Void {
+    //         }
+    //         static function ___binding_reference_callback(_token:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr, _reference:Bool):Bool {
+    //             return true;
+    //         }
 
-            static function __init_constant_bindings() {
-                __class_name = $v{className};
-                __parent_class_name = $v{_parent_class_name};
-                godot.Wrapped.classTags.set(__class_name, $classIdentifier);
-            }
+    //         static function __init_constant_bindings() {
+    //             __class_name = $v{className};
+    //             __parent_class_name = $v{_parent_class_name};
+    //             godot.Wrapped.classTags.set(__class_name, $classIdentifier);
+    //         }
 
-            static function __deinit_constant_bindings() {
-                godot.Wrapped.classTags.remove(__class_name);
-                __class_name = null;
-                __parent_class_name = null;
-                __class_tag = null;
-            }
+    //         static function __deinit_constant_bindings() {
+    //             godot.Wrapped.classTags.remove(__class_name);
+    //             __class_name = null;
+    //             __parent_class_name = null;
+    //             __class_tag = null;
+    //         }
 
-            override function __postInit() {
-                var gdBaseClass:godot.variant.StringName = $v{_godotBaseclass};
-                __owner = godot.Types.GodotNativeInterface.classdb_construct_object(gdBaseClass.native_ptr());
-
-                // setup our root
-                this.addGCRoot();
+    //         override function __postInit() {
+    //             var gdBaseClass:godot.variant.StringName = $v{_godotBaseclass};
+    //             this.setOwnerAndRoot(godot.Types.GodotNativeInterface.classdb_construct_object(gdBaseClass.native_ptr()));
                 
-                if ($v{className != _godotBaseclass}) { // deadcode elimination will get rid of this
-                    godot.Types.GodotNativeInterface.object_set_instance(
-                        __owner, 
-                        __class_name.native_ptr(),
-                        this.__root
-                    );
-                }
+    //             if ($v{className != _godotBaseclass}) { // deadcode elimination will get rid of this
+    //                 godot.Types.GodotNativeInterface.object_set_instance(
+    //                     this.__owner, 
+    //                     __class_name.native_ptr(),
+    //                     this.__root
+    //                 );
+    //             }
                 
-                // register the callbacks, do we need this?
-                godot.Types.GodotNativeInterface.object_set_instance_binding(
-                    __owner, 
-                    cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")), 
-                    this.__root,
-                    cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
-                );
-            }
+    //             // register the callbacks, do we need this?
+    //             godot.Types.GodotNativeInterface.object_set_instance_binding(
+    //                 this.__owner, 
+    //                 cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")), 
+    //                 this.__root,
+    //                 cpp.Pointer.fromStar(untyped __cpp__($v{identBindings}))
+    //             );
+    //         }
 
-            override function getClassName():godot.variant.StringName {
-                return __class_name;
-            }
-
-            /*
-            @:void private static function __static_cleanUp(_w:$ctType) {
-                
-                if (_w.__owner != null) {
-                    var isQueued:Bool = false;
-                    var ret = cpp.Native.addressOf(isQueued);
-                    untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.Object._method_is_queued_for_deletion, _w.native_ptr(), ret);
-
-                    if (!isQueued)
-                        godot.Types.GodotNativeInterface.object_destroy(_w.__owner);
-                }
-                _w.__owner = null;
-                
-            }*/
-        }
-        return postInitClass.fields;
-    }
+    //         override function getClassName():godot.variant.StringName {
+    //             return __class_name;
+    //         }
+    //     }
+    //     return postInitClass.fields;
+    // }
 }
 
 #end

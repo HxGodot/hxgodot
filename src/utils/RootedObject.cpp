@@ -39,7 +39,7 @@ cpp::utils::RootedObject::RootedObject(hx::Object* _object)
 cpp::utils::RootedObject::~RootedObject()
 {
     if (rooted != nullptr) {
-        // if (!weak)
+        if (!weak)
             hx::GCRemoveRoot(rooted);
         delete rooted;
         rooted = nullptr;
@@ -63,7 +63,7 @@ bool cpp::utils::RootedObject::isWeak() {
     return weak;
 }
 
-hx::Object** cpp::utils::RootedObject::getObjectPtr() const
+inline hx::Object** cpp::utils::RootedObject::getObjectPtr() const
 {
     return rooted;
 }
