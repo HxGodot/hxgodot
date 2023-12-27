@@ -94,17 +94,26 @@ class PostInitMacros {
                         _binding.ptr
                     );
 
-                instance.weakRef();
                 instance.__isDying = true;
-
-                #if DEBUG_PRINT_LIFECYCLE
+                
                 if ($v{_isRefCounted==true}) {
                     var refCount:cpp.Int64 = untyped instance.get_reference_count();
-                    untyped __cpp__('printf("%s::___binding_free_callback: %llx: %lld -> weakRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
+                    #if DEBUG_PRINT_LIFECYCLE
+                        untyped __cpp__('printf("%s::___binding_free_callback: %llx: %lld -> weakRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
+                    #end
+
+                    if (refCount > 1i64)
+                        instance.strongRef();
+                    else
+                        instance.weakRef();
                     
-                } else 
-                    untyped __cpp__('printf("%s::___binding_free_callback: %llx -> weakRef()\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), instance.native_ptr());
-                #end
+                } else {
+                    #if DEBUG_PRINT_LIFECYCLE
+                        untyped __cpp__('printf("%s::___binding_free_callback: %llx -> weakRef()\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), instance.native_ptr());
+                    #end
+
+                    instance.weakRef();
+                }
             }
 
             static function ___binding_reference_callback(_token:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr, _reference:Bool):Bool {
