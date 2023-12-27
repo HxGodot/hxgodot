@@ -21,11 +21,14 @@ class Wrapped {
     @:noCompletion
     var __managed:Bool = false;
 
+    var __ownerParent:Wrapped = null;
+
     public var __isDying:Bool = false;
 
     @:noCompletion
-    inline public function native_ptr():GDExtensionObjectPtr {
-        return __owner;
+    public function native_ptr():GDExtensionObjectPtr {
+        var res = __ownerParent != null ? __ownerParent.native_ptr() : __owner;
+        return res;
     }
 
     @:noCompletion
@@ -33,10 +36,24 @@ class Wrapped {
         __owner = _owner;
 
     @:noCompletion
+    inline public function setOwnerParent(_owner:Wrapped)
+        __ownerParent = _owner;
+
+    @:noCompletion
     inline public function setOwnerAndRoot(_owner:VoidPtr) {
         __owner = _owner;
         createRoot();
     }
+
+    @:noCompletion
+    inline public function setOwnerParentAndRoot(_owner:Wrapped) {
+        __ownerParent = _owner;
+        createRoot();
+    }
+
+    @:noCompletion
+    inline public function hasOwnerParent()
+        return __ownerParent != null;
 
     @:noCompletion
     inline public function setManaged(_m:Bool) {
@@ -92,9 +109,8 @@ class Wrapped {
 
         if (obj != null) {
             ret = cast Type.createEmptyInstance(classTags.get(name));
-            ret.__owner = obj;
-            ret.createRoot();
-            // ret.__validateInstance();
+            ret.setOwnerParentAndRoot(this);
+            ret.__validateInstance(false);
         } else if (_report)
             trace('CANNOT CONVERT ${this} TO $name', true);
 
@@ -102,7 +118,7 @@ class Wrapped {
     }
 
     @:noCompletion
-    public function __validateInstance() {}
+    public function __validateInstance(_incRef:Bool) {}
 
     @:noCompletion
     public function __acceptReturn() {}

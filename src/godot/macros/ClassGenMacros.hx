@@ -1320,7 +1320,7 @@ class ClassGenMacros {
                     ret = cast Type.createEmptyInstance(godot.Object);
                     ret.setOwnerAndRoot(obj);
                     // TODO: No finalizer here?
-                    ret.__validateInstance();
+                    ret.__validateInstance(false);
                 }
                 return ret;
             }

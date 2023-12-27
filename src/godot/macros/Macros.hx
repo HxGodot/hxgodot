@@ -277,6 +277,7 @@ class Macros {
         }
         else {
 
+            // setup the api type engine level
             if (apiType != null) {// we explicitly define an api level type in our custom class!
                 classMeta.add(apiType.name, apiType.params, pos);
             } else {
@@ -284,7 +285,10 @@ class Macros {
                 var m = engine_parent.meta.extract("gdApiType")[0];
                 classMeta.add(m.name, m.params, pos);
             }
-                
+
+            // HACK: push extension classes up an inheritance level,
+            // that way they get init'ed AFTER the engine classes.
+            inheritanceDepth++;                
 
             // we got an extension class, so make sure we got the whole extension bindings for the fields covered!
             fields = buildFieldBindings(

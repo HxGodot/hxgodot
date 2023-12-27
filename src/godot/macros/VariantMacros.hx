@@ -338,7 +338,7 @@ class VariantMacros {
                         $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
                         obj.ptr
                     );
-                    res.__validateInstance();
+                    res.__validateInstance(true);
                 }
             } else {
                 trace("Cannot cast "+ __Variant.getGDExtensionVariantTypeString(type) + " to " + __Variant.getGDExtensionVariantTypeString($v{_extType}), true);

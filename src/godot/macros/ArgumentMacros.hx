@@ -47,7 +47,7 @@ class ArgumentMacros {
                             $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
                             obj.ptr
                         );
-                        wrapped.__validateInstance();
+                        wrapped.__validateInstance(true);
                         res = wrapped;
                     } else
                         res = null;
@@ -239,7 +239,7 @@ class ArgumentMacros {
                                     obj.ptr
                                 );
 
-                            instance.__validateInstance();
+                            instance.__validateInstance(true);
                             instance;
                         }
                     }
