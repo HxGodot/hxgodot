@@ -1010,10 +1010,9 @@ class Macros {
         var fieldBindingsClass = macro class {
             private static function __create(_data:godot.Types.VoidPtr):godot.Types.GDExtensionObjectPtr { 
                 var n = new $_typePath();
-                n.setManaged(false);
                 n.strongRef();
 
-                #if DEBUG_PRINT_LIFECYCLE
+                #if (DEBUG_PRINT_REFCOUNT_LIFECYCLE || DEBUG_PRINT_OBJECT_LIFECYCLE)
                     untyped __cpp__('printf("%s::__create: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{_className}), n.native_ptr());
                 #end
 
@@ -1028,7 +1027,7 @@ class Macros {
                 n.__isDying = true;
                 n.weakRef();
                 
-                #if DEBUG_PRINT_LIFECYCLE
+                #if (DEBUG_PRINT_REFCOUNT_LIFECYCLE || DEBUG_PRINT_OBJECT_LIFECYCLE)
                     untyped __cpp__('printf("%s::__free: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{_className}), n.native_ptr());
                 #end
             }

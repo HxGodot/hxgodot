@@ -19,11 +19,9 @@ class Wrapped {
     @:noCompletion
     var __owner:VoidPtr = null; // pointer to the godot-side parent class we need to keep around
     @:noCompletion
-    var __managed:Bool = false;
-
     var __ownerParent:Wrapped = null;
-
-    public var __isDying:Bool = false;
+    @:noCompletion
+    var __isDying:Bool = false;
 
     @:noCompletion
     public function native_ptr():GDExtensionObjectPtr {
@@ -56,11 +54,6 @@ class Wrapped {
         return __ownerParent != null;
 
     @:noCompletion
-    inline public function setManaged(_m:Bool) {
-        __managed = _m;
-    }
-
-    @:noCompletion
     public function createRoot() {
         if (__root == null)
             __root = untyped __cpp__('(void*)new cpp::utils::RootedObject({0}.mPtr)', this);
@@ -91,11 +84,6 @@ class Wrapped {
         return untyped __cpp__('((cpp::utils::RootedObject*){0})->isWeak()', __root.ptr);
     }
 
-    @:noCompletion
-    public function isManaged():Bool {
-        return __managed;
-    }
-
     public function as<T:Wrapped>(_cls:Class<T>, ?_report:Bool = true):T {
         var ret:T = null;
         
@@ -118,10 +106,10 @@ class Wrapped {
     }
 
     @:noCompletion
-    public function __validateInstance(_incRef:Bool) {}
+    public function __validateInstance(_incRef:Bool) {} // override
 
     @:noCompletion
-    public function __acceptReturn() {}
+    public function __acceptReturn() {} // override
 
     @:noCompletion
     function __postInit() {} // override

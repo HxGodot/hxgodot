@@ -15,7 +15,6 @@ import haxe.rtti.Meta;
         <file name='${haxelib:hxgodot}/src/hxcpp_ext/hxgodot_api.cpp'/>
     </files>")
 class HxGodot {
-
     @:noCompletion
     private static var builtins:List<Class<godot.variant.IBuiltIn>> = null;
     @:noCompletion
@@ -84,7 +83,6 @@ class HxGodot {
 
     @:noCompletion
     public static function init_level(_level:cpp.Int32) {
-        trace('init_level: $_level');
         switch (_level) {
             // case GDApiType.CORE: {}
             // case GDApiType.SERVERS: {}
@@ -138,8 +136,6 @@ class HxGodot {
 
     @:noCompletion
     public static function shutdown_level(_level:cpp.Int32) {
-        trace('shutdown_level: $_level');
-
         // Note: sort all classes depending on their inheritance depth, this way everything unregisters in order
         switch (_level) {
             case GDApiType.EDITOR: {
@@ -149,15 +145,15 @@ class HxGodot {
             case GDApiType.SCENE: {
                 haxe.ds.ArraySort.sort(scene, _reverse_sort);
                 _deinit(scene);
-            }
-            case GDApiType.SERVERS: {
+
                 haxe.ds.ArraySort.sort(servers, _reverse_sort);
                 _deinit(servers);
-            }
-            case GDApiType.CORE: {
+
                 haxe.ds.ArraySort.sort(core, _reverse_sort);
                 _deinit(core);
             }
+            // case GDApiType.SERVERS: {}
+            // case GDApiType.CORE: {}
         }
         builtins = null;
     }
