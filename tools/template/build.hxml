@@ -5,4 +5,5 @@
 -main HxGodot
 -cp src
 # force include our gamecode into the extension
+# make sure you add all your "src/<other haxe folders>" this way.
 --macro include('example', true)
