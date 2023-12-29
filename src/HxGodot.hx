@@ -118,10 +118,9 @@ class HxGodot {
                 }
 
                 // init core classes
-                _init(core);
-                _init(servers);
-
                 _printBanner();
+                _init(core);                
+                _init(servers);                
                 _init(scene);
             }
             case GDApiType.EDITOR: {

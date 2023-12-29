@@ -56,6 +56,9 @@ class ClassGenMacros {
 
         Sys.println('Targeting "$outputFolder"');
 
+        // DocTools.test();
+        // return;
+
         _generateUtilities(api);
         _generateGlobalEnums(api);
         _generateNativeStructs(api, sizeKey);
@@ -168,6 +171,7 @@ class ClassGenMacros {
                     var tmp = macro class {
                         inline public static var $cname:Int = $v{c.value};
                     }
+                    tmp.fields[0].doc = DocTools.convertBBCodeToMarkdown(c.description);
                     constants.push(tmp.fields[0]);
                 }
             }
@@ -205,7 +209,7 @@ class ClassGenMacros {
             var binds = new Array<FunctionBind>();
 
             // methods
-            var methodMap = new Map<String, Bool>();
+            var methodMap = new Map<String, Dynamic>();
             var methodForbiddenMap = new Map<String, Bool>();
             if (c.methods != null) {
                 for (m in cast(c.methods, Array<Dynamic>)) {
@@ -318,6 +322,7 @@ class ClassGenMacros {
                             access: access,
                             arguments: args,
                             hasVarArg: hasVarArg,
+                            doc: DocTools.convertBBCodeToMarkdown(m.description),
                             macros: {
                                 field: null,
                                 fieldSetter: null
@@ -333,6 +338,7 @@ class ClassGenMacros {
                             access: access,
                             arguments: args,
                             hasVarArg: hasVarArg,
+                            doc: DocTools.convertBBCodeToMarkdown(m.description),
                             macros: {
                                 field: (macro class {@:noCompletion public static var $mname:godot.Types.GDExtensionPtrBuiltInMethod;}).fields[0],
                                 fieldSetter: [
@@ -375,17 +381,21 @@ class ClassGenMacros {
                         sig = [];
                     
                     var ct = TPath({name:'TypedSignal', pack: ['godot', 'variant'], params: [TPType(TFunction(sig, ret))]});
-                    var cls = macro class {
+                    var propCls = macro class {
                         public var $sname(get, never):$ct;
-                        
+                    }
+                    propCls.fields[0].doc = DocTools.convertBBCodeToMarkdown(s.description);
+                    var cls = macro class {
                         @:noCompletion
                         function $gname() {
                             return godot.variant.Signal.fromObjectSignal(this, $v{s.name});
                         }
                     };
 
-                    if (isValid == 0)
+                    if (isValid == 0) {
+                        signals = signals.concat(propCls.fields);
                         signals = signals.concat(cls.fields);
+                    }
                     else
                         log('Signal ignored: type currently not allowed: $sname:$argTypeStr');
                 }
@@ -450,6 +460,7 @@ class ClassGenMacros {
                         name: mName,
                         access: [APublic],
                         pos: Context.currentPos(),
+                        doc: DocTools.convertBBCodeToMarkdown(m.description),
                         kind: FProp(!privateGetter ? "get" : "never", !privateSetter ? "set" : "never", TPath({name:mType , pack:mPack}))
                         //kind: FProp("default", "default", TPath({name:mType , pack:mPack}))
                     });
@@ -761,6 +772,7 @@ class ClassGenMacros {
                         returnType: {name:mType , pack:mPack},
                         access: [],
                         arguments: [],
+                        doc: DocTools.convertBBCodeToMarkdown(m.description),
                         macros: {
                             field: (macro class {@:noCompletion static var $mname:godot.Types.GDExtensionPtrGetter;}).fields[0],
                             fieldSetter: [
@@ -781,6 +793,7 @@ class ClassGenMacros {
                             name: "_v",
                             type: {name:mType , pack:mPack}
                         }],
+                        doc: DocTools.convertBBCodeToMarkdown(m.description),
                         macros: {
                             field: (macro class {@:noCompletion static var $mname:godot.Types.GDExtensionPtrSetter;}).fields[0],
                             fieldSetter: [
@@ -1270,6 +1283,7 @@ class ClassGenMacros {
                 access: access,
                 arguments: args,
                 hasVarArg: hasVarArg,
+                doc: DocTools.convertBBCodeToMarkdown(m.description),
                 macros: {
                     field: (macro class {@:noCompletion static var $mname:godot.Types.GDExtensionPtrBuiltInMethod;}).fields[0],
                     fieldSetter: [

@@ -56,6 +56,7 @@ class FunctionBind {
     public var access:Array<Access>;
     public var arguments:Array<FunctionArgument>;
     public var hasVarArg:Bool = false;
+    public var doc:Null<String> = null;
     public var macros:{
         field:Field,
         fieldSetter:Array<String>,
@@ -102,6 +103,7 @@ class FunctionMacros {
             name: _bind.name,
             access: _bind.access,
             meta: [{name: ':noCompletion', pos: Context.currentPos()}],
+            doc: _bind.doc,
             pos: Context.currentPos(),
             kind: FFun({
                 args: vArgs.argExprs,
@@ -169,6 +171,7 @@ class FunctionMacros {
             name: '_destruct',
             access: [AInline, APrivate, AStatic],
             pos: Context.currentPos(),
+            doc: _bind.doc,
             meta: [{name: ':noCompletion', pos: Context.currentPos()}],
             kind: FFun({
                 args: [{name: '_this', type: TPath(_bind.clazz.typePath)}],
@@ -186,6 +189,7 @@ class FunctionMacros {
             name: 'destruct',
             access: [APublic, AStatic],
             pos: Context.currentPos(),
+            doc: _bind.doc,
             kind: FFun({
                 args: [{name: '_this', type: TPath(_bind.clazz.typePath)}],
                 expr: macro {
@@ -307,6 +311,7 @@ class FunctionMacros {
             name: _bind.name,
             access: _bind.access,
             pos: Context.currentPos(),
+            doc: _bind.doc,
             kind: FFun({
                 args: vArgs.argExprs,
                 expr: body,
@@ -390,6 +395,7 @@ class FunctionMacros {
             name: _bind.name,
             access: _bind.access,
             pos: Context.currentPos(),
+            doc: _bind.doc,
             kind: FFun({
                 args: vArgs.argExprs,
                 expr: body,
@@ -490,6 +496,7 @@ class FunctionMacros {
             access: _bind.access,
             pos: Context.currentPos(),
             meta: [{name: ':noCompletion', pos: Context.currentPos()}],
+            doc: _bind.doc,
             kind: FFun({
                 args: argExprs,
                 expr: body,
@@ -932,6 +939,7 @@ class FunctionMacros {
             name: _bind.name,
             access: _bind.access,
             pos: Context.currentPos(),
+            doc: _bind.doc,
             kind: FFun({
                 args: vArgs.argExprs,
                 expr: body,
@@ -982,6 +990,7 @@ class FunctionMacros {
             access: _bind.access,
             pos: Context.currentPos(),
             meta: [{name: ':noCompletion', pos: Context.currentPos()}],
+            doc: _bind.doc,
             kind: FFun({
                 args: argExprs,
                 expr: body,
@@ -1065,6 +1074,7 @@ class FunctionMacros {
             name: _bind.name,
             access: _bind.access,
             pos: Context.currentPos(),
+            doc: _bind.doc,
             kind: FFun({
                 args: vArgs.argExprs,
                 expr: body,
