@@ -85,7 +85,7 @@ abstract Vector2i(__Vector2i) from __Vector2i to __Vector2i {
 
     @:op(A != B)
     inline public static function neq(lhs:Vector2i, rhs:Vector2i):Bool {
-        return lhs[0] != rhs[0] &&  lhs[1] != rhs[1];
+        return lhs[0] != rhs[0] ||  lhs[1] != rhs[1];
     }
 
     @:op(A * B)

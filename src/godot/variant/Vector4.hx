@@ -222,7 +222,7 @@ abstract Vector4(__Vector4) from __Vector4 to __Vector4 {
 
     @:op(A != B)
     inline public static function neq(lhs:Vector4, rhs:Vector4):Bool {
-        return lhs[0] != rhs[0] &&  lhs[1] != rhs[1] &&  lhs[2] != rhs[2] &&  lhs[3] != rhs[3];
+        return lhs[0] != rhs[0] ||  lhs[1] != rhs[1] ||  lhs[2] != rhs[2] ||  lhs[3] != rhs[3];
     }
 
     @:op(A * B)
