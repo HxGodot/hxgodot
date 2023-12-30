@@ -3,13 +3,16 @@ package godot.macros;
 #if macro
 
 import godot.Types;
-import haxe.macro.ComplexTypeTools;
-import haxe.macro.Context;
 import haxe.macro.Expr;
+import haxe.macro.Context;
+import haxe.macro.TypeTools;
+import haxe.macro.ComplexTypeTools;
 
 using StringTools;
 
 class TypeMacros {
+
+    public static var godotInheritancePairs = new Map<String, String>();
 
     public static function getTypeName(_t:String) {
         return switch(_t) {
@@ -112,6 +115,22 @@ class TypeMacros {
         }
     }
 
+    public static function isTypeRefCounted(_type:haxe.macro.TypePath):Bool {
+        var has = false;
+        if (!isObjectType(_type.name) || isTypeNative(_type.name))
+            return has;
+
+        var current = _type.name;
+        while (current != null) {
+            if (current == "RefCounted") {
+                has = true;
+                break;
+            }
+            current = godotInheritancePairs.get(current);
+        }
+        return has;
+    }
+
     public static function isEnumOrBitfield(_type:String) {
         return StringTools.startsWith(_type, "enum::") || StringTools.startsWith(_type, "bitfield::");
     }
@@ -183,7 +202,7 @@ class TypeMacros {
             case 'Pointer', 'VoidPtr', 'Bool', 'GDExtensionBool', 'Int', 'Int64', 
                  'GDExtensionInt', 'Float', 'GDExtensionFloat', 'GDString', 'Color', 
                  'Quaternion', 'Vector4', 'Vector2', 'Vector3', 'Vector2i', 'Vector3i', 
-                 'Vector4i', "Rect2", "Rect2i", "AABB", "Basis", "Callable", "Dictionary", 
+                 'Vector4i', "Rect2", "Rect2i", "AABB", "Plane", "Basis", "Callable", "Dictionary", 
                  "GDArray", "NodePath", "PackedByteArray", "PackedColorArray", 
                  "PackedFloat32Array", "PackedFloat64Array", "PackedInt32Array", 
                  "PackedInt64Array", "PackedStringArray", "PackedVector2Array", 

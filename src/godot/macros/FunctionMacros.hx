@@ -4,6 +4,7 @@ package godot.macros;
 
 import haxe.macro.Context;
 import haxe.macro.Expr;
+import haxe.macro.ExprTools;
 import godot.macros.TypeMacros;
 
 using StringTools;
@@ -36,6 +37,7 @@ class ClassContext {
 class FunctionArgument {
     public var name:String;
     public var type:TypePath;
+    public var refCounted:Bool;
     @:optional public var defaultValue:Dynamic = null;
     @:optional public var isVarArg:Bool = false;
 }
@@ -1165,7 +1167,8 @@ class FunctionMacros {
                 conCallArgs.push(conArg);
             }
 
-            // wtf is even happening? Well, we assemble a std::array in using several untyped __cpp__ calls to allow for proper typing...
+            // Note: wtf is even happening? Well, we assemble a std::array in using several 
+            // untyped __cpp__ calls to allow for proper typing...
             var argBody = [];
             var tmp = [];
             var vals = [];
@@ -1197,6 +1200,19 @@ class FunctionMacros {
         var ctType = TPath(typePath);
         
         if (typePath.pack.length == 1 && typePath.pack[0] == "godot") {
+
+            // 
+            var checkStrings = [];
+            var unrefCheckExpr = macro {};
+            for (a in _bind.arguments) {
+                if (a.refCounted)
+                    checkStrings.push('${a.name}.native_ptr() == instance.native_ptr()');
+            }
+            if (checkStrings.length > 0) {
+                var checks = Context.parse(checkStrings.join(' || '), Context.currentPos());
+                unrefCheckExpr = macro if (${checks}) shouldUnref = true;
+            }
+
             body = macro {
                 // managed types need a pointer indirection
                 var retOriginal:godot.Types.StarVoidPtr = untyped __cpp__('nullptr');
@@ -1216,8 +1232,10 @@ class FunctionMacros {
                             obj.ptr
                         );
 
-                    // disable this with function returns, we already receive an incremented refcount here
-                    instance.__acceptReturn();
+                    // we need to runref if the return value is one of the arguments
+                    var shouldUnref = false;
+                    ${unrefCheckExpr}
+                    instance.__acceptReturn(shouldUnref);
 
                     return cast instance;
                 }

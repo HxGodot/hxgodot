@@ -109,7 +109,7 @@ class Wrapped {
     public function __validateInstance(_incRef:Bool) {} // override
 
     @:noCompletion
-    public function __acceptReturn() {} // override
+    public function __acceptReturn(_decRef:Bool) {} // override
 
     @:noCompletion
     function __postInit() {} // override

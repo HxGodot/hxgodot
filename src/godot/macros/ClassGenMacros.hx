@@ -82,7 +82,6 @@ class ClassGenMacros {
 
         // build an inheritance search structure for methods
         var classMap = new Map<String, Map<String, Null<Int>>>();
-        var inheritancePairs = new Map<String, String>();
         for (c in classes) {
             var mMap = new Map<String, Null<Int>>();
             if (c.methods != null)
@@ -97,7 +96,7 @@ class ClassGenMacros {
                     mMap.set(m.name, realArgCount);
                 }
             classMap.set(c.name, mMap);
-            inheritancePairs.set(c.name, c.inherits != null ? c.inherits : null);
+            TypeMacros.godotInheritancePairs.set(c.name, c.inherits != null ? c.inherits : null);
         }
 
         // little helper function
@@ -121,7 +120,7 @@ class ClassGenMacros {
                         break;
                     }
                 }
-                current = inheritancePairs.get(current);
+                current = TypeMacros.godotInheritancePairs.get(current);
             }
             return res;
         }
@@ -251,6 +250,7 @@ class ClassGenMacros {
                             args.push({
                                 name: ArgumentMacros.guardAgainstKeywords(a.name),
                                 type: {name:argType , pack:argPack},
+                                refCounted: TypeMacros.isTypeRefCounted({name:argType , pack:argPack}),
                                 defaultValue: defValExpr
                             }); 
                         }
@@ -262,6 +262,7 @@ class ClassGenMacros {
                         args.push({
                             name: "vararg",
                             type: {name:"Rest", params:[TPType(macro : godot.variant.Variant)], pack:["haxe"]},
+                            refCounted: false, // special case here. Variant can be refcounted ofc
                             isVarArg: true
                         });
                         hasVarArg = true;
@@ -503,7 +504,8 @@ class ClassGenMacros {
                             access: [],
                             arguments: [{
                                 name: "_v",
-                                type: {name:mType , pack:mPack}
+                                type: {name:mType , pack:mPack},
+                                refCounted: TypeMacros.isTypeRefCounted({name:mType , pack:mPack})
                             }],
                             macros: {
                                 field: null,
@@ -701,6 +703,7 @@ class ClassGenMacros {
                         args.push({
                             name: ArgumentMacros.guardAgainstKeywords(a.name),
                             type: {name:argType , pack:argPack},
+                            refCounted: TypeMacros.isTypeRefCounted({name:argType , pack:argPack}), 
                             defaultValue: defValExpr
                         });
                     }
@@ -736,7 +739,7 @@ class ClassGenMacros {
                     type: FunctionBindType.DESTRUCTOR,
                     returnType: {name:"Void", pack:[]},
                     access: [APrivate, AStatic],
-                    arguments: [{name:"_this", type:typePath}],
+                    arguments: [{name:"_this", type:typePath, refCounted:false}],
                     macros: {
                         field: (macro class {@:noCompletion static var _destructor:godot.Types.GDExtensionPtrDestructor;}).fields[0],
                         fieldSetter: [
@@ -791,7 +794,8 @@ class ClassGenMacros {
                         access: [],
                         arguments: [{
                             name: "_v",
-                            type: {name:mType , pack:mPack}
+                            type: {name:mType , pack:mPack},
+                            refCounted: TypeMacros.isTypeRefCounted({name:mType , pack:mPack})
                         }],
                         doc: DocTools.convertBBCodeToMarkdown(m.description),
                         macros: {
@@ -845,6 +849,7 @@ class ClassGenMacros {
                         args.push({
                             name: ArgumentMacros.guardAgainstKeywords(a.name),
                             type: {name:argType , pack:argPack},
+                            refCounted: TypeMacros.isTypeRefCounted({name:argType , pack:argPack}),
                             defaultValue: defValExpr
                         });
                     }
@@ -856,6 +861,7 @@ class ClassGenMacros {
                     args.push({
                         name: "vararg",
                         type: {name:"Rest", params:[TPType(macro : godot.variant.Variant)], pack:["haxe"]},
+                        refCounted: false, // special case here. Variant might actually contain refcounted.
                         isVarArg: true
                     });
                     hasVarArg = true;
@@ -933,7 +939,8 @@ class ClassGenMacros {
                     var argPack = TypeMacros.getTypePackage(argType);
                     args.push({
                         name: '_lhs',
-                        type: {name:argType , pack:argPack}
+                        type: {name:argType , pack:argPack},
+                        refCounted: TypeMacros.isTypeRefCounted({name:argType , pack:argPack})
                     });
                     
                     // prep right hand
@@ -944,7 +951,8 @@ class ClassGenMacros {
                         var argPack = TypeMacros.getTypePackage(argType);
                         args.push({
                             name: '_rhs',
-                            type: {name:argType , pack:argPack}
+                            type: {name:argType , pack:argPack},
+                            refCounted: TypeMacros.isTypeRefCounted({name:argType , pack:argPack})
                         });
                     }
 
@@ -992,7 +1000,9 @@ class ClassGenMacros {
                             type: FunctionBindType.KEYED_GET,
                             returnType: ret,
                             access: [APublic],
-                            arguments: [{name: "_key", type: {name:"Variant" , pack:["godot", "variant"]}}],
+                            arguments: [
+                                {name: "_key", type: {name:"Variant" , pack:["godot", "variant"]}, refCounted:false}
+                            ],
                             macros: {
                                 field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrKeyedGetter;}).fields[0],
                                 fieldSetter: [
@@ -1008,7 +1018,10 @@ class ClassGenMacros {
                             type: FunctionBindType.KEYED_SET,
                             returnType: ret,
                             access: [APublic],
-                            arguments: [{name: "_key", type: {name:"Variant" , pack:["godot", "variant"]}}, {name: "_value", type: ret}],
+                            arguments: [
+                                {name: "_key", type: {name:"Variant" , pack:["godot", "variant"]}, refCounted:false}, 
+                                {name: "_value", type: ret, refCounted:TypeMacros.isTypeRefCounted(ret)}
+                            ],
                             macros: {
                                 field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrKeyedSetter;}).fields[0],
                                 fieldSetter: [
@@ -1025,7 +1038,7 @@ class ClassGenMacros {
                             type: FunctionBindType.INDEX_GET,
                             returnType: ret,
                             access: [APublic],
-                            arguments: [{name: "_index", type: {name:"Int" , pack:[]}}],
+                            arguments: [{name: "_index", type: {name:"Int" , pack:[]}, refCounted:false}],
                             macros: {
                                 field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrIndexedGetter;}).fields[0],
                                 fieldSetter: [
@@ -1041,7 +1054,10 @@ class ClassGenMacros {
                             type: FunctionBindType.INDEX_SET,
                             returnType: ret,
                             access: [APublic],
-                            arguments: [{name: "_index", type: {name:"Int" , pack:[]}}, {name: "_value", type: ret}],
+                            arguments: [
+                                {name: "_index", type: {name:"Int" , pack:[]}, refCounted:false}, 
+                                {name: "_value", type: ret, refCounted:TypeMacros.isTypeRefCounted(ret)}
+                            ],
                             macros: {
                                 field: (macro class {@:noCompletion static var $iname:godot.Types.GDExtensionPtrIndexedSetter;}).fields[0],
                                 fieldSetter: [
@@ -1238,7 +1254,8 @@ class ClassGenMacros {
 
                     args.push({
                         name: ArgumentMacros.guardAgainstKeywords(a.name),
-                        type: {name:argType , pack:argPack}
+                        type: {name:argType , pack:argPack},
+                        refCounted: TypeMacros.isTypeRefCounted({name:argType , pack:argPack})
                     });
                 }
             }
@@ -1249,6 +1266,7 @@ class ClassGenMacros {
                 args.push({
                     name: "vararg",
                     type: {name:"Rest", params:[TPType(macro : godot.variant.Variant)], pack:["haxe"]},
+                    refCounted: false, // special case here, since variant can contain refcounted
                     isVarArg: true
                 });
                 hasVarArg = true;
