@@ -104,6 +104,49 @@ haxelib run hxgodot generate_bindings --extension-api-json=<path to your extensi
 ```
 
 Now you can build HxGodot and test your project.
+
+## Common pitfalls
+### Assigning properties
+You may attempt to update certain member properties in the following way and notice that the position wont get applied to the node.
+
+```haxe
+class HxCoolNode extends Node2D {
+	override function _ready() {
+		this.position.x = 100.0; // this wont apply the value to the position
+	}
+}
+```
+
+This is actually normal. The `position` Vector2 is accessed and copied from Godot and you can do calculations with it. But in order to apply it you need to assign the property again or use the setter function like this:
+
+```haxe
+class HxCoolNode extends Node2D {
+	override function _ready() {
+		var pos = this.position;
+		pos.x = 100.0;
+		this.position = pos;
+		// or
+		this.set_position(pos); // that would also work
+		// or
+		this.position = new Vector2(100.0, this.position.y); // while not optimal, this also works
+		// or
+		this.position = [100.0, this.position.y]; // while not optimal, this also works since Vector2 is an array under the hood
+	}
+}
+```
+
+### Dangerous GDArrays
+Dont work with GDArrays naively! They contain [Variants](https://hxgodot.github.io/docs/godot/variant/Variant.html) and by default they can convert into types prematurely and cause a crash.
+
+```haxe
+	// triangles_gd holds an array of Int64
+	var triangles_gd:GDArray = surface_data[cast MeshArrayType.ARRAY_INDEX];
+	var index:Int = triangles_gd[tidx]; // UNDEFINED BEHAVIOR, DONT DO THIS! The Variant returned from the GDArray sees the `Int` and casts itself to `Int` too early, writing its `Int64` into a the pointer of an `Int`, effectively causing a stack-corruption!!!
+
+	// Instead explicitly force the Variant to cast into the original type first and cast into the wanted type secondly
+	var index:Int = ((triangles_gd[tidx]:cpp.Int64):Int); // Good! Unpack Int64 and cast to Int
+```
+
 ## Debugging
 - Windows: Startup your VisualStudio and setup it up to debug launch your compile Godot 4.x executable with the test-project defined on the cmdline. 
 
