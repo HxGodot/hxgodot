@@ -1206,7 +1206,7 @@ class FunctionMacros {
             var unrefCheckExpr = macro {};
             for (a in _bind.arguments) {
                 if (a.refCounted)
-                    checkStrings.push('${a.name}.native_ptr() == instance.native_ptr()');
+                    checkStrings.push('(${a.name} != null && ${a.name}.native_ptr() == instance.native_ptr())');
             }
             if (checkStrings.length > 0) {
                 var checks = Context.parse(checkStrings.join(' || '), Context.currentPos());
