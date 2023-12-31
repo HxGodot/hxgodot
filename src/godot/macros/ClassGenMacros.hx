@@ -577,10 +577,10 @@ class ClassGenMacros {
                 });
             }
 
+            cls.doc = DocTools.convertBBCodeToMarkdown(c.description);
             cls.pack = ["godot"];
 
             var init = macro class {
-
                 @:noCompletion
                 static function __init_engine_bindings() {
                     $b{pointerInits};
@@ -589,6 +589,7 @@ class ClassGenMacros {
 
             if (singletonMap.exists(cname)) {
                 var sig = macro class {
+                    @:noCompletion
                     public static var __instance:$typePathComplex = null;
                     public static function singleton() {
                         if (__instance == null) {

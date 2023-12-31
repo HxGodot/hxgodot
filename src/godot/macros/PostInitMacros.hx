@@ -23,6 +23,7 @@ class PostInitMacros {
             static var __parent_class_name:godot.variant.StringName;
             static var __inheritance_depth:Int = $v{_inheritanceDepth};
 
+            @:noCompletion
             override function __validateInstance(_incRef:Bool) {
                 if ($v{_isRefCounted==true}) {                    
                     HxGodot.setFinalizer(this, cpp.Callable.fromStaticFunction(__finalize));
@@ -44,6 +45,7 @@ class PostInitMacros {
                 }
             }
 
+            @:noCompletion
             override function __acceptReturn(_decRef:Bool) {
                 if ($v{_isRefCounted==true}) {
                     
@@ -68,6 +70,7 @@ class PostInitMacros {
                 }
             }
 
+            @:noCompletion
             static function ___binding_create_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr):godot.Types.VoidPtr {
                 var tmp = $inst;
                 tmp.setOwnerAndRoot(_instance);
@@ -94,6 +97,7 @@ class PostInitMacros {
                 return tmp.__root;
             }
 
+            @:noCompletion
             static function ___binding_free_callback(_token:godot.Types.VoidPtr, _instance:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr):Void {
                 var instance:$ctType = untyped __cpp__(
                         $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
@@ -123,6 +127,7 @@ class PostInitMacros {
                 }
             }
 
+            @:noCompletion
             static function ___binding_reference_callback(_token:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr, _reference:Bool):Bool {
                 if ($v{_isRefCounted==true}) {
 
@@ -166,6 +171,7 @@ class PostInitMacros {
                     return true;
             }
 
+            @:noCompletion
             @:void private static function __finalize(_v:$ctType):Void {
                 // last time _v is valid!
                 
@@ -223,6 +229,7 @@ class PostInitMacros {
                 _v.deleteRoot();
             }
 
+            @:noCompletion
             static function __init_constant_bindings() {
                 __class_name = $v{className};
                 __parent_class_name = $v{_parent_class_name};
@@ -230,6 +237,7 @@ class PostInitMacros {
                 godot.Wrapped.classTags.set(__class_name, $classIdentifier);
             }
 
+            @:noCompletion
             static function __deinit_constant_bindings() {
                 godot.Wrapped.classTags.remove(__class_name);
                 __class_name = null;
@@ -237,6 +245,7 @@ class PostInitMacros {
                 __class_tag = null;
             }
 
+            @:noCompletion
             override function __postInit() {
                 var gdBaseClass:godot.variant.StringName = $v{_godotBaseclass};
                 this.setOwnerAndRoot(godot.Types.GodotNativeInterface.classdb_construct_object(gdBaseClass.native_ptr()));

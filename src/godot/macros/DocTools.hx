@@ -91,6 +91,9 @@ private class BBStackLevel {
         var isInsideCodeBlock = _parent != null ? _parent.isCodeBlock() : false;
         var isInsideCodeTag = _parent != null ? _parent.isCodeTag() : false;
 
+        // make sure we dont accidently break the comment blocks:
+        content = content.replace("*/", "* /");
+
         if (unknown) {
             var tn = TypeMacros.getTypeName(id);
             if (id != tn) {
