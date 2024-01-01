@@ -253,7 +253,7 @@ class PostInitMacros {
 
                 if ($v{_isRefCounted==true}) {
                     // var refCount:cpp.Int64 = untyped this.get_reference_count(); // TODO: remove
-                    untyped this.init_ref();
+                    // untyped this.init_ref();
                 }
 
                 var o:godot.Types.VoidPtr = this.native_ptr();

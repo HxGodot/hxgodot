@@ -150,11 +150,11 @@ class HxGodot {
 
                 haxe.ds.ArraySort.sort(core, _reverse_sort);
                 _deinit(core);
+                builtins = null;
             }
             // case GDApiType.SERVERS: {}
             // case GDApiType.CORE: {}
         }
-        builtins = null;
     }
 
     @:noCompletion

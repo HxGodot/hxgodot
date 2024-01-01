@@ -30,8 +30,8 @@ void hxgodot_shutdown_level(ModuleInitializationLevel p_level)
 {
     int i = 99;
     hx::SetTopOfStack(&i,true);
-    HxGodot_obj::shutdown_level(p_level);
     hx::InternalCollect(true,true); // collect after every shutdown level
+    HxGodot_obj::shutdown_level(p_level);
     hx::SetTopOfStack(0,true);
 }
 }

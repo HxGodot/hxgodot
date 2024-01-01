@@ -6,6 +6,7 @@ import godot.Types;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.MacroStringTools;
+import haxe.macro.Type;
 import haxe.macro.TypeTools;
 import godot.macros.ArgumentMacros;
 import godot.macros.PostInitMacros;
@@ -34,7 +35,6 @@ class Macros {
         var classMeta = cls.get().meta;
         var apiType = classMeta.has("gdApiType") ? classMeta.extract("gdApiType")[0] : null;
         var isEngineClass = classMeta.has(":gdEngineClass");
-        var isRefCounted = classMeta.has(":gdRefCounted");
 
         var classNameTokens = className.split(".");
         var classNameCpp = className.replace(".", "::");
@@ -127,23 +127,38 @@ class Macros {
                     // TODO: allow for normal and static initialization of Godot classes.
                     // add a compiler warning to make people aware                    
                     if (isStatic && !isEngineClass) {
-                        function _checkGodotType(_gt) {
-
-                            // TODO: go up the inheritance chain for the type to see if we hit an engine class. If yes, we need a static initializer
-                            
-                            if (_gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(_gt.name)) {
-                                // TODO: keep this error around for
-                                //Context.fatalError('${field.name}:${_gt.name}: We don\'t support class level initialization of Godot classes yet!', Context.currentPos());
-                                
-                                if (_e != null) // make sure we only add an init if we have an expression
-                                    staticInits.push(macro $i{field.name} = $_e);
-                                staticDeinits.push(macro $i{field.name} = null);
-                                staticsToRewriteForInit.push(field);
-                            }
-                        }
+                        
                         switch (ft) {
-                            case TInst(t, _): _checkGodotType(t.get());
-                            case TAbstract(t, _): _checkGodotType(t.get());
+                            case TInst(t, params): { // class found, go up the inheritance chain for the type to see if we hit an engine class. If yes, we need a static initializer
+                                var gt = t.get();
+                                var engine_parent = null;
+                                if (gt.superClass != null) {
+                                    var next = gt.superClass.t.get();
+                                    while (next != null) {
+                                        var nextIsEngineClass = next.meta.has(":gdEngineClass");
+                                        if (engine_parent == null && nextIsEngineClass) {
+                                            engine_parent = next;
+                                            break;
+                                        }
+                                        next = next.superClass != null ? next.superClass.t.get() : null;
+                                    }
+                                }
+                                if (engine_parent != null || (gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(gt.name))) {                                    
+                                    if (_e != null) // make sure we only add an init if we have an expression
+                                        staticInits.push(macro $i{field.name} = $_e);
+                                    staticDeinits.push(macro $i{field.name} = null);
+                                    staticsToRewriteForInit.push(field);
+                                }
+                            }
+                            case TAbstract(t, _): {
+                                var gt = t.get();
+                                if (gt.pack[0] == "godot" && !TypeMacros.isACustomBuiltIn(gt.name)) {                                    
+                                    if (_e != null) // make sure we only add an init if we have an expression
+                                        staticInits.push(macro $i{field.name} = $_e);
+                                    staticDeinits.push(macro $i{field.name} = null);
+                                    staticsToRewriteForInit.push(field);
+                                }
+                            }
                             default:
                         }
                     }
@@ -240,12 +255,14 @@ class Macros {
         // count the depth of the inheritance chain. we need it later to register all classes in the correct order
         var inheritanceDepth = 0;
         // also collect all engine virtuals up the chain
+        var isRefCounted = classMeta.has(":gdRefCounted");
         var engineVirtuals = [];
         var next = cls.get().superClass.t.get();
 
         // we only must collect all virtuals that belong to engine classes
         while (next != null) {
             var nextIsEngineClass = next.meta.has(":gdEngineClass");
+            var nextIsRefcounted = next.meta.has(":gdRefCounted");
             if (engine_parent == null && nextIsEngineClass) {
                 engine_parent = next;
             }
@@ -256,6 +273,10 @@ class Macros {
                     if (nextIsEngineClass && f.name == k)
                         engineVirtuals.push(v);
             }
+
+            // this class should be refcounted, account for it
+            if (!isRefCounted && nextIsRefcounted)
+                isRefCounted = true;
 
             inheritanceDepth++;
             next = next.superClass != null ? next.superClass.t.get() : null;
@@ -284,6 +305,12 @@ class Macros {
                 // use the same level as the engine superclass
                 var m = engine_parent.meta.extract("gdApiType")[0];
                 classMeta.add(m.name, m.params, pos);
+            }
+
+            // HACK: is this an editor plugin? Then hook into static intialization
+            if (engine_parent.name == "EditorPlugin") {
+                staticInits.push(macro godot.Types.GodotNativeInterface.editor_add_plugin(($v{typePath.name}:StringName).native_ptr()));
+                staticDeinits.push(macro godot.Types.GodotNativeInterface.editor_remove_plugin(($v{typePath.name}:StringName).native_ptr()));
             }
 
             // HACK: push extension classes up an inheritance level,

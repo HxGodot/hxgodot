@@ -549,6 +549,12 @@ extern class __GodotNativeInterface {
     @:native("::godot::internal::gdextension_interface_global_get_singleton")
     public static function global_get_singleton(_classname:GDExtensionStringNamePtr):GDExtensionObjectPtr;
 
+    @:native("::godot::internal::gdextension_interface_editor_add_plugin")
+    public static function editor_add_plugin(_classname:GDExtensionStringNamePtr):VoidPtr;
+
+    @:native("::godot::internal::gdextension_interface_editor_remove_plugin")
+    public static function editor_remove_plugin(_classname:GDExtensionStringNamePtr):VoidPtr;
+
     // array functions
     inline public static function packed_byte_array_operator_index(_self:GDExtensionTypePtr, _index:godot.Types.GDExtensionInt):cpp.Pointer<cpp.UInt8>
         return cpp.Pointer.fromStar(_packed_byte_array_operator_index(_self, _index));
