@@ -49,9 +49,9 @@ class PostInitMacros {
             override function __acceptReturn(_decRef:Bool) {
                 if ($v{_isRefCounted==true}) {
                     
-                    if (_decRef)
-                        untyped this.unreference();
-                    else {
+                    // if (_decRef)
+                    //     untyped this.unreference();
+                    // else {
                         var refCount:cpp.Int64 = untyped this.get_reference_count();
 
                         #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
@@ -61,7 +61,7 @@ class PostInitMacros {
                             this.strongRef();
                         else
                             this.weakRef();    
-                    }                    
+                    // }                    
                 } else {
                     #if DEBUG_PRINT_OBJECT_LIFECYCLE
                         untyped __cpp__('printf("%s::__acceptReturn: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), this.native_ptr());

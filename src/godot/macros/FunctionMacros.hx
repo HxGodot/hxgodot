@@ -1202,16 +1202,16 @@ class FunctionMacros {
         if (typePath.pack.length == 1 && typePath.pack[0] == "godot") {
 
             // 
-            var checkStrings = [];
-            var unrefCheckExpr = macro {};
-            for (a in _bind.arguments) {
-                if (a.refCounted)
-                    checkStrings.push('(${a.name} != null && ${a.name}.native_ptr() == instance.native_ptr())');
-            }
-            if (checkStrings.length > 0) {
-                var checks = Context.parse(checkStrings.join(' || '), Context.currentPos());
-                unrefCheckExpr = macro if (${checks}) shouldUnref = true;
-            }
+            // var checkStrings = [];
+            // var unrefCheckExpr = macro {};
+            // for (a in _bind.arguments) {
+            //     if (a.refCounted)
+            //         checkStrings.push('(${a.name} != null && ${a.name}.native_ptr() == instance.native_ptr())');
+            // }
+            // if (checkStrings.length > 0) {
+            //     var checks = Context.parse(checkStrings.join(' || '), Context.currentPos());
+            //     unrefCheckExpr = macro if (${checks}) shouldUnref = true;
+            // }
 
             body = macro {
                 // managed types need a pointer indirection
@@ -1234,7 +1234,7 @@ class FunctionMacros {
 
                     // we need to runref if the return value is one of the arguments
                     var shouldUnref = false;
-                    ${unrefCheckExpr}
+                    // ${unrefCheckExpr}
                     instance.__acceptReturn(shouldUnref);
 
                     return cast instance;
