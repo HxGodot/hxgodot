@@ -1,3 +1,5 @@
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/dazkind)
+
 ![logo.png](https://hxgodot.github.io/logo2.png)
 # HxGodot - A Haxe GDExtension for Godot 4
 
