@@ -1,7 +1,7 @@
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/dazkind)
-
 ![logo.png](https://hxgodot.github.io/logo2.png)
-# HxGodot - A Haxe GDExtension for Godot 4
+<img src="https://discordapp.com/api/guilds/162395145352904705/widget.png?style=shield" alt="#hxgodot channel"/></a>
+
+# HxGodot - A Haxe GDExtension for Godot 4 | <a href="https://discord.com/channels/162395145352904705/1059447388047159399">
 
 HxGodot combines Haxe's hxcpp target with Godot 4's GDExtension mechanism to supercharge the way you build games with Godot. Nodes are written in Haxe, bundled as a GDExtension and behave like any other Node in your scenes(attach scripts, signals, etc).
 
@@ -158,3 +158,5 @@ You should be able to step through the code on both sides(godot & hxgodot) and s
 ## Good to know
 - Godot exposes around 850 classes in the extension API. Haxe's compiler will automatically only compile classes that your code actually imports / uses into the extension.
 
+---
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/dazkind)
