@@ -10,28 +10,27 @@ void __hxcpp_main();
 
 void hxgodot_boot()
 {
-    int i = 99;
-    hx::SetTopOfStack(&i,true);
+    int i = 0;
+    hx::SetTopOfStack(&i,false);
     ::hx::Boot();
     __boot_all();
     __hxcpp_main();
-    hx::SetTopOfStack(0,true);
 }
 
 void hxgodot_init_level(ModuleInitializationLevel p_level)
-{
-    int i = 99;
-    hx::SetTopOfStack(&i,true);
-    HxGodot_obj::init_level((int32_t)p_level);
-    hx::SetTopOfStack(0,true);
+{  
+    if (p_level >= MODULE_INITIALIZATION_LEVEL_SCENE)
+        HxGodot_obj::init_level((int32_t)p_level);
 }
 
 void hxgodot_shutdown_level(ModuleInitializationLevel p_level)
 {
-    int i = 99;
-    hx::SetTopOfStack(&i,true);
     hx::InternalCollect(true,true); // collect after every shutdown level
-    HxGodot_obj::shutdown_level(p_level);
-    hx::SetTopOfStack(0,true);
+
+    if (p_level >= MODULE_INITIALIZATION_LEVEL_SCENE)
+        HxGodot_obj::shutdown_level(p_level);
+
+    if (p_level == MODULE_INITIALIZATION_LEVEL_CORE)
+        hx::SetTopOfStack((int*)0,true);
 }
 }
