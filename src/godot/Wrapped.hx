@@ -23,6 +23,9 @@ class Wrapped {
     @:noCompletion
     var __isDying:Bool = false;
 
+    inline public function isValid():Bool
+        return !__isDying;
+
     @:noCompletion
     public function native_ptr():GDExtensionObjectPtr {
         var res = __ownerParent != null ? __ownerParent.native_ptr() : __owner;

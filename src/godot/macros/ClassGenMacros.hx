@@ -423,11 +423,11 @@ class ClassGenMacros {
 
                     var mismatchedTypes = false;
                     if (propertyType.exists(cname+':'+m.getter) && mType != propertyType.get(cname+':'+m.getter)) {
-                        log("Getter ignored: type mismatch for "+cname+':'+m.getter+" wanted="+mType+" have="+propertyType.get(cname+':'+m.getter));
+                        log('$cname: Getter ignored: type mismatch for \'$mName\': ${m.getter}: ${propertyType.get(cname+":"+m.getter)} requested incompatible $mType');
                         mismatchedTypes = true;
                     }
                     if (propertyType.exists(cname+':'+m.setter) && mType != propertyType.get(cname+':'+m.setter)) {
-                        log("Setter ignored: type mismatch for "+cname+':'+m.setter+" wanted="+mType+" have="+propertyType.get(cname+':'+m.setter));
+                        log('$cname: Setter ignored: type mismatch for \'$mName\': ${m.setter}: ${propertyType.get(cname+":"+m.setter)} requested incompatible $mType');
                         mismatchedTypes = true;
                     }
 
@@ -444,16 +444,16 @@ class ClassGenMacros {
 
                     // make sure we dont create a property if the getter or setter is blocked
                     if ((m.setter != null && methodForbiddenMap.exists(m.setter)) || methodForbiddenMap.exists(m.getter)) {
-                        log('Property ignored: setter/getter is forbidden, $cname:$mName. Type was $ $mType');
+                        log('$cname: Property ignored: setter/getter is forbidden for \'$mName\'. Type was $mType');
                         continue;
                     }
 
                     if (gInfo.realArgCount > 1) {
-                        log('Property ignored: getter has too many arguments, $cname:$mName has ${gInfo.realArgCount} args.');
+                        log('$cname: Property ignored: getter has too many arguments, \'$mName\' -> ${m.getter} has ${gInfo.realArgCount} args.');
                         continue;
                     }
                     if (sInfo != null && sInfo.realArgCount > 1) {
-                        log('Property ignored: setter has too many arguments, $cname:$mName has ${sInfo.realArgCount} args.');
+                        log('$cname: Property ignored: setter has too many arguments, \'$mName\' -> ${m.setter} has ${sInfo.realArgCount} args.');
                         continue;
                     }
 

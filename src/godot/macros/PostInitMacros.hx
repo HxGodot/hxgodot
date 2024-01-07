@@ -90,9 +90,9 @@ class PostInitMacros {
                 } else {
                     // tmp.strongRef(); // keep not refcounted objects around
 
-                    // #if DEBUG_PRINT_OBJECT_LIFECYCLE
-                    //     untyped __cpp__('printf("%s::___binding_create_callback: %llx -> strongRef()\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), tmp.native_ptr());
-                    // #end
+                    #if DEBUG_PRINT_OBJECT_LIFECYCLE
+                        untyped __cpp__('printf("%s::___binding_create_callback: %llx -> Info\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), tmp.native_ptr());
+                    #end
                 }
                 return tmp.__root;
             }
@@ -216,10 +216,15 @@ class PostInitMacros {
                             }
                         }
                     } else if (!_v.__isDying) {
+                        // #if (DEBUG_PRINT_OBJECT_LIFECYCLE)
+                        //     untyped __cpp__('printf("%s::__finalize: %llx -> should die (object_destroy)\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
+                        // #end
+                        // godot.Types.GodotNativeInterface.object_destroy(_v.native_ptr());
+
                         #if (DEBUG_PRINT_OBJECT_LIFECYCLE)
-                            untyped __cpp__('printf("%s::__finalize: %llx -> should die (object_destroy)\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
+                            untyped __cpp__('printf("%s::__finalize: %llx -> should invalidate (free_instance_binding)\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
                         #end
-                        godot.Types.GodotNativeInterface.object_destroy(_v.native_ptr());
+                        godot.Types.GodotNativeInterface.object_free_instance_binding(_v.native_ptr(), cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")));
                     }
                 }
 
@@ -253,7 +258,7 @@ class PostInitMacros {
 
                 if ($v{_isRefCounted==true}) {
                     // var refCount:cpp.Int64 = untyped this.get_reference_count(); // TODO: remove
-                    // untyped this.init_ref();
+                    untyped this.init_ref();
                 }
 
                 var o:godot.Types.VoidPtr = this.native_ptr();
