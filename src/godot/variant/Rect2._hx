@@ -14,7 +14,7 @@ abstract Rect2(__Rect2) from __Rect2 to __Rect2 {
     inline public function new(?_p:Vector2=null, ?_s:Vector2=null):Rect2 this = _alloc(_p==null ? new Vector2() : _p, _s==null ? new Vector2() : _s);
 
     inline private static function _alloc(_p:Vector2, _s:Vector2):__Rect2
-        return [_p, _s, new Vector2(_p.x + _s.x, _p.y + _s.y)];
+        return [_p, _s, new Vector2(_s.x, _s.y)];
 
     inline public function native_ptr():GDExtensionTypePtr {
         #if !macro

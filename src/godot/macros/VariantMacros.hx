@@ -78,6 +78,20 @@ class VariantMacros {
                     _buildVariant2(GDExtensionVariantType.VECTOR2I, _x.native_ptr()) : null;
             }
             @:to inline public function toVector2i():godot.variant.Vector2i ${_convertToCustom(GDExtensionVariantType.VECTOR2I, macro : godot.variant.Vector2i, macro new godot.variant.Vector2i(), macro cpp.NativeArray.address(res, 0))}
+
+            // Rect2
+            @:from inline static function fromRect2(_x:godot.variant.Rect2):Variant {
+                return (untyped __cpp__('{0}.mPtr != nullptr', _x)) ?
+                    _buildVariant2(GDExtensionVariantType.RECT2, _x.native_ptr()) : null;
+            }
+            @:to inline public function toRect2():godot.variant.Rect2 ${_convertTo(GDExtensionVariantType.RECT2, macro : godot.variant.Rect2, macro new godot.variant.Rect2())}
+
+            // Rect2i
+            @:from inline static function fromRect2i(_x:godot.variant.Rect2i):Variant {
+                return (untyped __cpp__('{0}.mPtr != nullptr', _x)) ?
+                    _buildVariant2(GDExtensionVariantType.RECT2I, _x.native_ptr()) : null;
+            }
+            @:to inline public function toRect2i():godot.variant.Rect2i ${_convertTo(GDExtensionVariantType.RECT2I, macro : godot.variant.Rect2i, macro new godot.variant.Rect2i())}
             
             // Vector3
             @:from inline static function fromVector3(_x:godot.variant.Vector3):Variant {
