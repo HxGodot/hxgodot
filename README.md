@@ -1,7 +1,7 @@
 ![logo.png](https://hxgodot.github.io/logo2.png)
 <img src="https://discordapp.com/api/guilds/162395145352904705/widget.png?style=shield" alt="#hxgodot channel"/></a>
 
-# HxGodot - A Haxe GDExtension for Godot 4 | <a href="https://discord.com/channels/162395145352904705/1059447388047159399">
+# HxGodot - A Haxe GDExtension for Godot 4
 
 HxGodot combines Haxe's hxcpp target with Godot 4's GDExtension mechanism to supercharge the way you build games with Godot. Nodes are written in Haxe, bundled as a GDExtension and behave like any other Node in your scenes(attach scripts, signals, etc).
 
