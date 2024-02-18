@@ -55,7 +55,7 @@ class Macros {
                 #include <godot/native_structs.hpp>
                 #include <utils/RootedObject.hpp>
                 #include <hxcpp_ext/Dynamic2.h>
-                #include <cpp/vm/Gc.h>
+                //#include <cpp/vm/Gc.h>
             "], pos);
         classMeta.add(":headerClassCode", [macro "
                 static void *___binding_create_callback(void *p_token, void *p_instance) {
