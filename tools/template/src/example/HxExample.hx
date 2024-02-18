@@ -31,6 +31,7 @@ class HxExample extends godot.Node {
     function set_hx_ImportantFloat(_v:Float):Float {
 
         var test = new HxExample();
+        test.queue_free();
 
         //var crash:Array<StringName> = ["crash"];
         //var crash2:Array<StringName> = [("crash":StringName)];

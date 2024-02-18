@@ -183,7 +183,7 @@ class ClassGenMacros {
                     var buf = new StringBuf();
                     buf.add('class $enumName {\n');
                     for (v in cast(e.values, Array<Dynamic>)){
-                        buf.add('\tpublic static var ${v.name} = ${v.value}i64;\n');
+                        buf.add('\tpublic static final ${v.name} = ${v.value}i64;\n');
                     }
                     buf.add('}\n\n');
                     enums.push(buf.toString());
@@ -345,7 +345,9 @@ class ClassGenMacros {
                                 fieldSetter: [
                                     'var name_${m.name}:godot.variant.StringName = "${m.name}"',
                                     // 'trace("name_${m.name}")', // DEBUG: use this for debugging not found methods 
-                                    '$mname = godot.Types.GodotNativeInterface.classdb_get_method_bind(type_${cname}.native_ptr(), name_${m.name}.native_ptr(), untyped __cpp__(\'{0}\', $mhash))'
+                                    '$mname = godot.Types.GodotNativeInterface.classdb_get_method_bind(type_${cname}.native_ptr(), name_${m.name}.native_ptr(), untyped __cpp__(\'{0}\', $mhash))',
+                                    'godot.variant.StringName.__StringName.destruct(name_${m.name})',
+                                    'name_${m.name} = null'
                                 ]
                             }
                         });
@@ -1137,8 +1139,9 @@ class ClassGenMacros {
                 @:noCompletion
                 inline public function set_native_ptr(_ptr:godot.Types.GDExtensionTypePtr):Void {
                     if ($v{isAllowed} == true) { // TODO: remove this hack!
-                        if ($v{has_destructor} == true) // we need to release first if we got a destructor
+                        if ($v{has_destructor} == true) { // we need to release first if we got a destructor
                             untyped __cpp__('((GDExtensionPtrDestructor){0})({1})', _destructor.ptr, this.native_ptr());
+                        }
 
                         // now use copy constructor, otherwise we leak like shit
                         untyped __cpp__("std::array<GDExtensionConstTypePtr, 1> call_args = { (GDExtensionTypePtr){0} }", _ptr);
@@ -1384,7 +1387,7 @@ class ClassGenMacros {
             var buf = new StringBuf();
             buf.add('enum abstract $enumName(Int) from Int to Int {\n');
             for (v in cast(e.values, Array<Dynamic>)){
-                buf.add('\tvar ${v.name} = ${v.value};\n');
+                buf.add('\tfinal ${v.name} = ${v.value};\n');
             }
             buf.add('}\n\n');
             enums.push(buf.toString());

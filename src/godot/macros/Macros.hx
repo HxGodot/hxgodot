@@ -293,7 +293,8 @@ class Macros {
                 typePath.name,
                 classNameCpp,
                 inheritanceDepth,
-                isRefCounted
+                isRefCounted,
+                isEngineClass
             ));
         }
         else {
@@ -339,7 +340,8 @@ class Macros {
                 engine_parent.name,
                 classNameCpp,
                 inheritanceDepth,
-                isRefCounted
+                isRefCounted,
+                isEngineClass
             ));
         }
 

@@ -6,6 +6,7 @@ import godot.Types;
 import godot.variant.Variant;
 import haxe.rtti.Meta;
 
+
 @:buildXml("<files id='haxe'>
         <compilerflag value='-I${haxelib:hxgodot}/src'/>
         <compilerflag value='-I../bindings'/>
@@ -14,6 +15,9 @@ import haxe.rtti.Meta;
         <file name='${haxelib:hxgodot}/src/utils/RootedObject.cpp'/>
         <file name='${haxelib:hxgodot}/src/hxcpp_ext/hxgodot_api.cpp'/>
     </files>")
+@:headerCode("
+    void hxgodot_set_finalizer(Dynamic obj, void*inFunction, bool builtin);
+    void hxgodot_clear_finalizer(Dynamic obj);")
 class HxGodot {
     @:noCompletion
     private static var builtins:List<Class<godot.variant.IBuiltIn>> = null;
@@ -40,11 +44,18 @@ class HxGodot {
         return ran;
     }
 
-    inline public static function setFinalizer(_inst:Any, _cb:cpp.Callable<Dynamic->Void>) {
-        #if !cppia
-        cpp.vm.Gc.setFinalizer(_inst, _cb);
-        #end
-    }
+    @:native("::hxgodot_set_finalizer") 
+    extern static function __setFinalizer<T>(inObject:T, inFinalizer:cpp.Callable<T->Void>, builtin:Bool):Void;
+    
+    inline public static function setFinalizer<T>(inObject:T, inFinalizer:cpp.Callable<T->Void>):Void
+        __setFinalizer(inObject, inFinalizer, false);
+
+    inline public static function setBuiltinFinalizer<T>(inObject:T, inFinalizer:cpp.Callable<T->Void>):Void
+        __setFinalizer(inObject, inFinalizer, true);
+
+
+    @:native("::hxgodot_clear_finalizer") 
+    extern static public function clearFinalizer<T>(inObject:T):Void;
 
     public static function getExceptionStackString(_e:Dynamic) {
         var msg = [_e.value];

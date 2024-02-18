@@ -23,6 +23,9 @@ class Wrapped {
     @:noCompletion
     var __isDying:Bool = false;
 
+    public var specialRelease = false;
+    public var proxy = false;
+
     inline public function isValid():Bool
         return !__isDying;
 
@@ -101,6 +104,7 @@ class Wrapped {
         if (obj != null) {
             ret = cast Type.createEmptyInstance(classTags.get(name));
             ret.setOwnerParentAndRoot(this);
+            ret.proxy = true;
             ret.__validateInstance(false);
         } else if (_report)
             trace('CANNOT CONVERT ${this} TO $name', true);

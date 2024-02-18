@@ -8,7 +8,15 @@ import haxe.macro.MacroStringTools;
 import haxe.macro.TypeTools;
 
 class PostInitMacros {
-	public static function buildPostInit(_typePath, _parent_class_name:String, _godotBaseclass:String, _cppClassName:String, _inheritanceDepth:Int, _isRefCounted:Bool) {
+	public static function buildPostInit(
+            _typePath, 
+            _parent_class_name:String, 
+            _godotBaseclass:String, 
+            _cppClassName:String, 
+            _inheritanceDepth:Int, 
+            _isRefCounted:Bool, 
+            _isEngineClass:Bool)
+    {
         var className = _typePath.name;
         var ctType = TPath(_typePath);
         var clsId = '${_typePath.pack.join(".")}.${_typePath.name}';
@@ -25,49 +33,61 @@ class PostInitMacros {
 
             @:noCompletion
             override function __validateInstance(_incRef:Bool) {
-                if ($v{_isRefCounted==true}) {                    
-                    HxGodot.setFinalizer(this, cpp.Callable.fromStaticFunction(__finalize));
 
-                    var refCount:cpp.Int64 = untyped this.get_reference_count();
-                    
-                    #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
-                        untyped __cpp__('printf("%s::__validateInstance: %llx: %lld\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), this.native_ptr(), refCount);
-                    #end
-                    
-                    if (refCount == 0i64)
-                        untyped this.init_ref();
-                    else if (_incRef)
-                        untyped this.reference();
-                } else {
-                    #if DEBUG_PRINT_OBJECT_LIFECYCLE
-                        untyped __cpp__('printf("%s::__validateInstance: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), this.native_ptr());
-                    #end
-                }
+                ${(()->{
+                    if (_isRefCounted) return macro {
+                        
+                        HxGodot.setFinalizer(this, cpp.Callable.fromStaticFunction(__finalize));
+
+                        var refCount:Int = this.get_reference_count().toInt();
+                        
+                        #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
+                            // trace(refCount);
+                            untyped __cpp__('printf("%s::__validateInstance: %llx: %lld\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), this.native_ptr(), refCount);
+                        #end
+                        
+                        if (refCount == 0)
+                            this.init_ref();
+                        else if (refCount > 0 && _incRef)
+                            this.reference();
+                    }; 
+                    else return macro {
+                        #if DEBUG_PRINT_OBJECT_LIFECYCLE
+                            untyped __cpp__('printf("%s::__validateInstance: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), this.native_ptr());
+                        #end
+                    };
+
+                })()};
             }
 
             @:noCompletion
             override function __acceptReturn(_decRef:Bool) {
-                if ($v{_isRefCounted==true}) {
-                    
-                    // if (_decRef)
-                    //     untyped this.unreference();
-                    // else {
-                        var refCount:cpp.Int64 = untyped this.get_reference_count();
+                ${(()->{
+                    if (_isRefCounted) return macro {
+                        var refCount:cpp.Int64 = this.get_reference_count();
 
                         #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
                             untyped __cpp__('printf("%s::__acceptReturn: %llx: %lld\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), this.native_ptr(), refCount);
                         #end
-                        if (refCount > 1i64)
-                            this.strongRef();
-                        else
-                            this.weakRef();    
-                    // }                    
-                } else {
-                    #if DEBUG_PRINT_OBJECT_LIFECYCLE
-                        untyped __cpp__('printf("%s::__acceptReturn: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), this.native_ptr());
-                    #end
-                    this.strongRef();
-                }
+                        // if (refCount > 1i64)
+                            // this.strongRef();
+                        // else
+                            this.weakRef();
+                    };
+                    else return macro {
+                        #if DEBUG_PRINT_OBJECT_LIFECYCLE
+                            untyped __cpp__('printf("%s::__acceptReturn: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), this.native_ptr());
+                        #end
+                        // this.strongRef();
+                    };
+                })()};
+
+                ${(()->{
+                    if (_isRefCounted) return macro {
+                    };
+                    else return macro {
+                    };
+                })()};
             }
 
             @:noCompletion
@@ -76,24 +96,27 @@ class PostInitMacros {
                 tmp.setOwnerAndRoot(_instance);
                 HxGodot.setFinalizer(tmp, cpp.Callable.fromStaticFunction(__finalize));
 
-                if ($v{_isRefCounted==true}) {
-                    var refCount:cpp.Int64 = untyped tmp.get_reference_count();
-                    #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
-                        untyped __cpp__('printf("%s::___binding_create_callback: %llx: %lld\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), tmp.native_ptr(), refCount);
-                    #end
+                ${(()->{
+                    if (_isRefCounted) return macro {
+                        var refCount:cpp.Int64 = untyped tmp.get_reference_count();
+                        #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
+                            untyped __cpp__('printf("%s::___binding_create_callback: %llx: %lld\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), tmp.native_ptr(), refCount);
+                        #end
 
-                    if (refCount > 1i64)
-                        tmp.strongRef();
-                    else
-                        tmp.weakRef();
+                        // if (refCount > 1i64)
+                            // tmp.strongRef();
+                        // else
+                            tmp.weakRef();
+                    };
+                    else return macro {
+                        // tmp.strongRef(); // keep not refcounted objects around
 
-                } else {
-                    // tmp.strongRef(); // keep not refcounted objects around
+                        #if DEBUG_PRINT_OBJECT_LIFECYCLE
+                            untyped __cpp__('printf("%s::___binding_create_callback: %llx -> Info\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), tmp.native_ptr());
+                        #end
+                    };
+                })()};
 
-                    #if DEBUG_PRINT_OBJECT_LIFECYCLE
-                        untyped __cpp__('printf("%s::___binding_create_callback: %llx -> Info\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), tmp.native_ptr());
-                    #end
-                }
                 return tmp.__root;
             }
 
@@ -105,130 +128,154 @@ class PostInitMacros {
                     );
 
                 instance.__isDying = true;
-                
-                if ($v{_isRefCounted==true}) {
 
-                    var refCount:cpp.Int64 = untyped instance.get_reference_count();
-                    #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
-                        untyped __cpp__('printf("%s::___binding_free_callback: %llx: %lld -> weakRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
-                    #end
+                ${(()->{
+                    if (_isRefCounted) return macro {
+                        var refCount:cpp.Int64 = untyped instance.get_reference_count();
+                        #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
+                            untyped __cpp__('printf("%s::___binding_free_callback: %llx: %lld -> weakRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
+                        #end
 
-                    if (refCount > 1i64)
-                        instance.strongRef();
-                    else
+                        // if (refCount > 1i64)
+                        //     instance.strongRef();
+                        // else
+                            instance.weakRef();
+                    };
+                    else return macro {
+                        #if DEBUG_PRINT_OBJECT_LIFECYCLE
+                            untyped __cpp__('printf("%s::___binding_free_callback: %llx -> weakRef()\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), instance.native_ptr());
+                        #end
+
                         instance.weakRef();
-                    
-                } else {
-                    #if DEBUG_PRINT_OBJECT_LIFECYCLE
-                        untyped __cpp__('printf("%s::___binding_free_callback: %llx -> weakRef()\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), instance.native_ptr());
-                    #end
-
-                    instance.weakRef();
-                }
+                    };
+                })()};
             }
 
             @:noCompletion
             static function ___binding_reference_callback(_token:godot.Types.VoidPtr, _binding:godot.Types.VoidPtr, _reference:Bool):Bool {
-                if ($v{_isRefCounted==true}) {
+                ${(()->{
+                    if (_isRefCounted) return macro {
+                        untyped __cpp__('cpp::utils::RootedObject* tmp0 = (cpp::utils::RootedObject*){0}', _binding.ptr);
 
-                    untyped __cpp__('cpp::utils::RootedObject* tmp0 = (cpp::utils::RootedObject*){0}', _binding.ptr);
+                        var instance:$ctType = untyped __cpp__(
+                            $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
+                            _binding.ptr
+                        );
 
-                    var instance:$ctType = untyped __cpp__(
-                        $v{"::godot::Wrapped( (hx::Object*)(((cpp::utils::RootedObject*){0})->getObject()) )"}, // TODO: this is a little hacky!
-                        _binding.ptr
-                    );
+                        var refCount:cpp.Int64 = untyped instance.get_reference_count();
+                        var is_dieing = refCount == 0i64;
 
-                    var refCount:cpp.Int64 = untyped instance.get_reference_count();
-                    var is_dieing = refCount == 0i64;
+                        if (instance.isWeak() && is_dieing)
+                            return is_dieing;
 
-                    if (instance.isWeak() && is_dieing)
-                        return is_dieing;
-
-                    if (_reference) {
-                        if (refCount > 1i64) {
-                            #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
-                                untyped __cpp__('printf("%s::___binding_reference_callback(true): %llx: %lld -> strongRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
-                            #end
-                            instance.strongRef();
-                        } else {
-                            #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
-                                untyped __cpp__('printf("%s::___binding_reference_callback(true): %llx: %lld -> weakRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
-                            #end
-                            instance.weakRef();
-                        }
-                        is_dieing = false;
-                    } else {
-                        if (refCount == 1i64) {
-                            #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
-                                untyped __cpp__('printf("%s::___binding_reference_callback(false): %llx: %lld -> weakRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
-                            #end
-                            instance.weakRef();
+                        if (_reference) {
+                            if (refCount > 1i64) {
+                                #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
+                                    untyped __cpp__('printf("%s::___binding_reference_callback(true): %llx: %lld -> strongRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
+                                #end
+                                instance.strongRef();
+                            } else {
+                                #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
+                                    untyped __cpp__('printf("%s::___binding_reference_callback(true): %llx: %lld -> weakRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
+                                #end
+                                instance.weakRef();
+                            }
                             is_dieing = false;
+                        } else {
+                            if (refCount == 1i64) {
+                                #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
+                                    untyped __cpp__('printf("%s::___binding_reference_callback(false): %llx: %lld -> weakRef()\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), instance.native_ptr(), refCount);
+                                #end
+                                instance.weakRef();
+                                is_dieing = false;
+                            }
                         }
-                    }
-                    return is_dieing;
-                } else 
-                    return true;
+                        return is_dieing;
+                    };
+                    else return macro {
+                        return true;
+                    };
+                })()};
             }
 
             @:noCompletion
             @:void private static function __finalize(_v:$ctType):Void {
                 // last time _v is valid!
                 
-                if ($v{_isRefCounted==true}) {
-                    #if (DEBUG_PRINT_REFCOUNT_LIFECYCLE)
-                        untyped __cpp__('printf("%s::__finalize: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
-                    #end
-                } else {
-                    #if (DEBUG_PRINT_OBJECT_LIFECYCLE)
-                        untyped __cpp__('printf("%s::__finalize: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
-                    #end
-                }
+                // if ($v{_isRefCounted==true}) {
+                //     #if (DEBUG_PRINT_REFCOUNT_LIFECYCLE)
+                //         untyped __cpp__('printf("%s::__finalize: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
+                //     #end
+                // } else {
+                //     #if (DEBUG_PRINT_OBJECT_LIFECYCLE)
+                //         untyped __cpp__('printf("%s::__finalize: %llx\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
+                //     #end
+                // }
 
                 if (_v.native_ptr() != null) {
-                    if ($v{_isRefCounted==true}) {
-                        var refCount:cpp.Int64 = 0;
-                        var ret = cpp.Native.addressOf(refCount);
-                        untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, _v.native_ptr(), ret);
-                        
-                        if (refCount >= 1i64) {
-                            var die:Bool = false;
-                            var ret = cpp.Native.addressOf(die);
-                            untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_unreference, _v.native_ptr(), ret);
-
-                            // TODO: 
-                            refCount -= 1i64;
-
-                            #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
-                                untyped __cpp__('printf("%s::__finalize: %llx: %lld -> unreference(), die == %d\\n", {0}, {1}, {2}, {3})', cpp.NativeString.c_str($v{className}), _v.native_ptr(), refCount, die);
-                            #end
+                    ${(()->{
+                        if (_isRefCounted) return macro {
+                            var refCount:cpp.Int64 = 0;
+                            var ret = cpp.Native.addressOf(refCount);
+                            untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_get_reference_count, _v.native_ptr(), ret);
                             
-                            if (die) {
+                            if (refCount >= 1i64) {
+                                var die:Bool = false;
+                                var ret = cpp.Native.addressOf(die);
+                                untyped __cpp__('godot::internal::gdextension_interface_object_method_bind_ptrcall({0}, {1}, nullptr, {2})', godot.RefCounted._method_unreference, _v.native_ptr(), ret);
+
+
+
+                                // TODO:
+                                refCount -= 1i64;
+
                                 #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
-                                    untyped __cpp__('printf("%s::__finalize: %llx: %lld -> should die (object_destroy)\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), _v.native_ptr(), refCount);
+                                    untyped __cpp__('printf("%s::__finalize: %llx: %lld -> unreference(), die == %d\\n", {0}, {1}, {2}, {3})', cpp.NativeString.c_str($v{className}), _v.native_ptr(), refCount, die);
                                 #end
-                                godot.Types.GodotNativeInterface.object_destroy(_v.native_ptr());
-                            } else {
-                                #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
-                                    untyped __cpp__('printf("%s::__finalize: %llx: %lld -> should invalidate (free_instance_binding)\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), _v.native_ptr(), refCount);
+                                
+                                if (die || (!_v.proxy && refCount <= 1i64 && _v.specialRelease)) {
+                                    #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
+                                        untyped __cpp__('printf("%s::__finalize: %llx: %lld -> should die (object_destroy)\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), _v.native_ptr(), refCount);
+                                    #end
+                                    godot.Types.GodotNativeInterface.object_destroy(_v.native_ptr());
+                                } else {
+                                    #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
+                                        untyped __cpp__('printf("%s::__finalize: %llx: %lld -> should invalidate (free_instance_binding)\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), _v.native_ptr(), refCount);
+                                    #end
+                                    godot.Types.GodotNativeInterface.object_free_instance_binding(_v.native_ptr(), cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")));
+                                }
+                            }
+                        };
+                        // TODO: review the following, not needed?
+                        // else if (_isEngineClass) return macro {
+                        //     if (!_v.__isDying) {
+                        //         #if (DEBUG_PRINT_OBJECT_LIFECYCLE)
+                        //             untyped __cpp__('printf("%s::__finalize: %llx -> should invalidate (free_instance_binding)\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
+                        //         #end
+                        //         godot.Types.GodotNativeInterface.object_free_instance_binding(_v.native_ptr(), cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")));
+                        //     }
+                        // };
+                        // else return macro {
+                        //     if (!_v.__isDying) {
+                        //         #if (DEBUG_PRINT_OBJECT_LIFECYCLE)
+                        //             untyped __cpp__('printf("%s::__finalize: %llx -> should die (object_destroy)\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
+                        //         #end
+                        //         godot.Types.GodotNativeInterface.object_destroy(_v.native_ptr());
+                        //     }
+                        // };
+                        else return macro {
+                            if (!_v.__isDying) {
+                                #if (DEBUG_PRINT_OBJECT_LIFECYCLE)
+                                    untyped __cpp__('printf("%s::__finalize: %llx -> should invalidate (free_instance_binding)\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
                                 #end
                                 godot.Types.GodotNativeInterface.object_free_instance_binding(_v.native_ptr(), cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")));
                             }
-                        }
-                    } else if (!_v.__isDying) {
-                        // #if (DEBUG_PRINT_OBJECT_LIFECYCLE)
-                        //     untyped __cpp__('printf("%s::__finalize: %llx -> should die (object_destroy)\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
-                        // #end
-                        // godot.Types.GodotNativeInterface.object_destroy(_v.native_ptr());
-
-                        #if (DEBUG_PRINT_OBJECT_LIFECYCLE)
-                            untyped __cpp__('printf("%s::__finalize: %llx -> should invalidate (free_instance_binding)\\n", {0}, {1})', cpp.NativeString.c_str($v{className}), _v.native_ptr());
-                        #end
-                        godot.Types.GodotNativeInterface.object_free_instance_binding(_v.native_ptr(), cpp.Pointer.fromStar(untyped __cpp__("godot::internal::token")));
-                    }
+                        };
+                    })()};
                 }
 
                 // cleanup
+                HxGodot.clearFinalizer(_v);
                 _v.setOwner(null);
                 _v.setOwnerParent(null);
                 _v.deleteRoot();
@@ -256,10 +303,23 @@ class PostInitMacros {
                 this.setOwnerAndRoot(godot.Types.GodotNativeInterface.classdb_construct_object(gdBaseClass.native_ptr()));
                 HxGodot.setFinalizer(this, cpp.Callable.fromStaticFunction(__finalize));
 
-                if ($v{_isRefCounted==true}) {
-                    // var refCount:cpp.Int64 = untyped this.get_reference_count(); // TODO: remove
-                    untyped this.init_ref();
-                }
+                ${(()->{
+                    if (_isRefCounted) return macro {
+                        var refCount:cpp.Int64 = this.get_reference_count(); // TODO: remove
+                        #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
+                            untyped __cpp__('printf("%s::__postInit: %llx: %lld -> Before\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), this.native_ptr(), refCount);
+                        #end
+                        
+                        this.init_ref();
+                        this.specialRelease = true;
+
+                        var refCount:cpp.Int64 = this.get_reference_count(); // TODO: remove
+                        #if DEBUG_PRINT_REFCOUNT_LIFECYCLE
+                            untyped __cpp__('printf("%s::__postInit: %llx: %lld -> After\\n", {0}, {1}, {2})', cpp.NativeString.c_str($v{className}), this.native_ptr(), refCount);
+                        #end
+                    };
+                    else return macro {};
+                })()};
 
                 var o:godot.Types.VoidPtr = this.native_ptr();
 

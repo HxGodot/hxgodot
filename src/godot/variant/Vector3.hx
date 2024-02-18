@@ -276,6 +276,7 @@ abstract Vector3(__Vector3) from __Vector3 to __Vector3 {
     }
 
     public function rotate(p_axis:Vector3, p_angle:Float):Void {
+        // TODO: FIX THIS 
         // var v = new Basis(p_axis, p_angle).xform(this);
         // x = v.x;
         // y = v.y;

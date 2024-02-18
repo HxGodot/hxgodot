@@ -100,7 +100,7 @@ class FunctionMacros {
         var tpath = _bind.clazz.typePath;
         var ctPath = TPath(tpath);
         var destr = _bind.clazz.hasDestructor ? 
-            macro HxGodot.setFinalizer(inst, cpp.Callable.fromStaticFunction(destruct)) : macro {};
+            macro HxGodot.setBuiltinFinalizer(inst, cpp.Callable.fromStaticFunction(destruct)) : macro {};
         _fields.push({
             name: _bind.name,
             access: _bind.access,
@@ -196,6 +196,7 @@ class FunctionMacros {
                 args: [{name: '_this', type: TPath(_bind.clazz.typePath)}],
                 expr: macro {
                     _destruct(_this);
+                    HxGodot.clearFinalizer(_this);
                 },
                 params: [],
                 ret: TPath(_bind.returnType)

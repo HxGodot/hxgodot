@@ -33,6 +33,7 @@ class __Variant {
 
     public static function destructVariant(_inst:Variant) {
         godot.Types.GodotNativeInterface.variant_destroy(_inst.native_ptr());
+        HxGodot.clearFinalizer(_inst);
     }
 
     static function __initBindings() {
