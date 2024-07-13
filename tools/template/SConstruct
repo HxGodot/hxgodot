@@ -6,7 +6,7 @@ from SCons.Variables import *
 
 default_platform = "windows"
 platforms = ("windows", "linux", "macos")
-architecture_array = ["x86_64", "x86_32"]
+architecture_array = ["x86_64", "x86_32", "arm64"]
 haxe_target_array = ['cpp', 'cppia']
 
 opts = Variables([], ARGUMENTS)
@@ -91,6 +91,8 @@ elif env['platform'] == "macos":
 
     if env["arch"] == "x86_64":
         cc_flags.append('-m64')
+    elif env["arch"] == "arm64":
+        cc_flags.append('-m64')
     else:
         cc_flags.append('-m32')
 
@@ -116,6 +118,8 @@ else:
     hxCmd = hxCmd + ' -D HXCPP_GC_GENERATIONAL -D HXCPP_CPP11 -D static_link -cpp bin/ -cp bindings'
     if env["arch"] == "x86_64":
         hxCmd = hxCmd + ' -D HXCPP_M64'
+    elif env["arch"] == "arm64":
+        hxCmd = hxCmd + ' -D HXCPP_ARM64'
     if env["scriptable"] == True:
         hxCmd = hxCmd + ' -D scriptable'
 

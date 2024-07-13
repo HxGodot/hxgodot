@@ -56,9 +56,12 @@ When you are first starting out HxGodot is able to generate a simple example pro
 
 
  4. Build the extension according to your platform's flavor:
-   ```bash
-   scons platform=<windows|linux|macos> target=<debug|release>
-   ```
+    ```bash
+    scons platform=<windows|linux|macos> target=<debug|release> arch=<x86_64|x86_32|arm64>
+    ```
+   
+    Examples:
+    - for Apple Silicon: `scons platform=macos arch=arm64`
     
  5. Open the sample-project in Godot4. Please be aware, that you might need to restart the editor after the first start for everything to setup correctly:
 	 
