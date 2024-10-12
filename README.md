@@ -1,5 +1,11 @@
+> [!IMPORTANT]  
+> This project is no longer maintained!
+> This was an interesting experiment and journey which was in the end not able to live up to the vision I had in mind.
+> In the end it was hard to justify the time and complexity required in relation to the factual outcome of a semi-working solution.
+> Thanks!
+
+---
 ![logo.png](https://hxgodot.github.io/logo2.png)
-<img src="https://discordapp.com/api/guilds/162395145352904705/widget.png?style=shield" alt="#hxgodot channel"/></a>
 
 # HxGodot - A Haxe GDExtension for Godot 4
 
@@ -165,5 +171,3 @@ You should be able to step through the code on both sides(godot & hxgodot) and s
 ## Good to know
 - Godot exposes around 850 classes in the extension API. Haxe's compiler will automatically only compile classes that your code actually imports / uses into the extension.
 
----
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/dazkind)
